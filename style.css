@@ -2,32 +2,45 @@
 
 html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Quicksand', sans-serif; }
 
-/* --- ATMOSPHERIC VFX --- */
-.weather-layer {
+/* --- CLEAN ATMOSPHERIC VFX --- */
+
+/* RAIN: Subtle, thin lines falling at the window */
+.rain-overlay {
     position: absolute;
-    pointer-events: none; /* Clicks pass right through the rain/fire */
-    z-index: 5; 
-    opacity: 0.6; /* Makes them look misty and subtle */
+    top: 5%; left: 5%; width: 35%; height: 50%;
+    z-index: 5; pointer-events: none;
+    overflow: hidden;
+    background: repeating-linear-gradient(transparent, transparent 90%, rgba(255,255,255,0.1) 90%, rgba(255,255,255,0.1) 100%);
+    background-size: 3px 50px;
+    animation: rainFall 0.8s linear infinite;
+    mask-image: radial-gradient(circle, black 40%, transparent 95%);
 }
 
-/* Rain over the Window area (Top Left) */
-.rain-window {
-    top: 5%; left: 5%;
-    width: 35%; height: 50%;
-    background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozJmN0PWc/3o7TKVUn7iM8FMEU24/giphy.gif');
-    background-size: cover;
-    mask-image: radial-gradient(circle, black 60%, transparent 100%); /* Soft edges */
+@keyframes rainFall {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 50px; }
 }
 
-/* Embers over the Hearth area (Bottom Right) */
-.fire-embers {
-    bottom: 5%; right: 5%;
-    width: 40%; height: 40%;
-    background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozJmN0PWc/L7f33G6fA1L6U/giphy.gif');
-    background-size: cover;
-    mix-blend-mode: screen; /* Makes the black background of the gif disappear */
+/* EMBERS: Soft, drifting orange sparks over the hearth */
+.ember-overlay {
+    position: absolute;
+    bottom: 5%; right: 5%; width: 40%; height: 40%;
+    z-index: 5; pointer-events: none;
+    background-image: 
+        radial-gradient(circle, #ff6600 20%, transparent 20%),
+        radial-gradient(circle, #ff9933 20%, transparent 20%);
+    background-size: 8px 8px, 12px 12px;
+    background-position: 0 0, 10px 10px;
+    opacity: 0.4;
+    filter: blur(1px);
+    animation: emberDrift 4s linear infinite;
 }
 
+@keyframes emberDrift {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    50% { opacity: 0.6; }
+    100% { transform: translateY(-50px) translateX(20px); opacity: 0; }
+}
 /* --- THE REST OF YOUR MASTER CSS --- */
 .master-image {
     width: 100%; height: 100%; object-fit: cover; position: fixed; top: 0; left: 0;
