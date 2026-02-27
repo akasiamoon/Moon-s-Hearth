@@ -7,31 +7,32 @@ html, body {
     font-family: 'Quicksand', sans-serif;
 }
 
-/* THE GRIT OVERLAY (Clicks Pass Through) */
+/* 1. THE GRIT OVERLAY - Must be ghosted so clicks pass through */
 body::after {
     content: "";
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
-    pointer-events: none; z-index: 2000;
+    pointer-events: none; /* <--- THIS IS THE FIX. It makes the layer "invisible" to clicks. */
+    z-index: 2000;
 }
 
-.master-image {
-    width: 100%; height: 100%; object-fit: cover;
-    position: fixed; top: 0; left: 0;
-    filter: brightness(0.6) contrast(1.1) saturate(0.8) sepia(0.2);
-    z-index: 1;
-}
-
-/* 2. THE PORTALS - Completely Invisible Default State */
+/* 2. THE PORTALS - Bring them to the front */
 .portal {
     position: absolute; 
     cursor: crosshair; 
-    z-index: 100; 
-    border: none; /* NO ACTUAL BOX AT ALL */
+    z-index: 2500; /* <--- MUST be higher than the Grit (2000) */
+    border: none;
     background: transparent;
     transition: all 0.5s ease;
+    pointer-events: auto; /* <--- Forces them to be clickable */
 }
 
+/* 3. THE DOSSIER - The highest layer */
+#parchment-overlay {
+    /* ... existing styles ... */
+    z-index: 3000;
+    /* Remove the '0 0 0 1000px' shadow from here if you can't click things while it's CLOSED */
+}
 /* 3. THE HOVER REVEAL - "The Aura" */
 .portal:hover {
     /* We use a circular radial gradient so there are no sharp edges */
