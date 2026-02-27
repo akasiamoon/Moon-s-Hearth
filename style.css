@@ -1,139 +1,92 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
 
-/* 1. THE FOUNDATION */
 html, body {
     margin: 0; padding: 0; width: 100vw; height: 100vh;
     overflow: hidden; background: #000;
     font-family: 'Quicksand', sans-serif;
 }
 
-/* 1. THE GRIT OVERLAY - Must be ghosted so clicks pass through */
+/* 1. THE IMAGE (Bottom Layer) */
+.master-image {
+    width: 100%; height: 100%; object-fit: cover;
+    position: fixed; top: 0; left: 0;
+    filter: brightness(0.5) contrast(1.1);
+    z-index: 1;
+}
+
+/* 2. THE GRIT (Middle Layer - Ghosted) */
 body::after {
     content: "";
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
-    pointer-events: none; /* <--- THIS IS THE FIX. It makes the layer "invisible" to clicks. */
-    z-index: 2000;
+    pointer-events: none;
+    z-index: 50;
 }
 
-/* 2. THE PORTALS - Bring them to the front */
+/* 3. THE PORTALS (Top Layer - Clickable) */
 .portal {
     position: absolute; 
     cursor: crosshair; 
-    z-index: 2500; /* <--- MUST be higher than the Grit (2000) */
-    border: none;
+    z-index: 100; /* Higher than grit and image */
     background: transparent;
-    transition: all 0.5s ease;
-    pointer-events: auto; /* <--- Forces them to be clickable */
+    border: none;
+    transition: all 0.3s ease;
 }
 
-/* 3. THE DOSSIER - The highest layer */
-#parchment-overlay {
-    /* ... existing styles ... */
-    z-index: 3000;
-    /* Remove the '0 0 0 1000px' shadow from here if you can't click things while it's CLOSED */
-}
-/* 3. THE HOVER REVEAL - "The Aura" */
 .portal:hover {
-    /* We use a circular radial gradient so there are no sharp edges */
-    background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, rgba(255, 202, 40, 0.05) 40%, transparent 75%);
-    /* This makes the circular glow pulse outward */
-    box-shadow: 0 0 25px rgba(255, 202, 40, 0.3);
-    animation: luminousPulse 2s infinite ease-in-out;
+    background: radial-gradient(circle, rgba(255, 202, 40, 0.2) 0%, transparent 70%);
+    animation: portalPulse 2s infinite;
 }
 
-/* THE "PRESS" EFFECT - Feels heavy when clicked */
-.portal:active {
-    transform: scale(0.97); /* Sinks into the screen */
-    filter: brightness(1.3);
+@keyframes portalPulse {
+    0% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.1); }
+    50% { box-shadow: 0 0 30px rgba(255, 202, 40, 0.4); }
+    100% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.1); }
 }
 
-/* 4. THE PULSE ANIMATION - Breathing Aura */
-@keyframes luminousPulse {
-    0%   { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
-    50%  { box-shadow: 0 0 30px rgba(255, 202, 40, 0.6); }
-    100% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
-}
-
-/* 5. THE CENTERED GLASS DOSSIER - Centered "Heavy" UI */
-/* THE GILDED SCROLLWORK DOSSIER */
+/* 4. THE POP-UP (Highest Layer) */
 #parchment-overlay {
     position: fixed;
     top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(1.05);
-    width: 85%; max-width: 500px;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 80%; max-width: 450px;
+    background: rgba(10, 10, 10, 0.98);
+    backdrop-filter: blur(20px);
+    padding: 40px;
+    opacity: 0; visibility: hidden;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
     
-    /* 1. THE GLASS BASE (Deep Night Glass) */
-    background: linear-gradient(145deg, rgba(10, 10, 12, 0.98), rgba(0, 0, 0, 1));
-    backdrop-filter: blur(25px);
-    
-    /* 2. THE OUTER PULSING FRAME (Magical Glow) */
-    border: 3px solid rgba(255, 202, 40, 0.5); /* Thicker for a solid "edge" */
-    animation: framePulse 3s infinite ease-in-out;
-    
-    /* 3. THE INNER SCROLLWORK FRAME (Ancient Detail) */
-    outline: 20px solid rgba(0, 0, 0, 0.2); /* Creates space for the scrollwork */
-    outline-offset: -18px; /* Moves the scrollwork inside the gold frame */
-    
-    /* We are going to "fake" the scrollwork using a repeating text pattern for now.
-       In a final version, this is where you'd link to an actual image of Alinor patterns. */
-    box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.6); /* Massive background dim */
+    /* THE GLOWING FRAME */
+    border: 2px solid #ffca28;
+    box-shadow: 0 0 20px rgba(255, 202, 40, 0.4);
 }
 
-/* THE HOVER AURA - Making the entire box glow */
-#parchment-overlay:hover {
-    box-shadow: 0 0 50px rgba(255, 202, 40, 0.3), 0 0 0 1000px rgba(0, 0, 0, 0.6);
+#parchment-overlay.active {
+    opacity: 1; visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 50px rgba(255, 202, 40, 0.6), 0 0 0 1000vw rgba(0,0,0,0.8);
 }
 
-/* THE SCROLLWORK VISUAL - Added after the overlay fades in */
-#portal-content::before {
-    content: "◈━━━━━━◈━━━━━━◈━━༺ ❦ ༻━━◈━━━━━━◈━━━━━━◈";
-    font-family: 'Cinzel', serif;
-    color: #ffca28;
-    position: absolute;
-    top: -30px; left: 0; right: 0;
+/* 5. THE SCROLLWORK BORDER (Inside the glow) */
+#portal-content {
+    border: 10px solid transparent;
+    padding: 20px;
+    /* This creates a "Double Frame" effect */
+    outline: 1px solid rgba(255, 202, 40, 0.3);
+    outline-offset: -5px;
+    color: #d4c8a8;
     text-align: center;
-    font-size: 14px;
-    letter-spacing: 2px;
 }
 
-/* THE ANIMATION - Breathing Glow-field */
-@keyframes framePulse {
-    0% {
-        border-color: rgba(255, 202, 40, 0.3);
-        box-shadow: 0 0 10px rgba(255, 202, 40, 0.2);
-    }
-    50% {
-        border-color: rgba(255, 202, 40, 0.9);
-        box-shadow: 0 0 35px rgba(255, 202, 40, 0.6);
-    }
-    100% {
-        border-color: rgba(255, 202, 40, 0.3);
-        box-shadow: 0 0 10px rgba(255, 202, 40, 0.2);
-    }
-}
-
-/* THE "SLAM" ANIMATION - A heavy snap-to-center */
-@keyframes heavySlam {
-    0% { transform: translate(-50%, -52%) scale(1.05); opacity: 0; }
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
-
-/* 6. TYPOGRAPHY & BUTTONS */
-h2 {
-    font-family: 'Cinzel', serif; color: #ffca28;
-    text-align: center; border-bottom: 1px solid rgba(255, 202, 40, 0.2);
-    padding-bottom: 10px; letter-spacing: 2px;
-}
-
-#portal-content { color: #ccc; line-height: 1.6; font-size: 1.1em; }
+h2 { font-family: 'Cinzel', serif; color: #ffca28; letter-spacing: 3px; }
 
 .close-btn {
-    position: absolute; top: 10px; right: 15px;
+    position: absolute; top: 10px; right: 20px;
     color: #ffca28; font-size: 24px; cursor: pointer;
 }
 
-/* 7. PORTAL COORDINATES */
+/* 6. COORDINATES */
 #portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
 #portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
 #portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
