@@ -7,12 +7,14 @@
     <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
- <div class="sanctuary-container">
+<div class="sanctuary-container">
     <img src="sanctuary.jpg" class="master-image" id="bg-art" alt="Sanctuary">
 
-    <div class="rain-overlay"></div>
-    <div class="ember-overlay"></div>
+    <div class="rain-window" id="rain"></div>
+    <div class="hearth-embers" id="embers"></div>
 
+    <div id="portal-window" class="portal" onclick="openPortal('window')"></div>
+    <div id="portal-cat" class="portal" onclick="openPortal('cat')"></div>
     </div>
 
     <div id="portal-window" class="portal" onclick="openPortal('window')"></div>
