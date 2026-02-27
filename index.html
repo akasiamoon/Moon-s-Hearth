@@ -55,14 +55,16 @@
 </head>
 <body>
 
-    <div class="sanctuary-container">
-        <img src="sanctuary.jpg" class="master-image" alt="Alinor Sanctuary">
+   <div class="sanctuary-container">
+    <img src="assets/sanctuary.jpg" class="master-image" alt="Alinor Sanctuary">
 
-        <div id="portal-grimoire" class="portal" onclick="alert('Opening Kitchen Grimoire...')"></div>
-        <div id="portal-cat" class="portal" onclick="alert('Checking Bounty Board...')"></div>
-        <div id="portal-alchemy" class="portal" onclick="alert('Accessing Apothecary...')"></div>
-        <div id="portal-window" class="portal" onclick="alert('Viewing the Fen Almanac...')"></div>
-    </div>
-
+    <div id="portal-grimoire" class="portal" onclick="openPortal('grimoire')"></div>
+    <div id="portal-cat"      class="portal" onclick="openPortal('cat')"></div>
+    <div id="portal-alchemy"  class="portal" onclick="openPortal('apothecary')"></div>
+    <div id="portal-window"   class="portal" onclick="openPortal('window')"></div>
+    <div id="portal-audio"    class="portal" onclick="openPortal('audio')"></div>
+    <div id="portal-teacup"   class="portal" onclick="openPortal('teacup')"></div>
+    <div id="portal-sewing"   class="portal" onclick="openPortal('sewing')"></div>
+</div>
 </body>
 </html>
