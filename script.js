@@ -3,6 +3,15 @@ function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     
+    content.innerHTML = portalData[portalName] || 'The portal is mist-shrouded...';
+    
+    // This adds the "active" class to trigger the CSS slide-in
+    overlay.classList.add('active');
+}
+
+function closePortal() {
+    document.getElementById('parchment-overlay').classList.remove('active');
+}
     // Define what each portal shows
    const portalData = {
     // 1. Kitchen Grimoire
