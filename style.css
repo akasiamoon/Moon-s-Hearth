@@ -1,74 +1,58 @@
-/* 1. RESET: This kills the black void and margins */
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background-color: #000;
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
+
+body, html {
+    margin: 0; padding: 0; width: 100vw; height: 100vh;
+    overflow: hidden; background: #000;
+    font-family: 'Quicksand', sans-serif;
 }
 
-/* 2. THE CONTAINER: Stretches to your full monitor size */
-.sanctuary-container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-}
-
-/* 3. THE IMAGE: Forces it to fill the entire screen */
+/* The Sanctuary Image */
 .master-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* This is the magic "No-Void" button */
-    position: absolute;
-    top: 0;
-    left: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    transition: filter 0.8s ease; /* Smooth blur when opening menus */
 }
 
-/* 4. THE PORTALS: Red outlines so you can see all 8 boxes */
+/* When a portal is active, blur the background */
+.blur-bg { filter: blur(8px) brightness(0.4); }
+
+/* The Portals - Invisible but they GLOW on hover */
 .portal {
-    position: absolute;
-    cursor: pointer;
-    border: 1px solid transparent; /* This hides the red lines */
-    z-index: 10;
+    position: absolute; cursor: pointer; z-index: 10;
 }
 
-/* 5. INDIVIDUAL COORDINATES FOR YOUR 8 ITEMS */
-#portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
-#portal-herbs    { top: 2%;  left: 55%;  width: 22%; height: 20%; }
-#portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
-#portal-grimoire { top: 38%; left: 55%;  width: 12%; height: 18%; }
-#portal-alchemy  { top: 60%; left: 10%;  width: 30%; height: 35%; }
-#portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
-#portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
-#portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
+.portal:hover {
+    background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 70%);
+    box-shadow: inset 0 0 20px rgba(255, 202, 40, 0.2);
+}
 
-/* 6. THE PARCHMENT: The slide-out menu style */
+/* THE FLOATING PARCHMENT */
 #parchment-overlay {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 300px;
-    height: 100vh;
-    background: #2c1e0a;
-    border-left: 4px solid #ffca28;
-    color: #f4e4bc;
-    padding: 40px 20px;
-    transform: translateX(100%);
-    transition: 0.4s ease-in-out;
+    position: fixed; top: 10%; right: -400px; /* Start hidden */
+    width: 320px; height: 80vh;
+    background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), #2c1e0a;
+    border: 2px solid #ffca28;
+    border-radius: 15px 0 0 15px;
+    box-shadow: -10px 0 50px rgba(0,0,0,0.9);
+    padding: 30px;
+    transition: right 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 1000;
-    font-family: serif;
+    color: #f4e4bc;
 }
 
-#parchment-overlay.active {
-    transform: translateX(0);
+#parchment-overlay.active { right: 0; }
+
+h2 { font-family: 'Cinzel', serif; color: #ffca28; border-bottom: 1px solid #ffca28; padding-bottom: 10px; }
+
+/* Making the Input look like a Scribe's Tool */
+input {
+    background: rgba(0,0,0,0.3); border: 1px solid #ffca28;
+    color: #f4e4bc; padding: 8px; border-radius: 5px; width: 80%;
 }
 
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    color: #ffca28;
-    font-size: 30px;
-    cursor: pointer;
+button {
+    background: #ffca28; border: none; color: #2c1e0a;
+    font-family: 'Cinzel', bold; padding: 8px 15px; cursor: pointer;
+    margin-top: 10px; transition: 0.3s;
 }
+
+button:hover { background: #fff; box-shadow: 0 0 10px #ffca28; }
