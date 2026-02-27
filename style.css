@@ -1,63 +1,64 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
 
-/* 1. FOUNDATION */
+/* --- 1. ANIMATION DEFINITIONS (Moved to top for priority) --- */
+@keyframes gentleGlow {
+    0% { filter: brightness(0.48) sepia(0.12) contrast(1.1); }
+    100% { filter: brightness(0.58) sepia(0.25) contrast(1.2); }
+}
+
+@keyframes dustDrift {
+    0% { background-position: 0 0; opacity: 0; }
+    20% { opacity: 0.5; }
+    80% { opacity: 0.5; }
+    100% { background-position: 100px -200px; opacity: 0; }
+}
+
+@keyframes goldShimmer {
+    to { background-position: 200% center; }
+}
+
+/* --- 2. FOUNDATION --- */
 html, body {
     margin: 0; padding: 0; width: 100vw; height: 100vh;
     overflow: hidden; background: #000; color: #e0e0e0;
     font-family: 'Quicksand', sans-serif;
 }
 
-/* 2. SUBTLE DUST MOTES (Reduced Density) */
+/* --- 3. THE DUST MOTES --- */
 .dust-container {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 8; pointer-events: none;
-    /* Larger spacing (300px) means fewer particles */
+    z-index: 10; pointer-events: none;
+    /* Larger, more visible motes */
     background-image: 
-        radial-gradient(circle, rgba(255, 202, 40, 0.2) 1px, transparent 1px),
-        radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 300px 300px, 450px 450px;
-    filter: blur(1px);
-    opacity: 0.4;
-    animation: dustDrift 25s linear infinite;
+        radial-gradient(circle, rgba(255, 202, 40, 0.4) 1.5px, transparent 1.5px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+    background-size: 200px 200px, 300px 300px;
+    filter: blur(0.5px);
+    animation: dustDrift 20s linear infinite !important;
 }
 
-@keyframes dustDrift {
-    0% { background-position: 0 0; opacity: 0; }
-    15% { opacity: 1; }
-    85% { opacity: 1; }
-    100% { background-position: 50px -100px; opacity: 0; }
-}
-
-/* 3. THE BACKGROUND - Gentle Heartbeat Flicker */
+/* --- 4. THE BACKGROUND (Fire Flicker) --- */
 .master-image {
     width: 100%; height: 100%; object-fit: cover;
     position: fixed; top: 0; left: 0; z-index: 1;
     filter: brightness(0.5) contrast(1.1) sepia(0.15);
     transition: all 1s ease-in-out;
-    animation: gentleGlow 8s infinite alternate ease-in-out;
-}
-
-@keyframes gentleGlow {
-    0% { filter: brightness(0.48) sepia(0.12) contrast(1.1); }
-    100% { filter: brightness(0.54) sepia(0.22) contrast(1.15); }
+    animation: gentleGlow 6s infinite alternate ease-in-out !important;
 }
 
 .master-image.dimmed {
     filter: brightness(0.15) blur(12px) contrast(1.1) sepia(0);
     transform: scale(1.05);
-    animation: none;
+    animation: none !important;
 }
 
-/* 4. THE GILDED DOSSIER & SCROLLWORK FRAMES */
+/* --- 5. THE GILDED DOSSIER & SCROLLWORK --- */
 #parchment-overlay {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
     width: 85%; max-width: 500px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
-    
-    /* OUTER GOLD LEAF FRAME */
     border: 5px solid;
     border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
     border-image-slice: 1;
-    
     padding: 60px 40px; opacity: 0; visibility: hidden; z-index: 10000;
     transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -67,11 +68,10 @@ html, body {
     box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.7); 
 }
 
-/* THE PRETTY SCROLLWORK FRAME (Internal) */
 #portal-content {
     position: relative; color: #d4c8a8; line-height: 1.8; font-size: 1.15em;
     text-align: center; margin-top: 30px; padding: 25px;
-    border: 1px solid rgba(191, 149, 63, 0.3); /* The thin gold inner frame */
+    border: 1px solid rgba(191, 149, 63, 0.3);
 }
 
 #portal-content::before, #portal-content::after {
@@ -81,7 +81,6 @@ html, body {
 #portal-content::before { top: -15px; }
 #portal-content::after { bottom: -15px; }
 
-/* GOLD SHIMMER HEADERS */
 h2 {
     font-family: 'Cinzel', serif; 
     background: linear-gradient(to right, #bf953f, #fcf6ba, #bf953f);
@@ -90,11 +89,10 @@ h2 {
     text-align: center; letter-spacing: 5px; text-transform: uppercase;
     margin: 0; padding-bottom: 25px;
 }
-@keyframes goldShimmer { to { background-position: 200% center; } }
 
 .close-btn { position: absolute; top: 15px; right: 20px; color: #bf953f; font-size: 28px; cursor: pointer; }
 
-/* 5. PORTALS & COORDINATES */
+/* --- 6. COORDINATES --- */
 .portal { position: absolute; cursor: crosshair; z-index: 1000; background: transparent; border: none; }
 .portal:hover { background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 75%); }
 
