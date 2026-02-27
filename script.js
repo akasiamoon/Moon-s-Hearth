@@ -48,43 +48,44 @@ const portalData = {
     `
 };
 
+const portalData = {
+    'window': '<h2>Fen Almanac</h2><p>Focus: Lavender & Chamomile</p>',
+    'herbs': '<h2>The Drying Rack</h2><p>Lavender, Eucalyptus, Dandelion Root</p>',
+    'audio': '<h2>Bardic Soundscapes</h2><p>Bilateral audio active for focus.</p>',
+    'grimoire': '<h2>Kitchen Grimoire</h2><p>Mistral Banana Bread & Highland Stew</p>',
+    'alchemy': '<h2>Apothecary</h2><p>Vibrant Ink Protectant & Salve</p>',
+    'teacup': '<h2>The Stillness</h2><p>Lady Grey with Honey.</p>',
+    'cat': '<h2>Bounty Board</h2><p>Homeschool Module & DoorDash Shift</p>',
+    'sewing': '<h2>Measurement Log</h2><p>Spring Tunics: Linen Blend</p>'
+};
+
 function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
-    const bgImage = document.querySelector('.master-image'); // Select the background
+    const bg = document.getElementById('bg-art'); // Finds the image
     
     if (portalData[portalName]) {
         content.innerHTML = portalData[portalName];
         overlay.classList.add('active');
-        bgImage.classList.add('dimmed'); // Dim the world
+        if (bg) bg.classList.add('dimmed'); // Triggers the CSS blur
     }
 }
 
 function closePortal() {
     const overlay = document.getElementById('parchment-overlay');
-    const bgImage = document.querySelector('.master-image');
+    const bg = document.getElementById('bg-art');
     
     overlay.classList.remove('active');
-    bgImage.classList.remove('dimmed'); // Restore the world
-}
-}
-
-function closePortal() {
-    const overlay = document.getElementById('parchment-overlay');
-    overlay.classList.remove('active');
+    if (bg) bg.classList.remove('dimmed'); // Removes the blur
 }
 
-// Click outside the glass card to close
+// Close on click outside
 window.onclick = function(event) {
     const overlay = document.getElementById('parchment-overlay');
-    if (event.target == overlay) {
-        closePortal();
-    }
+    if (event.target == overlay) closePortal();
 }
 
-// Escape key to close
+// Close on Escape key
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-        closePortal();
-    }
+    if (event.key === 'Escape') closePortal();
 });
