@@ -12,7 +12,7 @@ html, body {
     font-family: 'Quicksand', sans-serif;
 }
 
-/* THE GRIT OVERLAY (Clicks Pass Through) */
+/* THE GRIT OVERLAY (Atmospheric Scanlines) */
 body::after {
     content: "";
     position: fixed;
@@ -25,6 +25,7 @@ body::after {
     z-index: 2000;
 }
 
+/* 2. THE BACKGROUND IMAGE - Cinematic Focus */
 .master-image {
     width: 100%;
     height: 100%;
@@ -32,11 +33,18 @@ body::after {
     position: fixed;
     top: 0;
     left: 0;
-    filter: brightness(0.5) contrast(1.2) saturate(0.8) sepia(0.2);
+    filter: brightness(0.5) contrast(1.2) saturate(0.8);
     z-index: 1;
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); /* Smooth focus shift */
 }
 
-/* 2. THE PORTALS - Invisible Aura */
+/* The "World Dim" effect when a portal is open */
+.master-image.dimmed {
+    filter: brightness(0.15) blur(10px) contrast(1.1);
+    transform: scale(1.08); /* Subtle zoom when focusing on a dossier */
+}
+
+/* 3. THE PORTALS - Pulsing Ghost Auras */
 .portal {
     position: absolute;
     cursor: crosshair;
@@ -47,65 +55,76 @@ body::after {
 }
 
 .portal:hover {
-    background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, rgba(255, 202, 40, 0.05) 40%, transparent 75%);
-    box-shadow: 0 0 25px rgba(255, 202, 40, 0.3);
-    animation: luminousPulse 2s infinite ease-in-out;
+    background: radial-gradient(circle, rgba(255, 202, 40, 0.2) 0%, rgba(255, 202, 40, 0.05) 50%, transparent 80%);
+    animation: auraPulse 2.5s infinite ease-in-out;
 }
 
-@keyframes luminousPulse {
-    0%   { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
-    50%  { box-shadow: 0 0 30px rgba(255, 202, 40, 0.6); }
-    100% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
+@keyframes auraPulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 10px rgba(255, 202, 40, 0.1); }
+    50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 40px rgba(255, 202, 40, 0.4); }
 }
 
-/* 3. THE GOLD LEAF DOSSIER - Centered Heavy UI */
+.portal:active {
+    transform: scale(0.95);
+    filter: brightness(1.5);
+}
+
+/* 4. THE GOLD LEAF DOSSIER - Heavy Cinematic Entry */
 #parchment-overlay {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.05);
+    transform: translate(-50%; -50%) scale(1.1);
     width: 85%;
     max-width: 500px;
-    background: rgba(10, 10, 12, 0.98); /* Deep Obsidian Glass */
+    background: rgba(8, 8, 10, 0.98); /* Heavy Obsidian Glass */
     backdrop-filter: blur(30px);
     
-    /* THE GOLD LEAF FRAME (Metallic Multi-tone) */
-    border: 5px solid; /* Thicker for more "weight" */
+    /* THE METALLIC FRAME */
+    border: 5px solid;
     border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
     border-image-slice: 1;
     
-    /* INNER SCROLLWORK FRAME */
+    /* INNER FRAME DETAIL */
     outline: 1px solid rgba(255, 202, 40, 0.3);
     outline-offset: -15px;
     
     padding: 60px 40px;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
     z-index: 3000;
-    
-    /* Shadow Veil - Only active when box is open */
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #parchment-overlay.active {
     opacity: 1;
     visibility: visible;
     transform: translate(-50%, -50%) scale(1);
-    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.7);
-    animation: heavySlam 0.3s ease-out;
+    box-shadow: 0 0 100px rgba(0,0,0,1);
+    animation: heavyArrival 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-@keyframes heavySlam {
-    0% { transform: translate(-50%, -55%) scale(1.1); opacity: 0; }
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+@keyframes heavyArrival {
+    0% { transform: translate(-50%, -58%) scale(1.1); opacity: 0; filter: blur(15px); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0); }
 }
 
-/* 4. THE GOLD FOIL HEADERS */
+/* 5. THE GOLD FOIL HEADERS - Living Shimmer */
 h2 {
     font-family: 'Cinzel', serif;
-    background: linear-gradient(to bottom, #cfc09f 22%, #634f2c 24%, #cfc09f 26%, #ffecb3 40%, #3a2c0f 78%);
+    background: linear-gradient(
+        to right, 
+        #bf953f 20%, 
+        #fcf6ba 40%, 
+        #bf953f 50%, 
+        #fcf6ba 60%, 
+        #bf953f 80%
+    );
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    animation: goldShimmer 6s linear infinite;
+    
     text-align: center;
     letter-spacing: 5px;
     text-transform: uppercase;
@@ -115,26 +134,28 @@ h2 {
     position: relative;
 }
 
-/* ORNATE SCROLL SYMBOL */
+@keyframes goldShimmer {
+    to { background-position: 200% center; }
+}
+
 h2::after {
     content: "❦";
     position: absolute;
     bottom: -16px;
     left: 50%;
     transform: translateX(-50%);
-    background: #0a0a0c;
+    background: #08080a;
     padding: 0 15px;
-    -webkit-text-fill-color: #bf953f; /* Resets color for the leaf */
+    -webkit-text-fill-color: #bf953f;
     font-size: 22px;
 }
 
 #portal-content {
-    color: #d4c8a8; /* Aged paper ink */
+    color: #d4c8a8;
     line-height: 1.8;
     font-size: 1.15em;
     text-align: center;
     margin-top: 30px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 .close-btn {
@@ -152,7 +173,7 @@ h2::after {
     transform: rotate(90deg);
 }
 
-/* 5. PORTAL COORDINATES */
+/* 6. PORTAL COORDINATES */
 #portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
 #portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
 #portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
