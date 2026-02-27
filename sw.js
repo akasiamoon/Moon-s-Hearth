@@ -1,11 +1,12 @@
 const CACHE_NAME = 'alinor-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json',
-  '/assets/sanctuary.jpg'
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json',
+  './sanctuary.jpg',
+  './icon_512.jpg'
 ];
 
 self.addEventListener('install', event => {
