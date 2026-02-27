@@ -1,3 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
+
+h2 { font-family: 'Cinzel', serif; color: #ffca28; text-shadow: 1px 1px 5px black; }
+p, li { font-family: 'Quicksand', sans-serif; color: #e0e0e0; }
+
 /* COORDINATES FOR ALL 7 NECESSITIES */
 
 /* 1. The Master Grimoire (Recipes) */
