@@ -1,92 +1,158 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
 
+/* 1. THE FOUNDATION */
 html, body {
-    margin: 0; padding: 0; width: 100vw; height: 100vh;
-    overflow: hidden; background: #000;
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #000;
+    color: #e0e0e0;
     font-family: 'Quicksand', sans-serif;
 }
 
-/* 1. THE IMAGE (Bottom Layer) */
+/* THE GRIT OVERLAY (Clicks Pass Through) */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
+    pointer-events: none;
+    z-index: 2000;
+}
+
 .master-image {
-    width: 100%; height: 100%; object-fit: cover;
-    position: fixed; top: 0; left: 0;
-    filter: brightness(0.5) contrast(1.1);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    filter: brightness(0.5) contrast(1.2) saturate(0.8) sepia(0.2);
     z-index: 1;
 }
 
-/* 2. THE GRIT (Middle Layer - Ghosted) */
-body::after {
-    content: "";
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
-    pointer-events: none;
-    z-index: 50;
-}
-
-/* 3. THE PORTALS (Top Layer - Clickable) */
+/* 2. THE PORTALS - Invisible Aura */
 .portal {
-    position: absolute; 
-    cursor: crosshair; 
-    z-index: 100; /* Higher than grit and image */
-    background: transparent;
+    position: absolute;
+    cursor: crosshair;
+    z-index: 100;
     border: none;
-    transition: all 0.3s ease;
+    background: transparent;
+    transition: all 0.5s ease;
 }
 
 .portal:hover {
-    background: radial-gradient(circle, rgba(255, 202, 40, 0.2) 0%, transparent 70%);
-    animation: portalPulse 2s infinite;
+    background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, rgba(255, 202, 40, 0.05) 40%, transparent 75%);
+    box-shadow: 0 0 25px rgba(255, 202, 40, 0.3);
+    animation: luminousPulse 2s infinite ease-in-out;
 }
 
-@keyframes portalPulse {
-    0% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.1); }
-    50% { box-shadow: 0 0 30px rgba(255, 202, 40, 0.4); }
-    100% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.1); }
+@keyframes luminousPulse {
+    0%   { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
+    50%  { box-shadow: 0 0 30px rgba(255, 202, 40, 0.6); }
+    100% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
 }
 
-/* 4. THE POP-UP (Highest Layer) */
+/* 3. THE GOLD LEAF DOSSIER - Centered Heavy UI */
 #parchment-overlay {
     position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    width: 80%; max-width: 450px;
-    background: rgba(10, 10, 10, 0.98);
-    backdrop-filter: blur(20px);
-    padding: 40px;
-    opacity: 0; visibility: hidden;
-    z-index: 1000;
-    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.05);
+    width: 85%;
+    max-width: 500px;
+    background: rgba(10, 10, 12, 0.98); /* Deep Obsidian Glass */
+    backdrop-filter: blur(30px);
     
-    /* THE GLOWING FRAME */
-    border: 2px solid #ffca28;
-    box-shadow: 0 0 20px rgba(255, 202, 40, 0.4);
+    /* THE GOLD LEAF FRAME (Metallic Multi-tone) */
+    border: 5px solid; /* Thicker for more "weight" */
+    border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    border-image-slice: 1;
+    
+    /* INNER SCROLLWORK FRAME */
+    outline: 1px solid rgba(255, 202, 40, 0.3);
+    outline-offset: -15px;
+    
+    padding: 60px 40px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: 3000;
+    
+    /* Shadow Veil - Only active when box is open */
 }
 
 #parchment-overlay.active {
-    opacity: 1; visibility: visible;
+    opacity: 1;
+    visibility: visible;
     transform: translate(-50%, -50%) scale(1);
-    box-shadow: 0 0 50px rgba(255, 202, 40, 0.6), 0 0 0 1000vw rgba(0,0,0,0.8);
+    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.7);
+    animation: heavySlam 0.3s ease-out;
 }
 
-/* 5. THE SCROLLWORK BORDER (Inside the glow) */
-#portal-content {
-    border: 10px solid transparent;
-    padding: 20px;
-    /* This creates a "Double Frame" effect */
-    outline: 1px solid rgba(255, 202, 40, 0.3);
-    outline-offset: -5px;
-    color: #d4c8a8;
+@keyframes heavySlam {
+    0% { transform: translate(-50%, -55%) scale(1.1); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* 4. THE GOLD FOIL HEADERS */
+h2 {
+    font-family: 'Cinzel', serif;
+    background: linear-gradient(to bottom, #cfc09f 22%, #634f2c 24%, #cfc09f 26%, #ffecb3 40%, #3a2c0f 78%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     text-align: center;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    margin-top: 0;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(191, 149, 63, 0.4);
+    position: relative;
 }
 
-h2 { font-family: 'Cinzel', serif; color: #ffca28; letter-spacing: 3px; }
+/* ORNATE SCROLL SYMBOL */
+h2::after {
+    content: "❦";
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a0a0c;
+    padding: 0 15px;
+    -webkit-text-fill-color: #bf953f; /* Resets color for the leaf */
+    font-size: 22px;
+}
+
+#portal-content {
+    color: #d4c8a8; /* Aged paper ink */
+    line-height: 1.8;
+    font-size: 1.15em;
+    text-align: center;
+    margin-top: 30px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
 
 .close-btn {
-    position: absolute; top: 10px; right: 20px;
-    color: #ffca28; font-size: 24px; cursor: pointer;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #bf953f;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-/* 6. COORDINATES */
+.close-btn:hover {
+    color: #fcf6ba;
+    transform: rotate(90deg);
+}
+
+/* 5. PORTAL COORDINATES */
 #portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
 #portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
 #portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
@@ -95,3 +161,7 @@ h2 { font-family: 'Cinzel', serif; color: #ffca28; letter-spacing: 3px; }
 #portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
 #portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
+
+/* HEAVY SCROLLBAR */
+#parchment-overlay::-webkit-scrollbar { width: 5px; }
+#parchment-overlay::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 5px; }
