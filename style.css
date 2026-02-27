@@ -55,25 +55,61 @@ body::after {
 }
 
 /* 5. THE CENTERED GLASS DOSSIER - Centered "Heavy" UI */
+/* THE GILDED SCROLLWORK DOSSIER */
 #parchment-overlay {
     position: fixed;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%) scale(1.05);
-    width: 85%; max-width: 450px;
-    background: rgba(10, 10, 12, 0.98); /* Denser glass */
+    width: 85%; max-width: 500px;
+    
+    /* 1. THE GLASS BASE (Deep Night Glass) */
+    background: linear-gradient(145deg, rgba(10, 10, 12, 0.98), rgba(0, 0, 0, 1));
     backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 202, 40, 0.3);
-    padding: 30px;
-    opacity: 0; visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    z-index: 3000;
-    box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 0 1000px rgba(0,0,0,0.5); /* Massive shadow veil */
+    
+    /* 2. THE OUTER PULSING FRAME (Magical Glow) */
+    border: 3px solid rgba(255, 202, 40, 0.5); /* Thicker for a solid "edge" */
+    animation: framePulse 3s infinite ease-in-out;
+    
+    /* 3. THE INNER SCROLLWORK FRAME (Ancient Detail) */
+    outline: 20px solid rgba(0, 0, 0, 0.2); /* Creates space for the scrollwork */
+    outline-offset: -18px; /* Moves the scrollwork inside the gold frame */
+    
+    /* We are going to "fake" the scrollwork using a repeating text pattern for now.
+       In a final version, this is where you'd link to an actual image of Alinor patterns. */
+    box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.6); /* Massive background dim */
 }
 
-#parchment-overlay.active {
-    opacity: 1; visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
-    animation: heavySlam 0.25s ease-out; /* The subtle "thud" animation */
+/* THE HOVER AURA - Making the entire box glow */
+#parchment-overlay:hover {
+    box-shadow: 0 0 50px rgba(255, 202, 40, 0.3), 0 0 0 1000px rgba(0, 0, 0, 0.6);
+}
+
+/* THE SCROLLWORK VISUAL - Added after the overlay fades in */
+#portal-content::before {
+    content: "◈━━━━━━◈━━━━━━◈━━༺ ❦ ༻━━◈━━━━━━◈━━━━━━◈";
+    font-family: 'Cinzel', serif;
+    color: #ffca28;
+    position: absolute;
+    top: -30px; left: 0; right: 0;
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+/* THE ANIMATION - Breathing Glow-field */
+@keyframes framePulse {
+    0% {
+        border-color: rgba(255, 202, 40, 0.3);
+        box-shadow: 0 0 10px rgba(255, 202, 40, 0.2);
+    }
+    50% {
+        border-color: rgba(255, 202, 40, 0.9);
+        box-shadow: 0 0 35px rgba(255, 202, 40, 0.6);
+    }
+    100% {
+        border-color: rgba(255, 202, 40, 0.3);
+        box-shadow: 0 0 10px rgba(255, 202, 40, 0.2);
+    }
 }
 
 /* THE "SLAM" ANIMATION - A heavy snap-to-center */
