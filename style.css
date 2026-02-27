@@ -1,1 +1,22 @@
+/* COORDINATES FOR ALL 7 NECESSITIES */
 
+/* 1. The Master Grimoire (Recipes) */
+#portal-grimoire { top: 40%; left: 52%; width: 10%; height: 18%; }
+
+/* 2. The Senche-Cat (Bounties/Flow) */
+#portal-cat      { top: 68%; left: 66%; width: 25%; height: 22%; }
+
+/* 3. The Apothecary Workbench (Tinctures/Scales) */
+#portal-alchemy  { top: 58%; left: 16%; width: 22%; height: 28%; }
+
+/* 4. The Fen Window (Garden Almanac/Moons) */
+#portal-window   { top: 5%; left: 8%; width: 38%; height: 55%; }
+
+/* 5. The Crystal Phonograph (Soundscapes) */
+#portal-audio    { top: 42%; left: 41%; width: 10%; height: 15%; }
+
+/* 6. The Lady Grey Teacup (Self-Care/Flow) */
+#portal-teacup   { top: 72%; left: 58%; width: 7%; height: 10%; }
+
+/* 7. The Sewing Basket (Under Counter - Measurement Log) */
+#portal-sewing   { top: 80%; left: 32%; width: 10%; height: 15%; }
