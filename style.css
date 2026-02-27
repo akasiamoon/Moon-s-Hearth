@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
 
-/* 1. THE FOUNDATION - Kills the Black Void */
+/* 1. THE FOUNDATION */
 html, body {
     margin: 0;
     padding: 0;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    background: #050505;
+    background: #000;
     color: #e0e0e0;
     font-family: 'Quicksand', sans-serif;
 }
@@ -21,7 +21,7 @@ body::after {
     width: 100%;
     height: 100%;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
-    pointer-events: none; /* Crucial: Allows you to click the portals underneath */
+    pointer-events: none;
     z-index: 2000;
 }
 
@@ -33,67 +33,65 @@ body::after {
     position: fixed;
     top: 0;
     left: 0;
-    filter: brightness(0.6) contrast(1.1) saturate(0.8) sepia(0.1);
+    filter: brightness(0.5) contrast(1.2) saturate(0.7) sepia(0.2);
     z-index: 1;
+    transition: filter 0.5s ease;
 }
 
-/* 1. THE PORTALS - Completely Invisible by default */
+/* 4. THE PORTALS - Invisible until Hover with Heavy Feel */
 .portal {
-    position: absolute; 
-    cursor: crosshair; 
-    z-index: 100; 
-    border: 1px solid transparent; /* No visible border */
+    position: absolute;
+    cursor: crosshair;
+    z-index: 100;
+    border: 1px solid transparent;
     background: transparent;
-    transition: all 0.5s ease;
+    transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* 2. THE HOVER REVEAL - Pulse and Glow */
 .portal:hover {
     border: 1px solid rgba(255, 202, 40, 0.6);
-    background: radial-gradient(circle, rgba(255, 202, 40, 0.1) 0%, transparent 80%);
-    box-shadow: 0 0 20px rgba(255, 202, 40, 0.4);
-    animation: pulseGlow 2s infinite ease-in-out;
+    background: rgba(255, 202, 40, 0.05);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 202, 40, 0.1);
+    transform: scale(1.01); /* Subtle magnetic pull */
 }
 
-/* 3. THE PULSE ANIMATION - Makes it feel magical */
-@keyframes pulseGlow {
-    0% {
-        box-shadow: 0 0 10px rgba(255, 202, 40, 0.2);
-        border-color: rgba(255, 202, 40, 0.3);
-    }
-    50% {
-        box-shadow: 0 0 25px rgba(255, 202, 40, 0.6);
-        border-color: rgba(255, 202, 40, 0.8);
-    }
-    100% {
-        box-shadow: 0 0 10px rgba(255, 202, 40, 0.2);
-        border-color: rgba(255, 202, 40, 0.3);
-    }
+/* THE CLICK - Sinks the portal into the screen */
+.portal:active {
+    transform: scale(0.96);
+    filter: brightness(1.4);
 }
 
-/* 5. THE CENTERED GLASS DOSSIER */
+/* 5. THE CENTERED HEAVY DOSSIER */
 #parchment-overlay {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: translate(-50%, -50%) scale(1.05); /* Slight bounce start */
     width: 85%;
-    max-width: 450px;
-    background: rgba(10, 10, 12, 0.95); /* Deep Night Glass */
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 202, 40, 0.3);
-    padding: 30px;
+    max-width: 480px;
+    background: rgba(8, 8, 10, 0.98); /* Denser, heavier glass */
+    backdrop-filter: blur(25px);
+    border: 2px solid rgba(255, 202, 40, 0.3);
+    padding: 40px;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
     z-index: 3000;
-    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+    /* Massive shadow veil to dim the world */
+    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000px rgba(0,0,0,0.5); 
 }
 
 #parchment-overlay.active {
     opacity: 1;
     visibility: visible;
     transform: translate(-50%, -50%) scale(1);
+    animation: thud 0.25s ease-out; /* The heavy impact animation */
+}
+
+/* THE "THUD" - A heavy snap-to-center */
+@keyframes thud {
+    0% { transform: translate(-50%, -52%) scale(1.05); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
 /* 6. TYPOGRAPHY & BUTTONS */
@@ -101,38 +99,16 @@ h2 {
     font-family: 'Cinzel', serif;
     color: #ffca28;
     text-align: center;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
     border-bottom: 1px solid rgba(255, 202, 40, 0.2);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
 }
 
 #portal-content {
-    color: #ccc;
-    line-height: 1.6;
+    color: #bbb;
+    line-height: 1.7;
     font-size: 1.1em;
+    text-shadow: 1px 1px 2px black;
 }
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    color: #ffca28;
-    font-size: 24px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.close-btn:hover {
-    color: #fff;
-    text-shadow: 0 0 10px #ffca28;
-}
-
-/* 7. PORTAL COORDINATES */
-#portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
-#portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
-#portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
-#portal-grimoire { top: 38%; left: 55%;  width: 12%; height: 18%; }
-#portal-alchemy  { top: 60%; left: 10%;  width: 30%; height: 35%; }
-#portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
-#portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
