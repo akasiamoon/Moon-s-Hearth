@@ -51,13 +51,22 @@ const portalData = {
 function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
+    const bgImage = document.querySelector('.master-image'); // Select the background
     
     if (portalData[portalName]) {
         content.innerHTML = portalData[portalName];
         overlay.classList.add('active');
-    } else {
-        console.log("No data for portal: " + portalName);
+        bgImage.classList.add('dimmed'); // Dim the world
     }
+}
+
+function closePortal() {
+    const overlay = document.getElementById('parchment-overlay');
+    const bgImage = document.querySelector('.master-image');
+    
+    overlay.classList.remove('active');
+    bgImage.classList.remove('dimmed'); // Restore the world
+}
 }
 
 function closePortal() {
