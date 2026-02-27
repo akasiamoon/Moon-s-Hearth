@@ -25,6 +25,8 @@ function openPortal(portalName) {
 }
 
 function closePortal() {
-    document.getElementById('parchment-overlay').classList.remove('active');
-    document.querySelector('.master-image').classList.remove('blur-bg');
+    const overlay = document.getElementById('parchment-overlay');
+    overlay.classList.remove('active');
+    // Remove blur from background
+    document.querySelector('.master-image').style.filter = "brightness(0.6) contrast(1.1)";
 }
