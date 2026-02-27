@@ -1,17 +1,50 @@
 const portalData = {
-    'grimoire': `
-        <h2 style="font-family:'Cinzel', serif; color:#ffca28; text-transform:uppercase; text-align:center;">Kitchen Grimoire</h2>
-        <div style="border: 1px solid rgba(255,202,40,0.2); padding: 15px; text-align:center;">
-            <p>• Mistral Banana Bread (Risen)</p>
-            <p>• Highland Stew (Simmering)</p>
+    'window': `
+        <h2>Fen Almanac</h2>
+        <p><i>"The Frost Moon approaches."</i></p>
+        <div style="border: 1px solid rgba(191,149,63,0.3); padding: 15px; margin-top:15px;">
+            <p style="color: #fcf6ba;">Focus: Lavender & Chamomile</p>
+            <p>Indoor seedlings are thriving near the hearth light.</p>
         </div>
     `,
+    'herbs': `
+        <h2>The Drying Rack</h2>
+        <p>Current Harvest:</p>
+        <p>• Lavender (Drying)<br>• Eucalyptus (Fresh)<br>• Dandelion Root (Curing)</p>
+    `,
+    'audio': `
+        <h2>Bardic Soundscapes</h2>
+        <p><i>Channeling: Hearth & Rain</i></p>
+        <p style="color: #bf953f;">Bilateral audio active for deep focus.</p>
+    `,
+    'grimoire': `
+        <h2>Kitchen Grimoire</h2>
+        <p>Active Reagents:</p>
+        <p>• Mistral Banana Bread<br>• Highland Stew</p>
+    `,
+    'alchemy': `
+        <h2>Apothecary Formulary</h2>
+        <p>Current Batch:</p>
+        <p style="color: #fcf6ba;">Vibrant Ink Protectant</p>
+        <p>(Shea & Vitamin E Restoration Salve)</p>
+    `,
+    'teacup': `
+        <h2>The Stillness</h2>
+        <p><i>"Breathe as the trees do."</i></p>
+        <p>Current Elixir: Lady Grey with Honey.</p>
+    `,
     'cat': `
-        <h2 style="font-family:'Cinzel', serif; color:#ffca28; text-transform:uppercase; text-align:center;">Bounty Board</h2>
-        <div style="border: 1px solid rgba(255,202,40,0.2); padding: 15px; text-align:center;">
-            <p><strong>⚔️ Homeschool Quest:</strong> Module 4 complete.</p>
-            <p><strong>⚔️ Provisioning:</strong> DoorDash Shift.</p>
+        <h2>Bounty Board</h2>
+        <div style="border-left: 2px solid #bf953f; padding-left: 15px; text-align: left;">
+            <p><span style="color: #bf953f;">[✔]</span> Homeschooling Module</p>
+            <p><span style="color: #bf953f;">[ ]</span> Provisioning Dash</p>
         </div>
+    `,
+    'sewing': `
+        <h2>Measurement Log</h2>
+        <p>Spring Tunics in progress:</p>
+        <p>• Daughter (4'2") | Son (3'9")</p>
+        <p style="opacity: 0.7;">Fabric: Linen Blend</p>
     `
 };
 
@@ -22,6 +55,8 @@ function openPortal(portalName) {
     if (portalData[portalName]) {
         content.innerHTML = portalData[portalName];
         overlay.classList.add('active');
+    } else {
+        console.log("No data for portal: " + portalName);
     }
 }
 
@@ -30,7 +65,7 @@ function closePortal() {
     overlay.classList.remove('active');
 }
 
-// Close portal if user clicks OUTSIDE the glass card
+// Click outside the glass card to close
 window.onclick = function(event) {
     const overlay = document.getElementById('parchment-overlay');
     if (event.target == overlay) {
@@ -38,7 +73,7 @@ window.onclick = function(event) {
     }
 }
 
-// Keyboard Shortcut: Hit 'Escape' to close the menu
+// Escape key to close
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         closePortal();
