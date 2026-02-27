@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Druidic Alinor Sanctuary</title>
+    <style>
+        /* This section makes sure the image fits your screen perfectly */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0d0d0d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sanctuary-container {
+            position: relative;
+            width: 100vw;
+            height: 56.25vw; /* This maintains the 16:9 ratio */
+            max-height: 100vh;
+            max-width: 177.78vh;
+            margin: auto;
+        }
+
+        .master-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* This is a "Portal" - an invisible clickable box */
+        .portal {
+            position: absolute;
+            cursor: pointer;
+            border: 2px solid transparent; /* Change to 'gold' to see the boxes while you work! */
+            transition: 0.3s;
+        }
+
+        .portal:hover {
+            background: rgba(255, 215, 0, 0.1); /* A soft golden glow when you hover */
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        /* COORDINATES FOR YOUR PORTALS */
+        #portal-grimoire { top: 35%; left: 52%; width: 12%; height: 20%; }
+        #portal-cat      { top: 68%; left: 66%; width: 25%; height: 20%; }
+        #portal-alchemy  { top: 60%; left: 15%; width: 35%; height: 30%; }
+        #portal-window   { top: 10%; left: 10%; width: 40%; height: 50%; }
+
+    </style>
+</head>
+<body>
+
+    <div class="sanctuary-container">
+        <img src="sanctuary.jpg" class="master-image" alt="Alinor Sanctuary">
+
+        <div id="portal-grimoire" class="portal" onclick="alert('Opening Kitchen Grimoire...')"></div>
+        <div id="portal-cat" class="portal" onclick="alert('Checking Bounty Board...')"></div>
+        <div id="portal-alchemy" class="portal" onclick="alert('Accessing Apothecary...')"></div>
+        <div id="portal-window" class="portal" onclick="alert('Viewing the Fen Almanac...')"></div>
+    </div>
+
+</body>
+</html>
