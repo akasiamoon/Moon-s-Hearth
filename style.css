@@ -2,102 +2,65 @@
 
 /* 1. THE FOUNDATION */
 html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: #000;
-    color: #e0e0e0;
+    margin: 0; padding: 0; width: 100vw; height: 100vh;
+    overflow: hidden; background: #000; color: #e0e0e0;
     font-family: 'Quicksand', sans-serif;
 }
 
-/* 2. ATMOSPHERIC LAYERS (Rain & Fire) */
-
-/* The Window Rain: Fine silver streaks */
-.rain-window {
-    position: absolute;
-    top: 5%; left: 5%; width: 35%; height: 50%;
+/* 2. THE DUST MOTES (Aether) */
+.dust-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 5; pointer-events: none;
-    overflow: hidden;
-    background: repeating-linear-gradient(
-        0deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0) 90%,
-        rgba(200, 220, 255, 0.15) 90%,
-        rgba(200, 220, 255, 0.15) 100%
-    );
-    background-size: 2px 80px;
-    animation: rainDrop 0.7s linear infinite;
-    mask-image: radial-gradient(circle, black 50%, transparent 95%);
-}
-
-/* The Hearth Embers: Drifting golden sparks */
-.hearth-embers {
-    position: absolute;
-    bottom: 5%; right: 10%; width: 30%; height: 40%;
-    z-index: 5; pointer-events: none;
+    /* Creating 'motes' using a scattered radial gradient */
     background-image: 
-        radial-gradient(circle, #ffca28 1px, transparent 1px),
-        radial-gradient(circle, #ff9100 1.5px, transparent 1.5px);
-    background-size: 50px 50px, 80px 80px;
-    opacity: 0.5;
-    filter: blur(0.5px);
-    animation: emberDrift 4s linear infinite;
+        radial-gradient(circle, rgba(255, 202, 40, 0.2) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px);
+    background-size: 150px 150px, 250px 250px;
+    filter: blur(1px);
+    animation: dustDrift 20s linear infinite;
 }
 
-@keyframes rainDrop { from { background-position: 0 0; } to { background-position: 0 80px; } }
-@keyframes emberDrift {
-    0% { transform: translate(0, 0); opacity: 0; }
-    20% { opacity: 0.6; }
-    100% { transform: translate(40px, -120px); opacity: 0; }
+@keyframes dustDrift {
+    0% { background-position: 0 0; opacity: 0; }
+    10% { opacity: 0.4; }
+    90% { opacity: 0.4; }
+    100% { background-position: 100px -150px; opacity: 0; }
 }
 
-/* 3. THE BACKGROUND - With Firelight Flicker */
+/* 3. THE BACKGROUND - With Subtle Firelight Flicker */
 .master-image {
     width: 100%; height: 100%; object-fit: cover;
     position: fixed; top: 0; left: 0; z-index: 1;
-    filter: brightness(0.5) contrast(1.1) sepia(0.1);
-    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    animation: firelightPulse 5s infinite alternate ease-in-out;
+    filter: brightness(0.5) contrast(1.1) sepia(0.15);
+    transition: all 0.8s ease;
+    animation: firelightPulse 6s infinite alternate ease-in-out;
 }
 
 @keyframes firelightPulse {
     0% { filter: brightness(0.48) sepia(0.1) contrast(1.1); }
-    100% { filter: brightness(0.58) sepia(0.25) contrast(1.2); }
+    100% { filter: brightness(0.56) sepia(0.25) contrast(1.2); }
 }
 
 .master-image.dimmed {
     filter: brightness(0.15) blur(12px) contrast(1.1) sepia(0);
     transform: scale(1.05);
-    animation: none;
-}
-
-/* THE SCANLINE GRIT */
-body::after {
-    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
-    pointer-events: none; z-index: 10;
 }
 
 /* 4. THE PORTALS (Interactive Auras) */
 .portal {
-    position: absolute; cursor: crosshair; z-index: 999;
+    position: absolute; cursor: crosshair; z-index: 1000;
     background: transparent; border: none; pointer-events: auto;
-    transition: all 0.5s ease;
 }
-
 .portal:hover {
-    background: radial-gradient(circle, rgba(255, 202, 40, 0.2) 0%, transparent 75%);
-    animation: auraPulse 2.5s infinite ease-in-out;
+    background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 75%);
+    animation: auraPulse 3s infinite ease-in-out;
 }
-
 @keyframes auraPulse {
-    0%, 100% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 30px rgba(255, 202, 40, 0.3); }
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.03); opacity: 0.8; }
 }
 
-/* 5. THE GILDED DOSSIER (Pop-up) */
+/* 5. THE GILDED DOSSIER */
 #parchment-overlay {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
     width: 85%; max-width: 500px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
@@ -105,38 +68,33 @@ body::after {
     border-image-slice: 1; padding: 60px 40px; opacity: 0; visibility: hidden; z-index: 10000;
     transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
 #parchment-overlay.active { 
     opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1);
     box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.7); 
 }
 
-/* INNER SCROLLWORK FRAME */
+/* SCROLLWORK & HEADERS */
 #portal-content {
     position: relative; color: #d4c8a8; line-height: 1.8; font-size: 1.15em;
     text-align: center; margin-top: 30px; padding: 20px;
-    border: 1px solid rgba(191, 149, 63, 0.3);
+    border: 1px solid rgba(191, 149, 63, 0.2);
 }
-
 #portal-content::before, #portal-content::after {
     content: "◈━━━━━━༺ ❦ ༻━━━━━━◈";
-    position: absolute; left: 0; right: 0; color: #bf953f; font-size: 14px; letter-spacing: 2px;
+    position: absolute; left: 0; right: 0; color: #bf953f; font-size: 14px; opacity: 0.6;
 }
 #portal-content::before { top: -15px; }
 #portal-content::after { bottom: -15px; }
 
-/* GOLD FOIL HEADERS */
 h2 {
     font-family: 'Cinzel', serif; background: linear-gradient(to right, #bf953f, #fcf6ba, #bf953f);
     background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     animation: goldShimmer 6s linear infinite; text-align: center; letter-spacing: 5px; text-transform: uppercase;
-    padding-bottom: 25px; margin-top: 0;
 }
 @keyframes goldShimmer { to { background-position: 200% center; } }
+.close-btn { position: absolute; top: 15px; right: 20px; color: #bf953f; font-size: 28px; cursor: pointer; }
 
-.close-btn { position: absolute; top: 15px; right: 20px; color: #bf953f; font-size: 28px; cursor: pointer; z-index: 10001; }
-
-/* 6. PORTAL COORDINATES (Adjusted for 4K Sanctuary) */
+/* 6. COORDINATES */
 #portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
 #portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
 #portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
