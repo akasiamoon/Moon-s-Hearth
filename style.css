@@ -2,131 +2,98 @@
 
 /* 1. THE FOUNDATION */
 html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: #000;
-    color: #e0e0e0;
+    margin: 0; padding: 0; width: 100vw; height: 100vh;
+    overflow: hidden; background: #000;
     font-family: 'Quicksand', sans-serif;
 }
 
-/* 2. THE ATMOSPHERE - Grit & Scanlines (Clicks Pass Through) */
+/* THE GRIT OVERLAY (Clicks Pass Through) */
 body::after {
     content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
-    pointer-events: none;
-    z-index: 2000;
+    pointer-events: none; z-index: 2000;
 }
 
-/* 3. THE IMAGE - Gritty Sanctuary Filter */
 .master-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: fixed;
-    top: 0;
-    left: 0;
-    filter: brightness(0.5) contrast(1.2) saturate(0.7) sepia(0.2);
+    width: 100%; height: 100%; object-fit: cover;
+    position: fixed; top: 0; left: 0;
+    filter: brightness(0.6) contrast(1.1) saturate(0.8) sepia(0.2);
     z-index: 1;
-    transition: filter 0.5s ease;
 }
 
-/* 4. THE PORTALS - Invisible until Hover with Heavy Feel */
+/* 2. THE PORTALS - Completely Invisible Default State */
 .portal {
-    position: absolute;
-    cursor: crosshair;
-    z-index: 100;
-    border: 1px solid transparent;
+    position: absolute; 
+    cursor: crosshair; 
+    z-index: 100; 
+    border: none; /* NO ACTUAL BOX AT ALL */
     background: transparent;
-    transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+    transition: all 0.5s ease;
 }
 
+/* 3. THE HOVER REVEAL - "The Aura" */
 .portal:hover {
-    border: 1px solid rgba(255, 202, 40, 0.6);
-    background: rgba(255, 202, 40, 0.05);
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 202, 40, 0.1);
-    transform: scale(1.01); /* Subtle magnetic pull */
+    /* We use a circular radial gradient so there are no sharp edges */
+    background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, rgba(255, 202, 40, 0.05) 40%, transparent 75%);
+    /* This makes the circular glow pulse outward */
+    box-shadow: 0 0 25px rgba(255, 202, 40, 0.3);
+    animation: luminousPulse 2s infinite ease-in-out;
 }
 
-/* THE CLICK - Sinks the portal into the screen */
+/* THE "PRESS" EFFECT - Feels heavy when clicked */
 .portal:active {
-    transform: scale(0.96);
-    filter: brightness(1.4);
+    transform: scale(0.97); /* Sinks into the screen */
+    filter: brightness(1.3);
 }
 
-/* 5. THE CENTERED HEAVY DOSSIER */
+/* 4. THE PULSE ANIMATION - Breathing Aura */
+@keyframes luminousPulse {
+    0%   { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
+    50%  { box-shadow: 0 0 30px rgba(255, 202, 40, 0.6); }
+    100% { box-shadow: 0 0 10px rgba(255, 202, 40, 0.2); }
+}
+
+/* 5. THE CENTERED GLASS DOSSIER - Centered "Heavy" UI */
 #parchment-overlay {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1.05); /* Slight bounce start */
-    width: 85%;
-    max-width: 480px;
-    background: rgba(8, 8, 10, 0.98); /* Denser, heavier glass */
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(1.05);
+    width: 85%; max-width: 450px;
+    background: rgba(10, 10, 12, 0.98); /* Denser glass */
     backdrop-filter: blur(25px);
-    border: 2px solid rgba(255, 202, 40, 0.3);
-    padding: 40px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    border: 1px solid rgba(255, 202, 40, 0.3);
+    padding: 30px;
+    opacity: 0; visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
     z-index: 3000;
-    /* Massive shadow veil to dim the world */
-    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000px rgba(0,0,0,0.5); 
+    box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 0 1000px rgba(0,0,0,0.5); /* Massive shadow veil */
 }
 
 #parchment-overlay.active {
-    opacity: 1;
-    visibility: visible;
+    opacity: 1; visibility: visible;
     transform: translate(-50%, -50%) scale(1);
-    animation: thud 0.25s ease-out; /* The heavy impact animation */
+    animation: heavySlam 0.25s ease-out; /* The subtle "thud" animation */
 }
 
-/* THE "THUD" - A heavy snap-to-center */
-@keyframes thud {
+/* THE "SLAM" ANIMATION - A heavy snap-to-center */
+@keyframes heavySlam {
     0% { transform: translate(-50%, -52%) scale(1.05); opacity: 0; }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
 /* 6. TYPOGRAPHY & BUTTONS */
 h2 {
-    font-family: 'Cinzel', serif;
-    color: #ffca28;
-    text-align: center;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    border-bottom: 1px solid rgba(255, 202, 40, 0.2);
-    padding-bottom: 15px;
-    margin-bottom: 25px;
+    font-family: 'Cinzel', serif; color: #ffca28;
+    text-align: center; border-bottom: 1px solid rgba(255, 202, 40, 0.2);
+    padding-bottom: 10px; letter-spacing: 2px;
 }
 
-#portal-content {
-    color: #bbb;
-    line-height: 1.7;
-    font-size: 1.1em;
-    text-shadow: 1px 1px 2px black;
-}
+#portal-content { color: #ccc; line-height: 1.6; font-size: 1.1em; }
 
 .close-btn {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    color: #ffca28;
-    font-size: 26px;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: 0.2s;
-}
-
-.close-btn:hover {
-    opacity: 1;
-    transform: rotate(90deg); /* Mechanical feel */
+    position: absolute; top: 10px; right: 15px;
+    color: #ffca28; font-size: 24px; cursor: pointer;
 }
 
 /* 7. PORTAL COORDINATES */
@@ -138,12 +105,3 @@ h2 {
 #portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
 #portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
-
-/* HEAVY SCROLLBAR */
-#parchment-overlay::-webkit-scrollbar {
-    width: 5px;
-}
-#parchment-overlay::-webkit-scrollbar-thumb {
-    background: #ffca28;
-    border-radius: 5px;
-}
