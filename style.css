@@ -42,11 +42,50 @@ html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidde
     100% { transform: translateY(-50px) translateX(20px); opacity: 0; }
 }
 /* --- THE REST OF YOUR MASTER CSS --- */
+/* 1. THE BACKGROUND - With Firelight Flicker */
 .master-image {
-    width: 100%; height: 100%; object-fit: cover; position: fixed; top: 0; left: 0;
-    filter: brightness(0.5) contrast(1.2); z-index: 1; transition: 0.8s ease;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    
+    /* Base mood: Dark and moody */
+    filter: brightness(0.5) contrast(1.2) saturate(0.8) sepia(0.1);
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    
+    /* The Flicker Ritual */
+    animation: hearthFlicker 5s infinite alternate ease-in-out;
 }
-.master-image.dimmed { filter: brightness(0.15) blur(10px); transform: scale(1.05); }
+
+/* 2. THE FLICKER ANIMATION */
+@keyframes hearthFlicker {
+    0% {
+        filter: brightness(0.45) contrast(1.15) sepia(0.1);
+    }
+    25% {
+        filter: brightness(0.52) contrast(1.25) sepia(0.2); /* Warm flare */
+    }
+    50% {
+        filter: brightness(0.48) contrast(1.18) sepia(0.15);
+    }
+    75% {
+        filter: brightness(0.55) contrast(1.3) sepia(0.25); /* Stronger flare */
+    }
+    100% {
+        filter: brightness(0.47) contrast(1.2) sepia(0.1);
+    }
+}
+
+/* 3. CINEMATIC FOCUS (When pop-up is open) */
+.master-image.dimmed {
+    /* We keep the flicker but make it much darker and blurrier */
+    filter: brightness(0.15) blur(12px) contrast(1.1) sepia(0);
+    transform: scale(1.05);
+    animation: none; /* Stop flickering when we are reading a dossier */
+}
 
 body::after {
     content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
