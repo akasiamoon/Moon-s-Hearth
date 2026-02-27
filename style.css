@@ -1,57 +1,74 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
+/* 1. RESET: This kills the black void and margins */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #000;
+}
 
-h2 { font-family: 'Cinzel', serif; color: #ffca28; text-shadow: 1px 1px 5px black; }
-p, li { font-family: 'Quicksand', sans-serif; color: #e0e0e0; }
+/* 2. THE CONTAINER: Stretches to your full monitor size */
+.sanctuary-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
 
-/* This is the Parchment that slides in */
+/* 3. THE IMAGE: Forces it to fill the entire screen */
+.master-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* This is the magic "No-Void" button */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* 4. THE PORTALS: Red outlines so you can see all 8 boxes */
+.portal {
+    position: absolute;
+    cursor: pointer;
+    border: 2px solid rgba(255, 0, 0, 0.7); /* Red outlines to help you map */
+    z-index: 10;
+}
+
+/* 5. INDIVIDUAL COORDINATES FOR YOUR 8 ITEMS */
+#portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
+#portal-herbs    { top: 2%;  left: 55%;  width: 22%; height: 20%; }
+#portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
+#portal-grimoire { top: 38%; left: 55%;  width: 12%; height: 18%; }
+#portal-alchemy  { top: 60%; left: 10%;  width: 30%; height: 35%; }
+#portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
+#portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
+#portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
+
+/* 6. THE PARCHMENT: The slide-out menu style */
 #parchment-overlay {
     position: fixed;
     top: 0;
     right: 0;
-    width: 350px;
+    width: 300px;
     height: 100vh;
-    background: linear-gradient(to right, #2c1e0a, #3d2b11); /* Leather/Parchment color */
-    border: 1px solid red
+    background: #2c1e0a;
+    border-left: 4px solid #ffca28;
     color: #f4e4bc;
-    padding: 30px;
-    box-shadow: -10px 0 30px rgba(0,0,0,0.8);
-    transform: translateX(100%); /* Start hidden off-screen to the right */
-    transition: transform 0.4s ease-in-out;
+    padding: 40px 20px;
+    transform: translateX(100%);
+    transition: 0.4s ease-in-out;
     z-index: 1000;
-    overflow-y: auto;
+    font-family: serif;
 }
 
 #parchment-overlay.active {
-    transform: translateX(0); /* Slide in */
+    transform: translateX(0);
 }
 
 .close-btn {
-    color: #ffca28;
-    cursor: pointer;
-    font-size: 24px;
     position: absolute;
     top: 10px;
     right: 20px;
+    color: #ffca28;
+    font-size: 30px;
+    cursor: pointer;
 }
-/* COORDINATES FOR ALL 7 NECESSITIES */
-
-/* 1. The Master Grimoire (Recipes) */
-#portal-grimoire { top: 40%; left: 52%; width: 10%; height: 18%; }
-
-/* 2. The Senche-Cat (Bounties/Flow) */
-#portal-cat      { top: 68%; left: 66%; width: 25%; height: 22%; }
-
-/* 3. The Apothecary Workbench (Tinctures/Scales) */
-#portal-alchemy  { top: 58%; left: 16%; width: 22%; height: 28%; }
-
-/* 4. The Fen Window (Garden Almanac/Moons) */
-#portal-window   { top: 5%; left: 8%; width: 38%; height: 55%; }
-
-/* 5. The Crystal Phonograph (Soundscapes) */
-#portal-audio    { top: 42%; left: 41%; width: 10%; height: 15%; }
-
-/* 6. The Lady Grey Teacup (Self-Care/Flow) */
-#portal-teacup   { top: 72%; left: 58%; width: 7%; height: 10%; }
-
-/* 7. The Sewing Basket (Under Counter - Measurement Log) */
-#portal-sewing   { top: 80%; left: 32%; width: 10%; height: 15%; }
