@@ -1,78 +1,103 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
 
+/* 1. FOUNDATION */
 html, body {
     margin: 0; padding: 0; width: 100vw; height: 100vh;
-    overflow: hidden; background: #000;
+    overflow: hidden; background: #000; color: #e0e0e0;
+    font-family: 'Quicksand', sans-serif;
 }
 
-/* 1. THE DUST PARTICLES (Visible & Moving) */
+/* 2. SUBTLE DUST MOTES (Reduced Density) */
 .dust-container {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 10; /* Sitting right on top of image */
-    pointer-events: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 8; pointer-events: none;
+    /* Larger spacing (300px) means fewer particles */
     background-image: 
-        radial-gradient(circle, rgba(255, 202, 40, 0.8) 1.5px, transparent 1.5px),
-        radial-gradient(circle, rgba(255, 255, 255, 0.5) 2px, transparent 2px);
-    background-size: 100px 100px, 150px 150px;
-    animation: dustDrift 10s linear infinite;
+        radial-gradient(circle, rgba(255, 202, 40, 0.2) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 300px 300px, 450px 450px;
+    filter: blur(1px);
+    opacity: 0.4;
+    animation: dustDrift 25s linear infinite;
 }
 
 @keyframes dustDrift {
     0% { background-position: 0 0; opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { background-position: 50px -150px; opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { background-position: 50px -100px; opacity: 0; }
 }
 
-/* 2. THE BACKGROUND (Intense Flicker) */
+/* 3. THE BACKGROUND - Gentle Heartbeat Flicker */
 .master-image {
     width: 100%; height: 100%; object-fit: cover;
     position: fixed; top: 0; left: 0; z-index: 1;
-    /* Starting state */
-    filter: brightness(0.5) sepia(0.2) contrast(1.1);
-    animation: intenseFirelight 4s infinite alternate ease-in-out;
+    filter: brightness(0.5) contrast(1.1) sepia(0.15);
+    transition: all 1s ease-in-out;
+    animation: gentleGlow 8s infinite alternate ease-in-out;
 }
 
-@keyframes intenseFirelight {
-    0% { filter: brightness(0.4) sepia(0.1) contrast(1.1); }
-    30% { filter: brightness(0.6) sepia(0.3) contrast(1.3); } /* The Flare */
-    60% { filter: brightness(0.45) sepia(0.2) contrast(1.2); }
-    100% { filter: brightness(0.65) sepia(0.4) contrast(1.4); } /* Strong Flare */
+@keyframes gentleGlow {
+    0% { filter: brightness(0.48) sepia(0.12) contrast(1.1); }
+    100% { filter: brightness(0.54) sepia(0.22) contrast(1.15); }
 }
 
-/* 3. THE PORTALS */
-.portal {
-    position: absolute; cursor: crosshair; z-index: 1000;
-    background: transparent; border: none;
-}
-.portal:hover {
-    background: radial-gradient(circle, rgba(255, 202, 40, 0.2) 0%, transparent 75%);
+.master-image.dimmed {
+    filter: brightness(0.15) blur(12px) contrast(1.1) sepia(0);
+    transform: scale(1.05);
+    animation: none;
 }
 
-/* 4. THE GILDED DOSSIER */
+/* 4. THE GILDED DOSSIER & SCROLLWORK FRAMES */
 #parchment-overlay {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
-    width: 85%; max-width: 500px; background: rgba(10, 10, 12, 0.98); backdrop-filter: blur(25px);
-    border: 5px solid; border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-    border-image-slice: 1; padding: 50px; opacity: 0; visibility: hidden; z-index: 20000;
+    width: 85%; max-width: 500px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
+    
+    /* OUTER GOLD LEAF FRAME */
+    border: 5px solid;
+    border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    border-image-slice: 1;
+    
+    padding: 60px 40px; opacity: 0; visibility: hidden; z-index: 10000;
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 #parchment-overlay.active { 
     opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1);
-    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.8);
+    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.7); 
 }
 
-/* UI TEXT */
-h2 {
-    font-family: 'Cinzel', serif; color: #ffca28; text-align: center;
-    letter-spacing: 5px; text-transform: uppercase; border-bottom: 1px solid #bf953f;
-    padding-bottom: 15px; margin-top: 0;
+/* THE PRETTY SCROLLWORK FRAME (Internal) */
+#portal-content {
+    position: relative; color: #d4c8a8; line-height: 1.8; font-size: 1.15em;
+    text-align: center; margin-top: 30px; padding: 25px;
+    border: 1px solid rgba(191, 149, 63, 0.3); /* The thin gold inner frame */
 }
-#portal-content { color: #d4c8a8; text-align: center; margin-top: 25px; line-height: 1.6; }
+
+#portal-content::before, #portal-content::after {
+    content: "◈━━━━━━༺ ❦ ༻━━━━━━◈";
+    position: absolute; left: 0; right: 0; color: #bf953f; font-size: 14px; opacity: 0.7; letter-spacing: 2px;
+}
+#portal-content::before { top: -15px; }
+#portal-content::after { bottom: -15px; }
+
+/* GOLD SHIMMER HEADERS */
+h2 {
+    font-family: 'Cinzel', serif; 
+    background: linear-gradient(to right, #bf953f, #fcf6ba, #bf953f);
+    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: goldShimmer 6s linear infinite;
+    text-align: center; letter-spacing: 5px; text-transform: uppercase;
+    margin: 0; padding-bottom: 25px;
+}
+@keyframes goldShimmer { to { background-position: 200% center; } }
+
 .close-btn { position: absolute; top: 15px; right: 20px; color: #bf953f; font-size: 28px; cursor: pointer; }
 
-/* COORDINATES */
+/* 5. PORTALS & COORDINATES */
+.portal { position: absolute; cursor: crosshair; z-index: 1000; background: transparent; border: none; }
+.portal:hover { background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 75%); }
+
 #portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
 #portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
 #portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
