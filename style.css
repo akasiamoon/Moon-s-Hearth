@@ -29,7 +29,7 @@ html, body {
 .portal {
     position: absolute;
     cursor: pointer;
-    border: 2px solid rgba(255, 0, 0, 0.7); /* Red outlines to help you map */
+    border: 1px solid transparent; /* This hides the red lines */
     z-index: 10;
 }
 
