@@ -1,22 +1,14 @@
 {
-  "short_name": "AlinorHub",
-  "name": "Druidic Alinor Sanctuary Hub",
-  "description": "A personal sanctuary for grimoires, apothecary formulas, and daily bounties.",
+  "short_name": "MoonHearth",
+  "name": "Moon's Hearth Sanctuary",
   "icons": [
     {
-      "src": "assets/icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "assets/icon-512.png",
-      "type": "image/png",
+      "src": "icon_512.jpg",
+      "type": "image/jpeg",
       "sizes": "512x512"
     }
   ],
   "start_url": "index.html",
-  "background_color": "#0d0d0d",
   "display": "standalone",
-  "scope": "/",
-  "theme_color": "#ffca28"
+  "background_color": "#0d0d0d"
 }
