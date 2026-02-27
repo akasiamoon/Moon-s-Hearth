@@ -12,15 +12,19 @@ const portalData = {
 function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
+    const bgImage = document.querySelector('.master-image');
     
-    // Fill the parchment with the right data
-    content.innerHTML = portalData[portalName] || 'The portal is currently mist-shrouded...';
+    content.innerHTML = portalData[portalName];
     
-    // Show the overlay
+    // Slide in the parchment and blur the sanctuary
     overlay.classList.add('active');
+    bgImage.classList.add('blur-bg');
+    
+    // If it's the cat, load your quests
+    if (portalName === 'cat') displayBounties();
 }
 
 function closePortal() {
-    const overlay = document.getElementById('parchment-overlay');
-    overlay.classList.remove('active');
+    document.getElementById('parchment-overlay').classList.remove('active');
+    document.querySelector('.master-image').classList.remove('blur-bg');
 }
