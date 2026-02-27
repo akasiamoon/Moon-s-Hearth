@@ -40,9 +40,13 @@
             transition: 0.3s;
         }
 
-        .portal:hover {
-            background: rgba(255, 215, 0, 0.1); /* A soft golden glow when you hover */
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+       .portal:hover {
+    background: radial-gradient(circle, rgba(255, 174, 0, 0.2) 0%, rgba(255, 174, 0, 0) 70%);
+    box-shadow: inset 0 0 15px rgba(255, 200, 0, 0.4);
+    filter: brightness(1.2); /* Makes the image underneath seem to "glow" */
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 15px;
+}
         }
 
         /* COORDINATES FOR YOUR PORTALS */
