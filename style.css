@@ -1,128 +1,75 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@300;400&display=swap');
 
-html, body {
-    margin: 0; padding: 0; width: 100vw; height: 100vh;
-    overflow: hidden; background: #000;
-    font-family: 'Quicksand', sans-serif;
+html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Quicksand', sans-serif; }
+
+/* --- ATMOSPHERIC VFX --- */
+.weather-layer {
+    position: absolute;
+    pointer-events: none; /* Clicks pass right through the rain/fire */
+    z-index: 5; 
+    opacity: 0.6; /* Makes them look misty and subtle */
 }
 
-/* 1. BACKGROUND & GRIT */
+/* Rain over the Window area (Top Left) */
+.rain-window {
+    top: 5%; left: 5%;
+    width: 35%; height: 50%;
+    background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozJmN0PWc/3o7TKVUn7iM8FMEU24/giphy.gif');
+    background-size: cover;
+    mask-image: radial-gradient(circle, black 60%, transparent 100%); /* Soft edges */
+}
+
+/* Embers over the Hearth area (Bottom Right) */
+.fire-embers {
+    bottom: 5%; right: 5%;
+    width: 40%; height: 40%;
+    background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozZHZ3eHozJmN0PWc/L7f33G6fA1L6U/giphy.gif');
+    background-size: cover;
+    mix-blend-mode: screen; /* Makes the black background of the gif disappear */
+}
+
+/* --- THE REST OF YOUR MASTER CSS --- */
 .master-image {
-    width: 100%; height: 100%; object-fit: cover;
-    position: fixed; top: 0; left: 0;
-    filter: brightness(0.5) contrast(1.2);
-    z-index: 1;
-    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    width: 100%; height: 100%; object-fit: cover; position: fixed; top: 0; left: 0;
+    filter: brightness(0.5) contrast(1.2); z-index: 1; transition: 0.8s ease;
 }
-
-.master-image.dimmed {
-    filter: brightness(0.15) blur(10px);
-    transform: scale(1.05);
-}
+.master-image.dimmed { filter: brightness(0.15) blur(10px); transform: scale(1.05); }
 
 body::after {
-    content: "";
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
-    pointer-events: none;
-    z-index: 10;
+    pointer-events: none; z-index: 10;
 }
 
-/* 2. THE PORTALS */
 .portal {
-    position: absolute; 
-    cursor: crosshair; 
-    z-index: 999; 
-    background: transparent;
-    border: none;
+    position: absolute; cursor: crosshair; z-index: 9999;
+    background: transparent; border: none; pointer-events: auto;
 }
+.portal:hover { background: radial-gradient(circle, rgba(255, 202, 40, 0.2) 0%, transparent 75%); }
 
-.portal:hover {
-    background: radial-gradient(circle, rgba(255, 202, 40, 0.2) 0%, transparent 75%);
-    animation: auraPulse 2.5s infinite ease-in-out;
-}
-
-@keyframes auraPulse {
-    0%, 100% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 30px rgba(255, 202, 40, 0.3); }
-}
-
-/* 3. THE GOLD LEAF DOSSIER WITH INNER SCROLLWORK */
 #parchment-overlay {
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%; -50%) scale(1.1);
-    width: 85%; max-width: 500px;
-    background: rgba(8, 8, 10, 0.98);
-    backdrop-filter: blur(30px);
-    
-    /* OUTER GOLD LEAF FRAME */
-    border: 5px solid;
-    border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-    border-image-slice: 1;
-    
-    padding: 60px 40px;
-    opacity: 0; visibility: hidden;
-    z-index: 2000;
-    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
+    width: 85%; max-width: 500px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
+    border: 5px solid; border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    border-image-slice: 1; padding: 60px 40px; opacity: 0; visibility: hidden; z-index: 10000;
+    transition: 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#parchment-overlay.active { 
+    opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.7); 
 }
 
-#parchment-overlay.active {
-    opacity: 1; visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
-    box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 0 1000vw rgba(0,0,0,0.7);
-}
-
-/* 4. THE SCROLLWORK FRAME (Internal) */
-#portal-content {
-    position: relative;
-    color: #d4c8a8;
-    line-height: 1.8;
-    font-size: 1.15em;
-    text-align: center;
-    margin-top: 30px;
-    padding: 20px;
-    /* This creates the inner "thin line" frame */
-    border: 1px solid rgba(191, 149, 63, 0.3);
-}
-
-/* Top Scrollwork Detail */
-#portal-content::before {
-    content: "◈━━━━━━༺ ❦ ༻━━━━━━◈";
-    position: absolute;
-    top: -15px; left: 0; right: 0;
-    color: #bf953f;
-    font-size: 14px;
-    letter-spacing: 2px;
-}
-
-/* Bottom Scrollwork Detail */
-#portal-content::after {
-    content: "◈━━━━━━༺ ❦ ༻━━━━━━◈";
-    position: absolute;
-    bottom: -15px; left: 0; right: 0;
-    color: #bf953f;
-    font-size: 14px;
-    letter-spacing: 2px;
-}
-
-/* 5. GOLD FOIL TEXT */
 h2 {
-    font-family: 'Cinzel', serif;
-    background: linear-gradient(to right, #bf953f, #fcf6ba, #bf953f, #fcf6ba, #bf953f);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: goldShimmer 6s linear infinite;
-    text-align: center; letter-spacing: 5px; text-transform: uppercase;
-    padding-bottom: 25px; margin-top: 0;
+    font-family: 'Cinzel', serif; background: linear-gradient(to right, #bf953f, #fcf6ba, #bf953f);
+    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: goldShimmer 6s linear infinite; text-align: center; letter-spacing: 5px; text-transform: uppercase;
+    padding-bottom: 25px; border-bottom: 1px solid rgba(191, 149, 63, 0.4); position: relative; margin-top: 0;
 }
-
 @keyframes goldShimmer { to { background-position: 200% center; } }
+#portal-content { color: #d4c8a8; line-height: 1.8; font-size: 1.15em; text-align: center; margin-top: 30px; }
+.close-btn { position: absolute; top: 15px; right: 20px; color: #bf953f; font-size: 28px; cursor: pointer; }
 
-.close-btn { position: absolute; top: 15px; right: 20px; color: #bf953f; font-size: 28px; cursor: pointer; z-index: 3001; }
-
-/* 6. COORDINATES */
+/* COORDINATES */
 #portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
 #portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
 #portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
