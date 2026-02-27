@@ -3,6 +3,36 @@
 h2 { font-family: 'Cinzel', serif; color: #ffca28; text-shadow: 1px 1px 5px black; }
 p, li { font-family: 'Quicksand', sans-serif; color: #e0e0e0; }
 
+/* This is the Parchment that slides in */
+#parchment-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 350px;
+    height: 100vh;
+    background: linear-gradient(to right, #2c1e0a, #3d2b11); /* Leather/Parchment color */
+    border-left: 3px solid #ffca28;
+    color: #f4e4bc;
+    padding: 30px;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.8);
+    transform: translateX(100%); /* Start hidden off-screen to the right */
+    transition: transform 0.4s ease-in-out;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+#parchment-overlay.active {
+    transform: translateX(0); /* Slide in */
+}
+
+.close-btn {
+    color: #ffca28;
+    cursor: pointer;
+    font-size: 24px;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+}
 /* COORDINATES FOR ALL 7 NECESSITIES */
 
 /* 1. The Master Grimoire (Recipes) */
