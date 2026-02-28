@@ -3,7 +3,7 @@ const supabaseUrl = 'https://yflfpwcaowzkoxqnohso.supabase.co';
 const supabaseKey = 'sb_publishable_OUXpGQk3QkOoUu94S9YZNg_Sb34-Jc4';
 const db = supabase.createClient(supabaseUrl, supabaseKey);
 
-// === 1. LOCAL DATA (Recipes, Teas, Quests, etc) ===
+// === 1. LOCAL DATA ===
 const myRecipes = [
     { title: "🌿 Highland Potato Stew", description: "A hearty, warming broth perfect for cold evenings. Earthy and grounding.", ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], instructions: "Simmer over a low hearth fire until the potatoes yield and the broth is thick and fragrant." },
     { title: "🍌 Mistral Banana Bread", description: "Sweet, dense, and perfect for traveling or a morning study session.", ingredients: ["3 overripe bananas, mashed", "Brown sugar, melted butter, and a dash of vanilla", "Flour and a pinch of cinnamon"], instructions: "Bake until the crust is a deep golden brown. Serve warm with butter." }
@@ -13,18 +13,6 @@ const myTeas = [
     { title: "Lady Grey's Respite", icon: "☕", brew: "Steep 3 mins at 212°F", description: "A classic, elegant blend brightened with citrus and a touch of honey. Perfect for finding a quiet center in the afternoon." },
     { title: "Lavender Chamomile Nightcap", icon: "🍵", brew: "Steep 5 mins at 200°F", description: "A deeply soothing floral blend meant to quiet a racing mind and invite restful, restorative sleep." },
     { title: "Peppermint Clarity", icon: "🫖", brew: "Steep 4 mins at 212°F", description: "Bright, awakening, and sharp. An excellent companion for deciphering the Grimoire or writing code." }
-];
-
-const myMealPlans = [
-    { day: "Moonday", meal: "Highland Potato Stew with crusty bread." },
-    { day: "Tirdas", meal: "Foraged greens and roasted roots." }
-];
-
-const myQuests = [
-    { id: 'q1', title: "Familiar Care", description: "Ensure the cat is fed, watered, and sufficiently adored." },
-    { id: 'q2', title: "Hearth Tender", description: "Prepare a warm meal from the Grimoire." },
-    { id: 'q3', title: "Arcane Tinkering", description: "Spend a little time working on app development and code." },
-    { id: 'q4', title: "The Stillness", description: "Brew a cup of tea, listen to the rain, and take a moment to rest." }
 ];
 
 const myApothecary = [
@@ -41,7 +29,7 @@ const mySewing = [
     { title: "Hearth Apron", status: "Completed", fabric: "Sturdy Canvas", notes: "Added deep pockets for gathering herbs and holding the kitchen Grimoire notes." }
 ];
 
-// === 2. THE LIVING FEN ALMANAC (Dynamic Data) ===
+// === 2. THE LIVING FEN ALMANAC ===
 let dynamicAlmanac = { season: "", moonPhase: "", temp: "--°F", weather: "", planting: "", focus: "", entry: "" };
 
 function getMoonPhase(date) {
@@ -72,17 +60,18 @@ async function fetchLocalAtmosphere() {
 }
 
 updateNatureLore(); fetchLocalAtmosphere();
-
 const portalData = { 'audio': '<h2>Bardic Soundscapes</h2><p>Select your ambient mix.</p>' };
 
-// === 3. HTML BUILDERS (WITH COLLAPSIBLES & DELETE BUTTONS) ===
+// === 3. HTML BUILDERS ===
 
-// 🔮 GRIMOIRE: Recipes, Market, & Meal Plans
+// 🔮 GRIMOIRE: Recipes, Market, & Dynamic Meal Plans
 async function buildGrimoireHTML() {
     let html = `<h2>Kitchen Grimoire</h2><div class="portal-scroll-container">`;
 
+    // ALL CLOSED BY DEFAULT (Added 'closed' class to headers and panels)
+    
     // SECTION 1: Recipes & Brews
-    html += `<div class="section-header" onclick="toggleSection(this)">Sacred Recipes & Brews</div><div class="section-panel">`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Sacred Recipes & Brews</div><div class="section-panel closed">`;
     const allBrews = [...myRecipes, ...myTeas]; 
     allBrews.forEach(item => {
         let ingList = item.ingredients ? item.ingredients.map(ing => `<li><span>${ing}</span></li>`).join('') : '';
@@ -97,64 +86,69 @@ async function buildGrimoireHTML() {
             </div>
         </div>`;
     });
-    html += `</div>`; // End panel
+    html += `</div>`; 
 
-    // SECTION 2: Meal Plans
-    html += `<div class="section-header" onclick="toggleSection(this)">Weekly Provisions</div><div class="section-panel">`;
-    myMealPlans.forEach(plan => {
-        html += `<div class="tea-card" style="padding:10px 15px; margin-bottom:10px;">
-            <div style="color:#bf953f; font-weight:bold; margin-bottom:5px;">${plan.day}</div>
-            <div style="color:#d4c8a8;">${plan.meal}</div>
-        </div>`;
-    });
-    html += `</div>`; // End panel
-
-    // SECTION 3: Live Market List
-    html += `<div class="section-header" onclick="toggleSection(this)">Market List</div><div class="section-panel">`;
+    // SECTION 2: Live Meal Plans
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Weekly Provisions</div><div class="section-panel closed">`;
     html += `
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <input type="text" id="new-market-item" placeholder="Add an item..." class="portal-input" style="padding: 8px;">
-            <button onclick="addMarketItem()" class="portal-btn">Add</button>
-            <button onclick="purgeMarketItems()" class="portal-btn" style="background: rgba(191, 149, 63, 0.1);">Purge</button>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
+            <input type="text" id="new-meal-item" placeholder="e.g. Moonday: Stew..." class="portal-input">
+            <button onclick="addDynamicItem('meal_plans', 'new-meal-item', 'grimoire')" class="portal-btn">Add</button>
         </div>
     `;
+    const { data: meals, error: mealErr } = await db.from('meal_plans').select('*').order('created_at', { ascending: true });
+    if (!mealErr && meals) {
+        meals.forEach(item => {
+            const isDone = item.is_completed ? 'completed' : '';
+            html += `
+            <div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')">
+                <div class="quest-checkbox"></div>
+                <div class="quest-details"><h3 class="quest-title">${item.text}</h3></div>
+                <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div>
+            </div>`;
+        });
+    } else { html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; font-size: 0.9em;">(Create 'meal_plans' in Supabase to save these)</p>`; }
+    html += `</div>`;
 
-    const { data: marketItems, error } = await db.from('market_items').select('*').order('created_at', { ascending: false });
-    
-    if (error) {
-        html += `<p style="color:#ff5555; font-style:italic;">Cannot read the market list right now.</p>`;
-    } else if (marketItems) {
+    // SECTION 3: Live Market List
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Market List</div><div class="section-panel closed">`;
+    html += `
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
+            <input type="text" id="new-market-item" placeholder="Add an item..." class="portal-input">
+            <button onclick="addDynamicItem('market_items', 'new-market-item', 'grimoire')" class="portal-btn">Add</button>
+        </div>
+    `;
+    const { data: marketItems, error: mktErr } = await db.from('market_items').select('*').order('created_at', { ascending: false });
+    if (!mktErr && marketItems) {
         marketItems.forEach(item => {
             const isDone = item.is_completed ? 'completed' : '';
             html += `
-            <div class="quest-item ${isDone}" onclick="toggleMarketItem('${item.id}', ${item.is_completed})" style="padding: 8px 15px;">
+            <div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')">
                 <div class="quest-checkbox"></div>
-                <div class="quest-details"><h3 class="quest-title" style="margin:0; font-size: 1em;">${item.text}</h3></div>
-                <div class="delete-icon" onclick="event.stopPropagation(); deleteMarketItem('${item.id}')">✕</div>
+                <div class="quest-details"><h3 class="quest-title">${item.text}</h3></div>
+                <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div>
             </div>`;
         });
     }
-    html += `</div>`; // End panel
+    html += `</div>`; 
     return html + `</div>`;
 }
 
-// 🛡️ BOUNTY BOARD: Calendar Input, Alignments, Quests
+// 🛡️ BOUNTY BOARD: Dynamic Quests & Calendar
 async function buildBountyBoardHTML() {
     let html = `<h2>The Bounty Board</h2><div class="portal-scroll-container">`;
     
     // SECTION 1: Alignments (Events)
-    html += `<div class="section-header" onclick="toggleSection(this)">Upcoming Alignments</div><div class="section-panel">`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Upcoming Alignments</div><div class="section-panel closed">`;
     const { data: events, error } = await db.from('calendar_events').select('*').order('start_date', { ascending: true });
 
-    if (error) {
-        html += `<p style="color:#ff5555;">The astrolabe is spinning wildly.</p>`;
-    } else if (events && events.length > 0) {
+    if (error) { html += `<p style="color:#ff5555;">Cannot read the calendar.</p>`; } 
+    else if (events && events.length > 0) {
         events.forEach(ev => {
-            // Events look like quests now to allow checking them off and deleting them
-            const isDone = ev.text === 'completed' ? 'completed' : ''; // Using text field temporarily for state until schema updates
+            const isDone = ev.text === 'completed' ? 'completed' : ''; 
             const dateStr = ev.start_date ? new Date(ev.start_date).toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'}) : '';
             html += `
-            <div class="quest-item ${isDone}" onclick="toggleEvent('${ev.id}')">
+            <div class="quest-item ${isDone}" onclick="toggleEvent('${ev.id}', '${ev.text}')">
                 <div class="quest-checkbox"></div>
                 <div class="quest-details">
                     <h3 class="quest-title" style="margin-bottom: 2px;">${ev.title}</h3>
@@ -163,14 +157,12 @@ async function buildBountyBoardHTML() {
                 <div class="delete-icon" onclick="event.stopPropagation(); deleteEvent('${ev.id}')">✕</div>
             </div>`;
         });
-    } else {
-        html += `<p style="font-style: italic;">No immediate alignments in the stars.</p>`;
     }
-    html += `</div>`; // End panel
+    html += `</div>`; 
 
-    // SECTION 2: Add New Alignment Form
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Alignment</div><div class="section-panel closed">
-        <div class="tea-card" style="margin-bottom: 15px;">
+    // SECTION 2: Scribe New Alignment
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Alignment</div><div class="section-panel closed">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
             <input type="text" id="ev-title" placeholder="Alignment Title..." class="portal-input" style="margin-bottom: 10px;">
             <input type="datetime-local" id="ev-date" class="portal-input" style="margin-bottom: 10px;">
             <button onclick="addEvent()" class="portal-btn" style="width: 100%;">Add to Calendar</button>
@@ -178,31 +170,36 @@ async function buildBountyBoardHTML() {
         </div>
     </div>`;
 
-    // SECTION 3: Local Quests
-    html += `<div class="section-header" onclick="toggleSection(this)">Daily Endeavors</div><div class="section-panel">`;
-    myQuests.forEach(quest => {
-        html += `<div class="quest-item" onclick="this.classList.toggle('completed')">
-                    <div class="quest-checkbox"></div>
-                    <div class="quest-details">
-                        <h3 class="quest-title">${quest.title}</h3>
-                        <p class="quest-desc">${quest.description}</p>
-                    </div>
-                </div>`;
-    });
-    html += `</div>`; // End panel
+    // SECTION 3: Dynamic Daily Endeavors
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Daily Endeavors</div><div class="section-panel closed">`;
+    html += `
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
+            <input type="text" id="new-quest-item" placeholder="Scribe a quick chore..." class="portal-input">
+            <button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button>
+        </div>
+    `;
+    const { data: quests, error: qErr } = await db.from('daily_quests').select('*').order('created_at', { ascending: false });
+    if (!qErr && quests) {
+        quests.forEach(item => {
+            const isDone = item.is_completed ? 'completed' : '';
+            html += `
+            <div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')">
+                <div class="quest-checkbox"></div>
+                <div class="quest-details"><h3 class="quest-title">${item.text}</h3></div>
+                <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div>
+            </div>`;
+        });
+    } else { html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; font-size: 0.9em;">(Create 'daily_quests' in Supabase to save these)</p>`; }
+    html += `</div>`; 
     return html + `</div>`;
 }
 
-// 🕯️ THE STILLNESS: Journal with Custom File Upload & Actions
+// 🕯️ THE STILLNESS: Journal
 async function buildTeacupHTML() {
-    let html = `<h2>The Stillness</h2>
-                <div class="portal-scroll-container">`;
-
-    // Form
+    let html = `<h2>The Stillness</h2><div class="portal-scroll-container">`;
     html += `
         <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;">
             <textarea id="journal-text" placeholder="Record your thoughts or visions..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea>
-            
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <label for="journal-image" class="custom-file-label">Attach Image</label>
                 <input type="file" id="journal-image" accept="image/*" onchange="document.getElementById('file-name').innerText = this.files[0].name">
@@ -213,60 +210,44 @@ async function buildTeacupHTML() {
         </div>
     `;
 
-    // Live Notes
     const { data: notes, error } = await db.from('family_notes').select('*').order('created_at', { ascending: false });
-
-    if (error) {
-        html += `<p style="color:#ff5555;">The ink has spilled. Cannot read past entries.</p>`;
-    } else if (notes) {
+    if (notes) {
         notes.forEach(note => {
             let imageHtml = '';
             if (note.image_url) {
                 const { data } = db.storage.from('note-images').getPublicUrl(note.image_url);
                 imageHtml = `<img src="${data.publicUrl}" style="max-width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid rgba(191,149,63,0.3);" alt="Memory"/>`;
             }
-
             const dateStr = new Date(note.timestamp || note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
-
             html += `
             <div class="tea-card">
                 <div style="font-size: 0.85em; color: rgba(191,149,63,0.8); margin-bottom: 8px; border-bottom: 1px dashed rgba(191, 149, 63, 0.3); padding-bottom: 5px; display: flex; justify-content: space-between;">
                     <span>${dateStr}</span>
-                    <div>
-                        <button class="action-btn" onclick="editJournalEntry('${note.id}')">Edit</button> | 
-                        <button class="action-btn" style="color: #ff6b6b;" onclick="deleteJournalEntry('${note.id}')">Delete</button>
-                    </div>
+                    <button class="action-btn" style="color: #ff6b6b;" onclick="deleteJournalEntry('${note.id}')">Delete</button>
                 </div>
                 <p style="margin: 0; white-space: pre-wrap; font-size: 1.05em;">${note.note}</p>
                 ${imageHtml}
             </div>`;
         });
     }
-
     return html + `</div>`;
 }
 
 function buildApothecaryHTML() {
     let html = `<h2>Apothecary</h2><div class="portal-scroll-container">`;
-    myApothecary.forEach(item => {
-        html += `<div class="alchemy-card"><h3 class="alchemy-title">${item.icon} ${item.title}</h3><p class="alchemy-desc">${item.description}</p><div class="alchemy-ingredients"><strong>Components:</strong> <span>${item.ingredients}</span></div><p class="alchemy-instructions">${item.instructions}</p></div>`;
-    });
+    myApothecary.forEach(item => { html += `<div class="alchemy-card"><h3 class="alchemy-title">${item.icon} ${item.title}</h3><p class="alchemy-desc">${item.description}</p><div class="alchemy-ingredients"><strong>Components:</strong> <span>${item.ingredients}</span></div><p class="alchemy-instructions">${item.instructions}</p></div>`; });
     return html + `</div>`;
 }
 
 function buildHerbsHTML() {
     let html = `<h2>The Drying Rack</h2><div class="portal-scroll-container" id="herbs-container">`;
-    myHerbs.forEach(herb => {
-        html += `<div class="herb-card"><div class="herb-icon">${herb.icon}</div><h3 class="herb-title">${herb.title}</h3><div class="herb-prop">${herb.properties}</div><p class="herb-desc">${herb.description}</p></div>`;
-    });
+    myHerbs.forEach(herb => { html += `<div class="herb-card"><div class="herb-icon">${herb.icon}</div><h3 class="herb-title">${herb.title}</h3><div class="herb-prop">${herb.properties}</div><p class="herb-desc">${herb.description}</p></div>`; });
     return html + `</div>`;
 }
 
 function buildSewingHTML() {
     let html = `<h2>Measurement Log</h2><div class="portal-scroll-container">`;
-    mySewing.forEach(project => {
-        html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div class="sewing-status">${project.status}</div><div class="sewing-fabric"><strong>Fabric:</strong> ${project.fabric}</div><div class="sewing-notes">${project.notes}</div></div>`;
-    });
+    mySewing.forEach(project => { html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div class="sewing-status">${project.status}</div><div class="sewing-fabric"><strong>Fabric:</strong> ${project.fabric}</div><div class="sewing-notes">${project.notes}</div></div>`; });
     return html + `</div>`;
 }
 
@@ -276,7 +257,7 @@ function buildAlmanacHTML() {
     return `<h2>Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div><div class="almanac-divider">◈━━━━━━༺ ❦ ༻━━━━━━◈</div><div class="almanac-focus">Daily Focus: ${dynamicAlmanac.focus}</div><p class="almanac-entry">"${dynamicAlmanac.entry}"</p><div class="almanac-planting"><strong>Nature's Lore:</strong> ${dynamicAlmanac.planting}</div></div>`;
 }
 
-// === 4. UI INTERACTIVE LOGIC ===
+// === 4. UI LOGIC ===
 function toggleAccordion(button) {
     button.classList.toggle('active');
     const panel = button.nextElementSibling;
@@ -290,49 +271,45 @@ function toggleSection(headerBtn) {
     panel.classList.toggle('closed');
 }
 
-// === 5. LIVE DATABASE WRITE FUNCTIONS (Ready for Handshake) ===
-async function addMarketItem() {
-    const text = document.getElementById('new-market-item').value.trim();
+// === 5. DYNAMIC SUPABASE FUNCTIONS ===
+async function addDynamicItem(table, inputId, portal) {
+    const text = document.getElementById(inputId).value.trim();
     if (!text) return;
-    await db.from('market_items').insert([{ text: text, is_completed: false }]);
-    openPortal('grimoire'); 
+    await db.from(table).insert([{ text: text, is_completed: false }]);
+    openPortal(portal); 
 }
-async function toggleMarketItem(id, currentState) {
-    await db.from('market_items').update({ is_completed: !currentState }).eq('id', id);
-    openPortal('grimoire'); 
+async function toggleDynamicItem(table, id, currentState, portal) {
+    await db.from(table).update({ is_completed: !currentState }).eq('id', id);
+    openPortal(portal); 
 }
-async function deleteMarketItem(id) {
-    await db.from('market_items').delete().eq('id', id);
-    openPortal('grimoire');
-}
-async function purgeMarketItems() {
-    await db.from('market_items').delete().eq('is_completed', true);
-    openPortal('grimoire');
+async function deleteDynamicItem(table, id, portal) {
+    await db.from(table).delete().eq('id', id);
+    openPortal(portal);
 }
 
-// Event functions
+// Events
 async function addEvent() {
     const title = document.getElementById('ev-title').value.trim();
     const date = document.getElementById('ev-date').value;
     if (!title) return;
     document.getElementById('ev-status').innerText = "Scribing...";
-    await db.from('calendar_events').insert([{ title: title, start_date: date }]);
+    await db.from('calendar_events').insert([{ title: title, start_date: date, text: 'pending' }]);
     openPortal('cat');
 }
 async function deleteEvent(id) {
     await db.from('calendar_events').delete().eq('id', id);
     openPortal('cat');
 }
-async function toggleEvent(id) {
-    // Requires a schema update later to add 'is_completed' to events, but ready for logic here
-    console.log("Struck through event ID:", id);
+async function toggleEvent(id, currentText) {
+    const newState = currentText === 'completed' ? 'pending' : 'completed';
+    await db.from('calendar_events').update({ text: newState }).eq('id', id);
+    openPortal('cat');
 }
 
-// Journal functions
+// Journal
 async function submitJournalEntry() {
     const textInput = document.getElementById('journal-text').value.trim();
     const fileInput = document.getElementById('journal-image').files[0];
-    const statusText = document.getElementById('journal-status');
     const submitBtn = document.getElementById('journal-submit-btn');
 
     if (!textInput && !fileInput) return;
@@ -349,19 +326,15 @@ async function submitJournalEntry() {
         await db.from('family_notes').insert([{ note: textInput, image_url: imageUrl, timestamp: new Date().toISOString() }]);
         openPortal('teacup');
     } catch (error) {
-        statusText.innerText = "Failed to seal memory."; submitBtn.innerText = "Seal Memory"; submitBtn.disabled = false;
+        submitBtn.innerText = "Seal Memory"; submitBtn.disabled = false;
     }
 }
 async function deleteJournalEntry(id) {
     await db.from('family_notes').delete().eq('id', id);
     openPortal('teacup');
 }
-async function editJournalEntry(id) {
-    console.log("Edit requested for ID:", id);
-    // Ready for implementation!
-}
 
-// === 6. OPEN & CLOSE PORTALS ===
+// === 6. OPEN & CLOSE PORTALS (PROTECTING AUDIO) ===
 async function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
@@ -369,7 +342,12 @@ async function openPortal(portalName) {
     const soundscape = document.getElementById('soundscape-container'); 
     
     overlay.classList.add('active'); if (bg) bg.classList.add('dimmed');
-    content.innerHTML = `<h2 style="text-align: center; margin-top: 20px;">Consulting the stars... ⏳</h2>`;
+
+    // Protect Audio Logic: Only show loading if NOT audio
+    if (portalName !== 'audio') {
+        content.innerHTML = `<h2 style="text-align: center; margin-top: 20px;">Consulting the archive... ⏳</h2>`;
+        if (soundscape) soundscape.style.display = 'none';
+    }
 
     if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
     else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
@@ -378,9 +356,10 @@ async function openPortal(portalName) {
     else if (portalName === 'alchemy') content.innerHTML = buildApothecaryHTML(); 
     else if (portalName === 'herbs') content.innerHTML = buildHerbsHTML(); 
     else if (portalName === 'sewing') content.innerHTML = buildSewingHTML();
-    else if (portalData[portalName]) content.innerHTML = portalData[portalName];
-
-    if (soundscape) soundscape.style.display = (portalName === 'audio') ? 'grid' : 'none';
+    else if (portalName === 'audio') {
+        content.innerHTML = portalData['audio'];
+        if (soundscape) soundscape.style.display = 'grid'; // Ensure audio grid displays
+    }
 }
 
 function closePortal() {
