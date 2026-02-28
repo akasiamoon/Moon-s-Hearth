@@ -174,3 +174,86 @@ margin: 0; padding-bottom: 25px;
   cursor: pointer;
   accent-color: #bf953f; /* Matches your gold gradient */
 }
+/* --- 9. THE KITCHEN GRIMOIRE --- */
+#grimoire-container {
+  margin-top: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#grimoire-container::-webkit-scrollbar { width: 6px; }
+#grimoire-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+#grimoire-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
+
+.grimoire-header {
+  width: 100%;
+  background: rgba(8, 8, 10, 0.8);
+  color: #bf953f;
+  border: 1px solid rgba(191, 149, 63, 0.4);
+  padding: 12px 18px;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1em;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 5px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grimoire-header:hover {
+  background: rgba(191, 149, 63, 0.15);
+  color: #fcf6ba;
+  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
+}
+
+.grimoire-header.active {
+  border-color: #fcf6ba;
+  background: rgba(191, 149, 63, 0.2);
+}
+
+/* The magical expanding icon */
+.grimoire-header::after {
+  content: '\2727'; /* A four-pointed magic star */
+  font-size: 1.2em;
+  color: #bf953f;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.grimoire-header.active::after {
+  transform: rotate(180deg);
+  opacity: 0.5;
+}
+
+.grimoire-panel {
+  padding: 0 15px;
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 2px solid #bf953f;
+  margin-bottom: 10px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+  color: #d4c8a8;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.95em;
+  line-height: 1.6;
+}
+
+.grimoire-panel p {
+  margin: 10px 0;
+}
+
+/* Golden bullet points */
+.grimoire-panel ul {
+  list-style-type: square;
+  color: #bf953f; 
+  padding-left: 20px;
+}
+
+.grimoire-panel ul li span {
+  color: #d4c8a8; 
+}
