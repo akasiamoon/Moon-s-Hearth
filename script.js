@@ -519,3 +519,35 @@ function adjustVolume(soundName, sliderElement) {
         audioMixer[soundName].audio.volume = sliderElement.value / 100;
     }
 }
+// === 8. BARDIC SOUNDSCAPES (NATIVE AUDIO ENGINE) ===
+// This listens for clicks on ANY play button in your specific HTML setup
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('play-btn') && e.target.hasAttribute('data-target')) {
+        const audioId = e.target.getAttribute('data-target');
+        const audioEl = document.getElementById(audioId);
+        
+        if (audioEl) {
+            if (audioEl.paused) {
+                audioEl.play().catch(err => console.error("Audio playback failed:", err));
+                e.target.classList.add('active');
+                e.target.style.color = "#fff";
+            } else {
+                audioEl.pause();
+                e.target.classList.remove('active');
+                e.target.style.color = "#d4c8a8";
+            }
+        }
+    }
+});
+
+// This listens for adjustments on your specific volume sliders
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('volume-slider') && e.target.hasAttribute('data-target')) {
+        const audioId = e.target.getAttribute('data-target');
+        const audioEl = document.getElementById(audioId);
+        
+        if (audioEl) {
+            audioEl.volume = e.target.value;
+        }
+    }
+});
