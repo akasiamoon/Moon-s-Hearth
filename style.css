@@ -1,7 +1,6 @@
 @import url('');
 
 /* --- 1. THE REBORN ANIMATIONS --- */
-
 @keyframes hearthPulse {
 0%, 100% { opacity: 0.1; }
 50% { opacity: 0.45; }
@@ -25,7 +24,7 @@ overflow: hidden; background: #000; color: #e0e0e0;
 font-family: 'Quicksand', sans-serif;
 }
 
-/* --- 3. THE FIRE GLOW (The Flicker Fix) --- */
+/* --- 3. THE FIRE GLOW --- */
 body::before {
 content: "";
 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -35,7 +34,7 @@ pointer-events: none;
 animation: hearthPulse 4s infinite ease-in-out;
 }
 
-/* --- 4. THE DUST MOTES (High Visibility) --- */
+/* --- 4. THE DUST MOTES --- */
 .dust-container {
 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
 z-index: 10; pointer-events: none;
@@ -60,7 +59,7 @@ filter: brightness(0.15) blur(12px);
 transform: scale(1.05);
 }
 
-/* --- 6. THE GILDED DOSSIER & SCROLLWORK --- */
+/* --- 6. THE GILDED DOSSIER --- */
 #parchment-overlay {
 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
 width: 85%; max-width: 500px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
@@ -111,646 +110,145 @@ margin: 0; padding-bottom: 25px;
 #portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
 
-/* --- 8. THE AUDIO GRIMOIRE (Soundscape) --- */
-#soundscape-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px;
+/* --- GLOBAL SCROLLBAR --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
+
+/* --- 8. SHARED PORTAL CONTAINERS --- */
+.portal-scroll-container {
   margin-top: 15px;
-  max-height: 50vh;
+  max-height: 55vh;
   overflow-y: auto;
   padding-right: 10px;
+  text-align: left;
 }
 
-#soundscape-container::-webkit-scrollbar { width: 6px; }
-#soundscape-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-#soundscape-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
-
-.sound-item {
-  background: rgba(8, 8, 10, 0.6);
-  border: 1px solid rgba(191, 149, 63, 0.2);
-  padding: 10px;
-  border-radius: 2px;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.sound-item:hover {
-  border-color: #bf953f;
-  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
-}
-
-.play-btn {
+/* --- 9. NEW SECTION HEADERS (Collapsible Areas) --- */
+.section-header {
   width: 100%;
-  background: transparent;
-  color: #d4c8a8;
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  padding: 8px 4px;
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.85em;
-  cursor: pointer;
-  margin-bottom: 8px;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.play-btn:hover {
-  background: rgba(191, 149, 63, 0.15);
+  background: rgba(191, 149, 63, 0.1);
   color: #fcf6ba;
-}
-
-.play-btn.active {
-  background: rgba(191, 149, 63, 0.3);
-  border-color: #fcf6ba;
-  color: #fff;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-}
-
-.volume-slider {
-  width: 90%;
-  cursor: pointer;
-  accent-color: #bf953f; 
-}
-
-/* --- 9. THE KITCHEN GRIMOIRE --- */
-#grimoire-container {
-  margin-top: 15px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-#grimoire-container::-webkit-scrollbar { width: 6px; }
-#grimoire-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-#grimoire-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
-
-.grimoire-header {
-  width: 100%;
-  background: rgba(8, 8, 10, 0.8);
-  color: #bf953f;
   border: 1px solid rgba(191, 149, 63, 0.4);
-  padding: 12px 18px;
+  border-left: 3px solid #bf953f;
+  padding: 12px 15px;
   font-family: 'Cinzel', serif;
   font-size: 1.1em;
   text-align: left;
   cursor: pointer;
-  transition: all 0.3s ease;
   margin-bottom: 5px;
-  border-radius: 2px;
-  letter-spacing: 1px;
+  margin-top: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
 }
-
-.grimoire-header:hover {
-  background: rgba(191, 149, 63, 0.15);
-  color: #fcf6ba;
-  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
-}
-
-.grimoire-header.active {
-  border-color: #fcf6ba;
-  background: rgba(191, 149, 63, 0.2);
-}
-
-.grimoire-header::after {
-  content: '\2727'; 
-  font-size: 1.2em;
-  color: #bf953f;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-}
-
-.grimoire-header.active::after {
-  transform: rotate(180deg);
-  opacity: 0.5;
-}
-
-.grimoire-panel {
-  padding: 0 15px;
-  background: rgba(0, 0, 0, 0.4);
-  border-left: 2px solid #bf953f;
-  margin-bottom: 10px;
-  max-height: 0;
+.section-header:hover { background: rgba(191, 149, 63, 0.2); }
+.section-header::after { content: '▼'; font-size: 0.8em; transition: transform 0.3s ease; color: #bf953f; }
+.section-header.closed::after { transform: rotate(-90deg); }
+.section-panel {
+  max-height: 2000px; /* Open by default */
   overflow: hidden;
-  transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-  color: #d4c8a8;
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.95em;
-  line-height: 1.6;
+  transition: max-height 0.5s ease-in-out;
 }
+.section-panel.closed { max-height: 0; }
 
-.grimoire-panel p {
-  margin: 10px 0;
+/* --- 10. GRIMOIRE ACCORDIONS (For Recipes inside the sections) --- */
+.grimoire-header {
+  width: 100%; background: rgba(8, 8, 10, 0.8); color: #bf953f;
+  border: 1px solid rgba(191, 149, 63, 0.4); padding: 12px 18px;
+  font-family: 'Cinzel', serif; font-size: 1.05em; text-align: left;
+  cursor: pointer; transition: all 0.3s ease; margin-bottom: 5px;
+  display: flex; justify-content: space-between; align-items: center;
 }
-
-.grimoire-panel ul {
-  list-style-type: square;
-  color: #bf953f; 
-  padding-left: 20px;
+.grimoire-header:hover { background: rgba(191, 149, 63, 0.15); color: #fcf6ba; }
+.grimoire-header.active { border-color: #fcf6ba; background: rgba(191, 149, 63, 0.2); }
+.grimoire-header::after { content: '\2727'; font-size: 1.2em; color: #bf953f; transition: transform 0.4s ease, opacity 0.4s; }
+.grimoire-header.active::after { transform: rotate(180deg); opacity: 0.5; }
+.grimoire-panel {
+  padding: 0 15px; background: rgba(0, 0, 0, 0.4); border-left: 2px solid #bf953f;
+  margin-bottom: 10px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+  color: #d4c8a8; font-size: 0.95em; line-height: 1.6;
 }
+.grimoire-panel ul { list-style-type: square; color: #bf953f; padding-left: 20px; }
+.grimoire-panel ul li span { color: #d4c8a8; }
 
-.grimoire-panel ul li span {
-  color: #d4c8a8; 
-}
-
-/* --- 10. THE BOUNTY BOARD --- */
-#bounty-container {
-  margin-top: 15px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding-right: 10px;
-  text-align: left;
-}
-
-#bounty-container::-webkit-scrollbar { width: 6px; }
-#bounty-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-#bounty-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
-
+/* --- 11. QUEST ITEMS & APPOINTMENTS --- */
 .quest-item {
-  background: rgba(8, 8, 10, 0.8);
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  padding: 12px 15px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
+  padding: 12px 15px; border-radius: 4px; margin-bottom: 10px;
+  display: flex; align-items: flex-start; gap: 15px; transition: all 0.3s ease; cursor: pointer;
 }
-
-.quest-item:hover {
-  background: rgba(191, 149, 63, 0.15);
-  border-color: #fcf6ba;
-  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
-}
-
+.quest-item:hover { background: rgba(191, 149, 63, 0.15); border-color: #fcf6ba; }
 .quest-checkbox {
-  width: 22px;
-  height: 22px;
-  border: 2px solid #bf953f;
-  border-radius: 3px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-  margin-top: 2px;
+  width: 22px; height: 22px; border: 2px solid #bf953f; border-radius: 3px;
+  display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 2px;
 }
+.quest-item.completed .quest-checkbox { background: #bf953f; border-color: #fcf6ba; }
+.quest-item.completed .quest-checkbox::after { content: '✓'; color: #000; font-weight: bold; font-size: 16px; }
+.quest-details { flex-grow: 1; transition: all 0.3s ease; }
+.quest-title { color: #bf953f; font-family: 'Cinzel', serif; font-size: 1.1em; margin: 0 0 4px 0; }
+.quest-desc { color: #d4c8a8; font-size: 0.9em; margin: 0; opacity: 0.9; }
+.quest-item.completed .quest-details { opacity: 0.4; text-decoration: line-through; text-decoration-color: #bf953f; }
 
-.quest-item.completed .quest-checkbox {
-  background: #bf953f;
-  border-color: #fcf6ba;
-  box-shadow: 0 0 8px rgba(191, 149, 63, 0.6);
+/* Little Gold Delete Icon */
+.delete-icon {
+  color: rgba(191, 149, 63, 0.5); font-size: 1.2em; cursor: pointer;
+  transition: all 0.2s; padding: 0 5px; height: 100%; display: flex; align-items: center;
 }
+.delete-icon:hover { color: #ff5555; text-shadow: 0 0 5px rgba(255,85,85,0.4); transform: scale(1.1); }
 
-.quest-item.completed .quest-checkbox::after {
-  content: '✓';
-  color: #000;
-  font-weight: bold;
-  font-size: 16px;
+/* --- 12. CARDS (Alchemy, Herbs, Tea, Almanac, Sewing) --- */
+.alchemy-card, .tea-card, .sewing-card {
+  background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3);
+  padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left;
 }
-
-.quest-details {
-  flex-grow: 1;
-  transition: all 0.3s ease;
-}
-
-.quest-title {
-  color: #bf953f;
-  font-family: 'Cinzel', serif;
-  font-size: 1.1em;
-  margin: 0 0 4px 0;
-  letter-spacing: 1px;
-}
-
-.quest-desc {
-  color: #d4c8a8;
-  font-size: 0.9em;
-  margin: 0;
-  opacity: 0.9;
-  font-family: 'Quicksand', sans-serif;
-}
-
-.quest-item.completed .quest-details {
-  opacity: 0.4;
-  text-decoration: line-through;
-  text-decoration-color: #bf953f;
-}
-
-/* --- 11. THE FEN ALMANAC --- */
-#almanac-container {
-  margin-top: 15px;
-  padding: 20px 15px;
-  background: rgba(8, 8, 10, 0.6);
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  border-radius: 4px;
-  text-align: center;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-}
-
-.almanac-temp {
-  color: #fcf6ba;
-  font-size: 1.5em;
-  font-family: 'Cinzel', serif;
-  margin: 10px 0;
-  text-shadow: 0 0 5px rgba(191, 149, 63, 0.4);
-}
-
-.almanac-stat {
-  color: #d4c8a8;
-  font-size: 1.1em;
-  margin: 8px 0;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 1px;
-}
-
-.almanac-stat span {
-  color: #bf953f;
-  font-weight: bold;
-}
-
-.almanac-divider {
-  color: rgba(191, 149, 63, 0.5);
-  margin: 15px 0;
-  font-size: 0.9em;
-  letter-spacing: 2px;
-}
-
-.almanac-focus {
-  color: #fcf6ba;
-  font-size: 1.3em;
-  font-family: 'Cinzel', serif;
-  margin-top: 15px;
-  margin-bottom: 12px;
-  text-shadow: 0 0 8px rgba(191, 149, 63, 0.3);
-  letter-spacing: 1px;
-}
-
-.almanac-entry {
-  color: #d4c8a8;
-  font-style: italic;
-  line-height: 1.7;
-  padding: 0 10px;
-  font-family: 'Quicksand', sans-serif;
-  margin-bottom: 15px;
-}
-
-.almanac-planting {
-  color: #bf953f;
-  font-size: 0.95em;
-  font-style: italic;
-  margin-top: 10px;
-  border-top: 1px dashed rgba(191, 149, 63, 0.3);
-  padding-top: 10px;
-}
-
-/* --- 12. THE APOTHECARY --- */
-#apothecary-container {
-  margin-top: 15px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-#apothecary-container::-webkit-scrollbar { width: 6px; }
-#apothecary-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-#apothecary-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
-
-.alchemy-card {
-  background: rgba(8, 8, 10, 0.6);
-  border: 1px solid rgba(191, 149, 63, 0.3);
-  border-left: 3px solid #bf953f; 
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 12px;
-  transition: all 0.3s ease;
-  text-align: left;
-}
-
-.alchemy-card:hover {
-  background: rgba(191, 149, 63, 0.1);
-  border-color: #fcf6ba;
-  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
-}
-
-.alchemy-title {
-  color: #fcf6ba;
-  font-family: 'Cinzel', serif;
-  font-size: 1.15em;
-  margin: 0 0 8px 0;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.alchemy-desc {
-  color: #d4c8a8;
-  font-size: 0.9em;
-  font-style: italic;
-  margin-bottom: 10px;
-  margin-top: 0;
-}
-
-.alchemy-ingredients {
-  color: #bf953f;
-  font-size: 0.9em;
-  margin-bottom: 8px;
-  font-family: 'Quicksand', sans-serif;
-}
-
-.alchemy-ingredients span {
-  color: #e0e0e0;
-}
-
-.alchemy-instructions {
-  color: #d4c8a8;
-  font-size: 0.9em;
-  line-height: 1.5;
-  margin: 0;
-  font-family: 'Quicksand', sans-serif;
-}
-
-/* --- 13. THE DRYING RACK (Herbs) --- */
-#herbs-container {
-  margin-top: 15px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding-right: 10px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 15px;
-}
-
-#herbs-container::-webkit-scrollbar { width: 6px; }
-#herbs-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-#herbs-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
-
-.herb-card {
-  background: rgba(8, 8, 10, 0.5);
-  border: 1px dashed rgba(191, 149, 63, 0.5); 
-  padding: 15px;
-  border-radius: 4px;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.herb-card:hover {
-  border-color: #fcf6ba;
-  background: rgba(191, 149, 63, 0.15);
-  transform: translateY(-3px); 
-}
-
-.herb-icon {
-  font-size: 2em;
-  margin-bottom: 8px;
-}
-
-.herb-title {
-  color: #bf953f;
-  font-family: 'Cinzel', serif;
-  font-size: 1.1em;
-  margin: 0 0 5px 0;
-  letter-spacing: 1px;
-}
-
-.herb-prop {
-  color: #fcf6ba;
-  font-size: 0.85em;
-  margin-bottom: 10px;
-  font-style: italic;
-  border-bottom: 1px solid rgba(191, 149, 63, 0.2);
-  padding-bottom: 8px;
-}
-
-.herb-desc {
-  color: #d4c8a8;
-  font-size: 0.85em;
-  line-height: 1.5;
-  margin: 0;
-  font-family: 'Quicksand', sans-serif;
-}
-
-/* --- 14. THE STILLNESS (Teacup) --- */
-#teacup-container {
-  margin-top: 15px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-#teacup-container::-webkit-scrollbar { width: 6px; }
-#teacup-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-#teacup-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
-
-.tea-card {
-  background: rgba(8, 8, 10, 0.4);
-  border: 1px solid rgba(191, 149, 63, 0.2);
-  border-radius: 8px; 
-  padding: 15px;
-  margin-bottom: 15px;
-  text-align: left;
-  transition: all 0.4s ease;
-}
-
-.tea-card:hover {
-  border-color: #bf953f;
-  background: rgba(191, 149, 63, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-.tea-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  border-bottom: 1px dashed rgba(191, 149, 63, 0.3);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.tea-icon {
-  font-size: 2.2em;
-  filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.4));
-}
-
-.tea-title {
-  color: #fcf6ba;
-  font-family: 'Cinzel', serif;
-  font-size: 1.15em;
-  margin: 0 0 4px 0;
-  letter-spacing: 1px;
-}
-
-.tea-brew {
-  color: #bf953f;
-  font-size: 0.85em;
-  font-family: 'Quicksand', sans-serif;
-  font-style: italic;
-}
-
-.tea-desc {
-  color: #d4c8a8;
-  font-size: 0.95em;
-  line-height: 1.6;
-  margin: 0;
-  font-family: 'Quicksand', sans-serif;
-}
-
-/* --- 15. THE MEASUREMENT LOG (Sewing) --- */
-#sewing-container {
-  margin-top: 15px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-#sewing-container::-webkit-scrollbar { width: 6px; }
-#sewing-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-#sewing-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
-
-.sewing-card {
-  background: rgba(8, 8, 10, 0.6);
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  border-top: 3px double #bf953f; 
-  padding: 15px;
-  margin-bottom: 15px;
-  text-align: left;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
+.alchemy-card { border-left: 3px solid #bf953f; }
+.tea-card { border-radius: 8px; }
+.sewing-card { border-top: 3px double #bf953f; position: relative; }
 .sewing-card::before {
-  content: '';
-  position: absolute;
-  top: 5px; left: 5px; right: 5px; bottom: 5px;
-  border: 1px dashed rgba(191, 149, 63, 0.2); 
-  pointer-events: none;
+  content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
+  border: 1px dashed rgba(191, 149, 63, 0.2); pointer-events: none;
 }
+.alchemy-title, .tea-title, .sewing-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; }
+.alchemy-ingredients { color: #bf953f; font-size: 0.9em; margin-bottom: 8px; }
+.alchemy-ingredients span { color: #e0e0e0; }
+#herbs-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+.herb-card { background: rgba(8, 8, 10, 0.5); border: 1px dashed rgba(191, 149, 63, 0.5); padding: 15px; text-align: center; }
 
-.sewing-card:hover {
-  background: rgba(191, 149, 63, 0.1);
-  border-color: #fcf6ba;
-}
+/* --- 13. ALMANAC SPECIFICS --- */
+#almanac-container { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.4); padding: 20px 15px; text-align: center; }
+.almanac-temp { color: #fcf6ba; font-size: 1.5em; font-family: 'Cinzel', serif; margin: 10px 0; }
+.almanac-stat { color: #d4c8a8; font-size: 1.1em; margin: 8px 0; font-family: 'Cinzel', serif; }
+.almanac-stat span { color: #bf953f; font-weight: bold; }
+.almanac-focus { color: #fcf6ba; font-size: 1.3em; font-family: 'Cinzel', serif; margin: 15px 0; }
 
-.sewing-title {
-  color: #fcf6ba;
-  font-family: 'Cinzel', serif;
-  font-size: 1.15em;
-  margin: 0 0 8px 0;
-  letter-spacing: 1px;
-}
-
-.sewing-status {
-  display: inline-block;
-  background: rgba(191, 149, 63, 0.15);
-  color: #fcf6ba;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 0.75em;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 10px;
-  border: 1px solid rgba(191, 149, 63, 0.4);
-}
-
-.sewing-fabric {
-  color: #bf953f;
-  font-size: 0.9em;
-  margin-bottom: 8px;
-  font-family: 'Quicksand', sans-serif;
-}
-
-.sewing-notes {
-  color: #d4c8a8;
-  font-size: 0.9em;
-  line-height: 1.5;
-  margin: 0;
-  font-family: 'Quicksand', sans-serif;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 10px;
-  border-radius: 2px;
-  border-left: 2px solid rgba(191, 149, 63, 0.5);
-}
-
-/* --- 16. THE ARCHIVE (Live Database Inputs & Buttons) --- */
-
-/* Text inputs and Journal area */
+/* --- 14. INPUTS, BUTTONS, & UPLOADS --- */
 .portal-input {
-  background: rgba(8, 8, 10, 0.8);
-  color: #d4c8a8;
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  border-radius: 4px;
-  padding: 10px;
-  font-family: 'Quicksand', sans-serif;
-  width: 100%;
-  box-sizing: border-box;
-  outline: none;
-  transition: all 0.3s ease;
+  background: rgba(15, 12, 10, 0.9); color: #d4c8a8;
+  border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px;
+  font-family: 'Quicksand', sans-serif; font-size: 1.05em; width: 100%; box-sizing: border-box; outline: none;
 }
+.portal-input:focus { border-color: #fcf6ba; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
+.portal-input::placeholder { color: rgba(191, 149, 63, 0.5); font-style: italic; }
 
-.portal-input:focus {
-  border-color: #fcf6ba;
-  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
-  background: rgba(8, 8, 10, 0.95);
-}
-
-.portal-input::placeholder {
-  color: rgba(191, 149, 63, 0.6);
-  font-style: italic;
-}
-
-/* Add Item and Seal Memory buttons */
 .portal-btn {
-  padding: 8px 16px;
-  background: rgba(8, 8, 10, 0.8);
-  color: #bf953f;
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'Cinzel', serif;
-  font-weight: bold;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
+  padding: 8px 16px; background: rgba(8, 8, 10, 0.8); color: #bf953f;
+  border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer;
+  font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; transition: all 0.2s;
 }
+.portal-btn:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 
-.portal-btn:hover {
-  background: rgba(191, 149, 63, 0.15);
-  color: #fcf6ba;
-  border-color: #fcf6ba;
-  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
-  transform: translateY(-1px);
+/* Custom File Upload Label to hide the ugly white button */
+input[type="file"] { display: none; }
+.custom-file-label {
+  display: inline-block; padding: 8px 15px; background: rgba(8, 8, 10, 0.8);
+  color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px;
+  cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; transition: all 0.2s ease;
 }
+.custom-file-label:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 
-.portal-btn:active {
-  transform: translateY(1px);
-}
-
-.portal-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  border-color: rgba(191, 149, 63, 0.2);
-  color: rgba(191, 149, 63, 0.5);
-}
-
-/* The File Upload (Choose Image) Button */
-input[type="file"]::-webkit-file-selector-button {
-  background: rgba(8, 8, 10, 0.8);
-  color: #bf953f;
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 12px;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-}
-
-input[type="file"]::-webkit-file-selector-button:hover {
-  background: rgba(191, 149, 63, 0.15);
-  color: #fcf6ba;
-  border-color: #fcf6ba;
-}
+/* Action Buttons (Edit/Delete text) */
+.action-btn { background: none; border: none; color: #bf953f; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; padding: 0 5px; }
+.action-btn:hover { color: #fcf6ba; }
