@@ -20,7 +20,6 @@ const myApothecary = [
 ];
 
 // === 4. THE DRYING RACK (Herbs) ===
-// Add your hanging botanicals and their properties here!
 const myHerbs = [
     { title: "Lavender", icon: "🪻", properties: "Restoration & Calm", description: "Hang near the window to sweeten the breeze. Excellent for sleep pillows and soothing teas." },
     { title: "Eucalyptus", icon: "🌿", properties: "Clearing & Breath", description: "Hang in the washroom where the steam can release its oils. Clears the chest and the mind." },
@@ -28,7 +27,15 @@ const myHerbs = [
     { title: "Chamomile", icon: "🏵️", properties: "Peace & Warding", description: "Tiny suns that chase away the cold. Brew into a gentle tea to settle nerves and invite stillness." }
 ];
 
-// === 5. THE LIVING FEN ALMANAC (Dynamic Data) ===
+// === 5. THE STILLNESS (Teacup) ===
+// Add your favorite tea rituals, brewing times, and affirmations here!
+const myTeas = [
+    { title: "Lady Grey's Respite", icon: "☕", brew: "Steep 3 mins at 212°F", description: "A classic, elegant blend brightened with citrus and a touch of honey. Perfect for finding a quiet center in the afternoon." },
+    { title: "Lavender Chamomile Nightcap", icon: "🍵", brew: "Steep 5 mins at 200°F", description: "A deeply soothing floral blend meant to quiet a racing mind and invite restful, restorative sleep." },
+    { title: "Peppermint Clarity", icon: "🫖", brew: "Steep 4 mins at 212°F", description: "Bright, awakening, and sharp. An excellent companion for deciphering the Grimoire or writing code." }
+];
+
+// === 6. THE LIVING FEN ALMANAC (Dynamic Data) ===
 let dynamicAlmanac = { season: "", moonPhase: "", temp: "--°F", weather: "", planting: "", focus: "", entry: "" };
 
 function getMoonPhase(date) {
@@ -87,14 +94,13 @@ async function fetchLocalAtmosphere() {
 
 updateNatureLore(); fetchLocalAtmosphere();
 
-// === 6. PORTAL TEXT DATA (For any unbuilt portals) ===
+// === 7. PORTAL TEXT DATA (For any unbuilt portals) ===
 const portalData = {
     'audio': '<h2>Bardic Soundscapes</h2><p>Select your ambient mix.</p>',
-    'teacup': '<h2>The Stillness</h2><p>Lady Grey with Honey.</p>',
     'sewing': '<h2>Measurement Log</h2><p>Spring Tunics: Linen Blend</p>'
 };
 
-// === 7. HTML BUILDERS ===
+// === 8. HTML BUILDERS ===
 function buildGrimoireHTML() {
     let html = `<h2>Kitchen Grimoire</h2><p>Select a recipe to read the parchment.</p><div id="grimoire-container" style="margin-top:15px; max-height:50vh; overflow-y:auto; padding-right:10px;">`;
     myRecipes.forEach(recipe => {
@@ -123,12 +129,24 @@ function buildApothecaryHTML() {
 function buildHerbsHTML() {
     let html = `<h2>The Drying Rack</h2><p>Hanging botanicals and their magical properties.</p><div id="herbs-container">`;
     myHerbs.forEach(herb => {
+        html += `<div class="herb-card"><div class="herb-icon">${herb.icon}</div><h3 class="herb-title">${herb.title}</h3><div class="herb-prop">${herb.properties}</div><p class="herb-desc">${herb.description}</p></div>`;
+    });
+    return html + `</div>`;
+}
+
+function buildTeacupHTML() {
+    let html = `<h2>The Stillness</h2><p style="font-style: italic; color: #d4c8a8; margin-bottom: 20px;">"Breathe deep. The storm outside cannot touch the warmth within."</p><div id="teacup-container">`;
+    myTeas.forEach(tea => {
         html += `
-        <div class="herb-card">
-            <div class="herb-icon">${herb.icon}</div>
-            <h3 class="herb-title">${herb.title}</h3>
-            <div class="herb-prop">${herb.properties}</div>
-            <p class="herb-desc">${herb.description}</p>
+        <div class="tea-card">
+            <div class="tea-header">
+                <span class="tea-icon">${tea.icon}</span>
+                <div class="tea-info">
+                    <h3 class="tea-title">${tea.title}</h3>
+                    <div class="tea-brew">${tea.brew}</div>
+                </div>
+            </div>
+            <p class="tea-desc">${tea.description}</p>
         </div>`;
     });
     return html + `</div>`;
@@ -140,7 +158,7 @@ function buildAlmanacHTML() {
     return `<h2>Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div><div class="almanac-divider">◈━━━━━━༺ ❦ ༻━━━━━━◈</div><div class="almanac-focus">Daily Focus: ${dynamicAlmanac.focus}</div><p class="almanac-entry">"${dynamicAlmanac.entry}"</p><div class="almanac-planting"><strong>Nature's Lore:</strong> ${dynamicAlmanac.planting}</div></div>`;
 }
 
-// === 8. INTERACTIVE LOGIC ===
+// === 9. INTERACTIVE LOGIC ===
 function toggleAccordion(button) {
     button.classList.toggle('active');
     const panel = button.nextElementSibling;
@@ -154,7 +172,7 @@ function toggleAccordion(button) {
 }
 function toggleQuest(questElement) { questElement.classList.toggle('completed'); }
 
-// === 9. OPEN & CLOSE PORTALS ===
+// === 10. OPEN & CLOSE PORTALS ===
 function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
@@ -165,7 +183,8 @@ function openPortal(portalName) {
     else if (portalName === 'cat') content.innerHTML = buildBountyBoardHTML();
     else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
     else if (portalName === 'alchemy') content.innerHTML = buildApothecaryHTML(); 
-    else if (portalName === 'herbs') content.innerHTML = buildHerbsHTML(); // Added Herbs!
+    else if (portalName === 'herbs') content.innerHTML = buildHerbsHTML(); 
+    else if (portalName === 'teacup') content.innerHTML = buildTeacupHTML(); // Added Teacup!
     else if (portalData[portalName]) content.innerHTML = portalData[portalName];
 
     if (soundscape) soundscape.style.display = (portalName === 'audio') ? 'grid' : 'none';
