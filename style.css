@@ -257,3 +257,93 @@ margin: 0; padding-bottom: 25px;
 .grimoire-panel ul li span {
   color: #d4c8a8; 
 }
+/* --- 10. THE BOUNTY BOARD --- */
+#bounty-container {
+  margin-top: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+  text-align: left;
+}
+
+#bounty-container::-webkit-scrollbar { width: 6px; }
+#bounty-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+#bounty-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
+
+/* The beautiful box for each quest */
+.quest-item {
+  background: rgba(8, 8, 10, 0.8);
+  border: 1px solid rgba(191, 149, 63, 0.4);
+  padding: 12px 15px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.quest-item:hover {
+  background: rgba(191, 149, 63, 0.15);
+  border-color: #fcf6ba;
+  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
+}
+
+/* The custom empty checkbox */
+.quest-checkbox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #bf953f;
+  border-radius: 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  margin-top: 2px;
+}
+
+/* What happens when you click it (Fills with gold) */
+.quest-item.completed .quest-checkbox {
+  background: #bf953f;
+  border-color: #fcf6ba;
+  box-shadow: 0 0 8px rgba(191, 149, 63, 0.6);
+}
+
+/* The actual checkmark inside the box */
+.quest-item.completed .quest-checkbox::after {
+  content: '✓';
+  color: #000;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* The text formatting */
+.quest-details {
+  flex-grow: 1;
+  transition: all 0.3s ease;
+}
+
+.quest-title {
+  color: #bf953f;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1em;
+  margin: 0 0 4px 0;
+  letter-spacing: 1px;
+}
+
+.quest-desc {
+  color: #d4c8a8;
+  font-size: 0.9em;
+  margin: 0;
+  opacity: 0.9;
+  font-family: 'Quicksand', sans-serif;
+}
+
+/* The satisfying strike-through effect when finished */
+.quest-item.completed .quest-details {
+  opacity: 0.4;
+  text-decoration: line-through;
+  text-decoration-color: #bf953f;
+}
