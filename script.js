@@ -481,3 +481,41 @@ window.onclick = function(event) {
     const overlay = document.getElementById('parchment-overlay');
     if (event.target == overlay) closePortal();
 }
+// === 8. BARDIC SOUNDSCAPES (AUDIO ENGINE) ===
+const audioMixer = {}; // This holds our playing tracks so they can overlap
+
+function toggleSound(soundName, fileUrl, btnElement) {
+    if (audioMixer[soundName]) {
+        // If it is already playing, pause it and remove it
+        audioMixer[soundName].audio.pause();
+        delete audioMixer[soundName];
+        btnElement.classList.remove('active');
+        btnElement.style.color = "#d4c8a8"; // Reset text color
+    } else {
+        // If it is not playing, conjure the audio
+        const track = new Audio(fileUrl);
+        track.loop = true; // Ambient sounds should loop infinitely!
+        
+        // Check the slider position to set the correct volume
+        const slider = btnElement.nextElementSibling;
+        if (slider && slider.classList.contains('volume-slider')) {
+            track.volume = slider.value / 100;
+        } else {
+            track.volume = 0.5;
+        }
+
+        track.play().catch(e => console.error("Audio blocked by browser:", e));
+        
+        // Save it to the mixer and highlight the button
+        audioMixer[soundName] = { audio: track };
+        btnElement.classList.add('active');
+        btnElement.style.color = "#fff"; // Make text bright when active
+    }
+}
+
+function adjustVolume(soundName, sliderElement) {
+    // If the track is currently playing, adjust its volume in real-time
+    if (audioMixer[soundName]) {
+        audioMixer[soundName].audio.volume = sliderElement.value / 100;
+    }
+}
