@@ -6,10 +6,69 @@ let db = null;
 try {
     if (typeof supabase !== 'undefined') {
         db = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log("✨ Stars aligned: Connected to the archive.");
     } else {
-        console.warn("⚠️ Cannot find Supabase! Please add the CDN script tag to your HTML.");
+        console.warn("⚠️ Cannot find Supabase! Falling back to Local Storage.");
     }
 } catch (error) { console.error("The magical currents are scrambled:", error); }
+
+// === 0.5 DATA MANAGER (LOCAL STORAGE FALLBACK) ===
+// This intercepts all database requests and ensures nothing is ever lost.
+async function loadData(tableName, orderBy = 'created_at', asc = false) {
+    let results = null;
+    // 1. Try Supabase
+    if (db) {
+        const { data, error } = await db.from(tableName).select('*').order(orderBy, { ascending: asc });
+        if (!error && data) results = data;
+    }
+    // 2. Fallback to Local Storage if Supabase fails (e.g., table doesn't exist yet)
+    if (!results) {
+        results = JSON.parse(localStorage.getItem(tableName) || '[]');
+        results.sort((a, b) => {
+            if (a[orderBy] < b[orderBy]) return asc ? -1 : 1;
+            if (a[orderBy] > b[orderBy]) return asc ? 1 : -1;
+            return 0;
+        });
+    } else {
+        // 3. If Supabase worked, update Local Storage as a backup
+        localStorage.setItem(tableName, JSON.stringify(results));
+    }
+    return results;
+}
+
+async function insertData(tableName, itemObj) {
+    itemObj.id = Date.now().toString(); // Generate a local ID
+    itemObj.created_at = new Date().toISOString();
+    
+    if (db) {
+        const { data, error } = await db.from(tableName).insert([itemObj]).select();
+        if (!error && data && data.length > 0) itemObj.id = data[0].id; // Use real ID if successful
+    }
+    
+    const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+    localData.push(itemObj);
+    localStorage.setItem(tableName, JSON.stringify(localData));
+}
+
+async function updateData(tableName, id, updates) {
+    if (db) await db.from(tableName).update(updates).eq('id', id);
+    
+    const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+    const index = localData.findIndex(item => item.id == id);
+    if (index > -1) {
+        localData[index] = { ...localData[index], ...updates };
+        localStorage.setItem(tableName, JSON.stringify(localData));
+    }
+}
+
+async function removeData(tableName, id) {
+    if (db) await db.from(tableName).delete().eq('id', id);
+    
+    let localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+    localData = localData.filter(item => item.id != id);
+    localStorage.setItem(tableName, JSON.stringify(localData));
+}
+
 
 // === 1. LOCAL DATA ===
 const myRecipes = [
@@ -70,7 +129,7 @@ const portalData = { 'audio': '<h2 class="gold-text">Bardic Soundscapes</h2><p s
 // === 3. LITERAL CALENDAR GENERATOR WITH HOLIDAYS ===
 let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
-let holidayCache = {}; // Saves holidays so we don't spam the API
+let holidayCache = {}; 
 
 async function fetchHolidays(year) {
     if (holidayCache[year]) return holidayCache[year];
@@ -95,8 +154,6 @@ async function generateCalendarHTML(events) {
     const firstDay = new Date(calYear, calMonth, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
     const monthName = new Date(calYear, calMonth).toLocaleDateString('default', { month: 'long' });
-    
-    // Fetch real-world holidays!
     const holidays = await fetchHolidays(calYear);
 
     let html = `
@@ -114,12 +171,10 @@ async function generateCalendarHTML(events) {
 
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        
         const hasEvent = events && events.some(e => e.start_date && e.start_date.startsWith(dateStr) && e.text !== 'completed');
         const marker = hasEvent ? `<div class="cal-marker"></div>` : '';
         const isToday = (day === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear()) ? 'today' : '';
         
-        // Check if this specific day is a holiday
         const holiday = holidays.find(h => h.date === dateStr);
         const holiClass = holiday ? 'holiday' : '';
         const holiText = holiday ? `<div class="holiday-text">${holiday.name}</div>` : '';
@@ -141,7 +196,7 @@ function prefillDate(dateStr) {
     }
 }
 
-// === 4. HTML BUILDERS ===
+// === 4. HTML BUILDERS (Now Powered by Local Storage Fallback) ===
 async function buildGrimoireHTML() {
     let html = `<h2 class="gold-text">Kitchen Grimoire</h2><div class="portal-scroll-container">`;
 
@@ -151,43 +206,36 @@ async function buildGrimoireHTML() {
         html += `<div class="grimoire-item"><button class="grimoire-header" onclick="toggleAccordion(this)">${item.icon || ''} ${item.title}</button><div class="grimoire-panel"><p><em>${item.description}</em></p>${item.brew ? `<div style="color:#bf953f; font-style:italic; margin-bottom:10px;">${item.brew}</div>` : ''}${ingList ? `<ul>${ingList}</ul>` : ''}${item.instructions ? `<p>${item.instructions}</p>` : ''}</div></div>`;
     });
 
-    if (db) {
-        const { data: dbRecipes } = await db.from('recipes').select('*').order('created_at', { ascending: false });
-        if (dbRecipes) {
-            dbRecipes.forEach(item => {
-                html += `<div class="grimoire-item"><button class="grimoire-header" onclick="toggleAccordion(this)">📜 ${item.title}</button><div class="grimoire-panel"><p style="white-space: pre-wrap;">${item.description}</p><div style="text-align: right; margin-top: 10px;"><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('recipes', '${item.id}', 'grimoire')">Purge Entry</button></div></div></div>`;
-            });
-        }
-    }
+    const dbRecipes = await loadData('recipes');
+    dbRecipes.forEach(item => {
+        html += `<div class="grimoire-item"><button class="grimoire-header" onclick="toggleAccordion(this)">📜 ${item.title}</button><div class="grimoire-panel"><p style="white-space: pre-wrap;">${item.description}</p><div style="text-align: right; margin-top: 10px;"><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('recipes', '${item.id}', 'grimoire')">Purge Entry</button></div></div></div>`;
+    });
     html += `</div>`; 
 
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Quick Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="recipe-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="recipe-desc" placeholder="Ingredients & Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('recipes', 'recipe-title', 'recipe-desc', 'grimoire')" class="portal-btn" style="width: 100%;">Add to Grimoire</button></div></div>`;
 
     html += `<div class="section-header closed" onclick="toggleSection(this)">Weekly Provisions</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-meal-item" placeholder="e.g. Moonday: Stew..." class="portal-input"><button onclick="addDynamicItem('meal_plans', 'new-meal-item', 'grimoire')" class="portal-btn">Add</button></div>`;
-    if (db) {
-        const { data: meals } = await db.from('meal_plans').select('*').order('created_at', { ascending: true });
-        if (meals) { meals.forEach(item => { const isDone = item.is_completed ? 'completed' : ''; html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div></div>`; }); }
-    }
+    const meals = await loadData('meal_plans', 'created_at', true);
+    meals.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div></div>`; 
+    });
     html += `</div>`;
 
     html += `<div class="section-header closed" onclick="toggleSection(this)">Market List</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-market-item" placeholder="Add an item..." class="portal-input"><button onclick="addDynamicItem('market_items', 'new-market-item', 'grimoire')" class="portal-btn">Add</button></div>`;
-    if (db) {
-        const { data: marketItems } = await db.from('market_items').select('*').order('created_at', { ascending: false });
-        if (marketItems) { marketItems.forEach(item => { const isDone = item.is_completed ? 'completed' : ''; html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div></div>`; }); }
-    }
+    const marketItems = await loadData('market_items');
+    marketItems.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div></div>`; 
+    });
     html += `</div></div>`; 
     return html;
 }
 
 async function buildBountyBoardHTML() {
     let html = `<h2 class="gold-text">The Bounty Board</h2><div class="portal-scroll-container">`;
-    let events = [];
-    if (db) {
-        const { data } = await db.from('calendar_events').select('*').order('start_date', { ascending: true });
-        events = data || [];
-    }
+    const events = await loadData('calendar_events', 'start_date', true);
     
-    // Generate Calendar! (Requires 'await' now because we fetch holidays)
     html += await generateCalendarHTML(events);
 
     html += `<div class="section-header closed" onclick="toggleSection(this)">Alignments Ledger</div><div class="section-panel closed">`;
@@ -203,10 +251,11 @@ async function buildBountyBoardHTML() {
     html += `<div id="scribe-section" class="section-header closed" onclick="toggleSection(this)">Scribe Alignment</div><div id="scribe-panel" class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="ev-title" placeholder="Alignment Title..." class="portal-input" style="margin-bottom: 10px;"><input type="datetime-local" id="ev-date" class="portal-input" style="margin-bottom: 10px;"><button onclick="addEvent()" class="portal-btn" style="width: 100%;">Seal in the Stars</button><div id="ev-status" style="font-size: 0.8em; margin-top:5px; color:#bf953f; text-align:center;"></div></div></div>`;
 
     html += `<div class="section-header closed" onclick="toggleSection(this)">Daily Endeavors</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-quest-item" placeholder="Scribe a quick chore..." class="portal-input"><button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button></div>`;
-    if (db) {
-        const { data: quests } = await db.from('daily_quests').select('*').order('created_at', { ascending: false });
-        if (quests) { quests.forEach(item => { const isDone = item.is_completed ? 'completed' : ''; html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div></div>`; }); }
-    }
+    const quests = await loadData('daily_quests');
+    quests.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div></div>`; 
+    });
     html += `</div></div>`; 
     return html;
 }
@@ -215,20 +264,21 @@ async function buildTeacupHTML() {
     let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
     html += `<div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;"><textarea id="journal-text" placeholder="Record your thoughts or visions..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea><div style="display: flex; justify-content: space-between; align-items: center;"><label for="journal-image" class="custom-file-label">Attach Image</label><input type="file" id="journal-image" accept="image/*" onchange="document.getElementById('file-name').innerText = this.files[0].name"><button onclick="submitJournalEntry()" id="journal-submit-btn" class="portal-btn">Seal Memory</button></div><div id="file-name" style="font-size: 0.8em; color: rgba(191,149,63,0.7); margin-top: 5px; font-style: italic;"></div><div id="journal-status" style="font-size: 0.8em; color: #a89f91; margin-top: 5px;"></div></div>`;
 
-    if (db) {
-        const { data: notes } = await db.from('family_notes').select('*').order('created_at', { ascending: false });
-        if (notes) {
-            notes.forEach(note => {
-                let imageHtml = '';
-                if (note.image_url) {
-                    const { data } = db.storage.from('note-images').getPublicUrl(note.image_url);
-                    imageHtml = `<img src="${data.publicUrl}" style="max-width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid rgba(191,149,63,0.3);" alt="Memory"/>`;
-                }
-                const dateStr = new Date(note.timestamp || note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
-                html += `<div class="tea-card"><div style="font-size: 0.85em; color: rgba(191,149,63,0.8); margin-bottom: 8px; border-bottom: 1px dashed rgba(191, 149, 63, 0.3); padding-bottom: 5px; display: flex; justify-content: space-between;"><span>${dateStr}</span><button class="action-btn" style="color: #ff6b6b;" onclick="deleteJournalEntry('${note.id}')">Delete</button></div><p style="margin: 0; white-space: pre-wrap; font-size: 1.05em;">${note.note}</p>${imageHtml}</div>`;
-            });
+    const notes = await loadData('family_notes');
+    notes.forEach(note => {
+        let imageHtml = '';
+        if (note.image_url) {
+            let pubUrl = note.image_url;
+            // Only ask Supabase for the URL if it's a real file name, not local fallback
+            if (db && !note.image_url.startsWith('http') && !note.image_url.startsWith('data:')) {
+                const { data } = db.storage.from('note-images').getPublicUrl(note.image_url);
+                pubUrl = data.publicUrl;
+            }
+            imageHtml = `<img src="${pubUrl}" style="max-width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid rgba(191,149,63,0.3);" alt="Memory"/>`;
         }
-    }
+        const dateStr = new Date(note.timestamp || note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
+        html += `<div class="tea-card"><div style="font-size: 0.85em; color: rgba(191,149,63,0.8); margin-bottom: 8px; border-bottom: 1px dashed rgba(191, 149, 63, 0.3); padding-bottom: 5px; display: flex; justify-content: space-between;"><span>${dateStr}</span><button class="action-btn" style="color: #ff6b6b;" onclick="deleteJournalEntry('${note.id}')">Delete</button></div><p style="margin: 0; white-space: pre-wrap; font-size: 1.05em;">${note.note}</p>${imageHtml}</div>`;
+    });
     return html + `</div>`;
 }
 
@@ -236,10 +286,9 @@ async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
     myApothecary.forEach(item => { html += `<div class="alchemy-card"><h3 class="alchemy-title">${item.icon} ${item.title}</h3><p style="color:#d4c8a8; font-style:italic; margin-top:0;">${item.description}</p><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Components:</strong> <span style="color:#e0e0e0;">${item.ingredients}</span></div><p style="color:#d4c8a8; font-size:0.9em; margin:0;">${item.instructions}</p></div>`; });
 
-    if (db) {
-        const { data: apoth } = await db.from('apothecary').select('*').order('created_at', { ascending: false });
-        if (apoth) { apoth.forEach(item => { html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🏺 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('apothecary', '${item.id}', 'alchemy')">✕</button></div><p style="color:#d4c8a8; font-size:0.9em; margin:0; white-space:pre-wrap;">${item.description}</p></div>`; }); }
-    }
+    const apoth = await loadData('apothecary');
+    apoth.forEach(item => { html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🏺 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('apothecary', '${item.id}', 'alchemy')">✕</button></div><p style="color:#d4c8a8; font-size:0.9em; margin:0; white-space:pre-wrap;">${item.description}</p></div>`; }); 
+    
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="apo-title" placeholder="Tincture or Salve Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="apo-desc" placeholder="Components & Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('apothecary', 'apo-title', 'apo-desc', 'alchemy')" class="portal-btn" style="width: 100%;">Add to Apothecary</button></div></div></div>`;
     return html;
 }
@@ -248,10 +297,9 @@ async function buildHerbsHTML() {
     let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div id="herbs-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">`;
     myHerbs.forEach(herb => { html += `<div class="herb-card"><div style="font-size: 2em; margin-bottom:8px;">${herb.icon}</div><h3 class="gold-text" style="font-size:1.1em; margin:0 0 5px 0; padding-bottom: 0;">${herb.title}</h3><div style="color:#fcf6ba; font-size:0.85em; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.2); padding-bottom:8px; margin-bottom:10px;">${herb.properties}</div><p style="color:#d4c8a8; font-size:0.85em; margin:0;">${herb.description}</p></div>`; });
 
-    if (db) {
-        const { data: herbs } = await db.from('herbs').select('*').order('created_at', { ascending: false });
-        if (herbs) { herbs.forEach(item => { html += `<div class="herb-card"><div style="display:flex; justify-content:space-between;"><h3 class="gold-text" style="font-size:1.1em; margin:0; border:none; padding:0;">🌿 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('herbs', '${item.id}', 'herbs')">✕</button></div><p style="color:#d4c8a8; font-size:0.85em; margin-top:10px; white-space:pre-wrap; text-align:left;">${item.description}</p></div>`; }); }
-    }
+    const herbs = await loadData('herbs');
+    herbs.forEach(item => { html += `<div class="herb-card"><div style="display:flex; justify-content:space-between;"><h3 class="gold-text" style="font-size:1.1em; margin:0; border:none; padding:0;">🌿 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('herbs', '${item.id}', 'herbs')">✕</button></div><p style="color:#d4c8a8; font-size:0.85em; margin-top:10px; white-space:pre-wrap; text-align:left;">${item.description}</p></div>`; });
+    
     html += `</div>`; 
     html += `<div class="section-header closed" onclick="toggleSection(this)">Record Herb Lore</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="herb-title" placeholder="Botanical Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="herb-desc" placeholder="Properties & Lore..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('herbs', 'herb-title', 'herb-desc', 'herbs')" class="portal-btn" style="width: 100%;">Add to Rack</button></div></div></div>`;
     return html;
@@ -261,10 +309,9 @@ async function buildSewingHTML() {
     let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
     mySewing.forEach(project => { html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div style="display:inline-block; background:rgba(191,149,63,0.15); color:#fcf6ba; padding:3px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; margin-bottom:10px; border:1px solid rgba(191,149,63,0.4);">${project.status}</div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Fabric:</strong> ${project.fabric}</div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5);">${project.notes}</div></div>`; });
 
-    if (db) {
-        const { data: sewing } = await db.from('sewing').select('*').order('created_at', { ascending: false });
-        if (sewing) { sewing.forEach(item => { html += `<div class="sewing-card"><div style="display:flex; justify-content:space-between;"><h3 class="sewing-title">✂️ ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('sewing', '${item.id}', 'sewing')">✕</button></div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); white-space:pre-wrap;">${item.description}</div></div>`; }); }
-    }
+    const sewing = await loadData('sewing');
+    sewing.forEach(item => { html += `<div class="sewing-card"><div style="display:flex; justify-content:space-between;"><h3 class="sewing-title">✂️ ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('sewing', '${item.id}', 'sewing')">✕</button></div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); white-space:pre-wrap;">${item.description}</div></div>`; });
+
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Project</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="sew-title" placeholder="Garment Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="sew-desc" placeholder="Measurements & Fabric Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('sewing', 'sew-title', 'sew-desc', 'sewing')" class="portal-btn" style="width: 100%;">Add to Log</button></div></div></div>`;
     return html;
 }
@@ -301,62 +348,53 @@ function toggleSection(headerBtn) {
     panel.classList.toggle('closed');
 }
 
-// === 6. SUPABASE FUNCTIONS ===
+// === 6. INTERACTIVE ACTIONS ===
 async function addDynamicItem(table, inputId, portal) {
-    if (!db) return;
     const text = document.getElementById(inputId).value.trim();
     if (!text) return;
-    await db.from(table).insert([{ text: text, is_completed: false }]);
+    await insertData(table, { text: text, is_completed: false });
     openPortal(portal); 
 }
 async function toggleDynamicItem(table, id, currentState, portal) {
-    if (!db) return;
-    await db.from(table).update({ is_completed: !currentState }).eq('id', id);
+    await updateData(table, id, { is_completed: !currentState });
     openPortal(portal); 
 }
 async function deleteDynamicItem(table, id, portal) {
-    if (!db) return;
-    await db.from(table).delete().eq('id', id);
+    await removeData(table, id);
     openPortal(portal);
 }
 
 async function addDetailedItem(table, titleId, descId, portal) {
-    if (!db) return;
     const title = document.getElementById(titleId).value.trim();
     const desc = document.getElementById(descId).value.trim();
     if (!title) return;
-    await db.from(table).insert([{ title: title, description: desc }]);
+    await insertData(table, { title: title, description: desc });
     openPortal(portal);
 }
 async function deleteDetailedItem(table, id, portal) {
-    if (!db) return;
-    await db.from(table).delete().eq('id', id);
+    await removeData(table, id);
     openPortal(portal);
 }
 
 async function addEvent() {
-    if (!db) return;
     const title = document.getElementById('ev-title').value.trim();
     const date = document.getElementById('ev-date').value;
     if (!title) return;
     document.getElementById('ev-status').innerText = "Scribing...";
-    await db.from('calendar_events').insert([{ title: title, start_date: date, text: 'pending' }]);
+    await insertData('calendar_events', { title: title, start_date: date, text: 'pending' });
     openPortal('cat');
 }
 async function deleteEvent(id) {
-    if (!db) return;
-    await db.from('calendar_events').delete().eq('id', id);
+    await removeData('calendar_events', id);
     openPortal('cat');
 }
 async function toggleEvent(id, currentText) {
-    if (!db) return;
     const newState = currentText === 'completed' ? 'pending' : 'completed';
-    await db.from('calendar_events').update({ text: newState }).eq('id', id);
+    await updateData('calendar_events', id, { text: newState });
     openPortal('cat');
 }
 
 async function submitJournalEntry() {
-    if (!db) return;
     const textInput = document.getElementById('journal-text').value.trim();
     const fileInput = document.getElementById('journal-image').files[0];
     const submitBtn = document.getElementById('journal-submit-btn');
@@ -366,19 +404,26 @@ async function submitJournalEntry() {
 
     try {
         let imageUrl = null;
-        if (fileInput) {
+        if (fileInput && db) {
             const fileName = `${Math.random()}.${fileInput.name.split('.').pop()}`;
             const { error } = await db.storage.from('note-images').upload(fileName, fileInput);
-            if (error) throw error;
-            imageUrl = fileName;
+            if (!error) imageUrl = fileName;
+        } else if (fileInput) {
+             // Basic fallback for local image if Supabase is offline (Warning: might hit storage limits!)
+             const reader = new FileReader();
+             reader.onload = async (e) => {
+                 await insertData('family_notes', { note: textInput, image_url: e.target.result });
+                 openPortal('teacup');
+             };
+             reader.readAsDataURL(fileInput);
+             return;
         }
-        await db.from('family_notes').insert([{ note: textInput, image_url: imageUrl, timestamp: new Date().toISOString() }]);
+        await insertData('family_notes', { note: textInput, image_url: imageUrl });
         openPortal('teacup');
     } catch (error) { submitBtn.innerText = "Seal Memory"; submitBtn.disabled = false; }
 }
 async function deleteJournalEntry(id) {
-    if (!db) return;
-    await db.from('family_notes').delete().eq('id', id);
+    await removeData('family_notes', id);
     openPortal('teacup');
 }
 
@@ -391,11 +436,10 @@ async function openPortal(portalName) {
     
     overlay.classList.add('active'); if (bg) bg.classList.add('dimmed');
 
-    // === THE AUDIO FIX IS HERE ===
+    // PROTECT AUDIO
     if (portalName === 'audio') {
         content.innerHTML = portalData['audio']; 
         if (soundscape) {
-            // We append your soundscape container INTO the content so it renders safely!
             content.appendChild(soundscape);
             soundscape.style.display = 'grid';
         }
@@ -404,7 +448,6 @@ async function openPortal(portalName) {
 
     content.innerHTML = `<h2 class="gold-text" style="text-align: center; margin-top: 20px;">Consulting... ⏳</h2>`;
     if (soundscape) {
-        // Hide soundscape and put it safely back into the main body so it isn't deleted
         soundscape.style.display = 'none';
         document.body.appendChild(soundscape);
     }
@@ -427,8 +470,11 @@ function closePortal() {
     if (bg) bg.classList.remove('dimmed');
     if (soundscape) {
         soundscape.style.display = 'none';
-        document.body.appendChild(soundscape); // Protects the audio HTML from being wiped!
+        document.body.appendChild(soundscape);
     }
+    
+    calMonth = new Date().getMonth();
+    calYear = new Date().getFullYear();
 }
 
 window.onclick = function(event) {
