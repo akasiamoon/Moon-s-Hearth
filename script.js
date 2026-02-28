@@ -1,10 +1,9 @@
-// === 0. SUPABASE CONNECTION (With Safety Net) ===
+// === 0. SUPABASE CONNECTION ===
 const supabaseUrl = 'https://yflfpwcaowzkoxqnohso.supabase.co';
 const supabaseKey = 'sb_publishable_OUXpGQk3QkOoUu94S9YZNg_Sb34-Jc4';
 let db = null;
 
 try {
-    // This checks if you added the HTML script tag properly!
     if (typeof supabase !== 'undefined') {
         db = supabase.createClient(supabaseUrl, supabaseKey);
         console.log("✨ Stars aligned: Connected to the archive.");
@@ -69,22 +68,34 @@ async function fetchLocalAtmosphere() {
 }
 
 updateNatureLore(); fetchLocalAtmosphere();
-
-// Safely isolates the Audio code so it is untouched
 const portalData = { 'audio': '<h2 class="gold-text">Bardic Soundscapes</h2><p style="color: rgba(191,149,63,0.8); font-style:italic; text-align:center;">Select your ambient mix.</p>' };
 
-// === 3. LITERAL CALENDAR GENERATOR ===
+// === 3. LITERAL CALENDAR GENERATOR (Now with time travel) ===
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+
+function changeCalendarMonth(offset) {
+    calMonth += offset;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    else if (calMonth > 11) { calMonth = 0; calYear++; }
+    openPortal('cat'); 
+}
+
 function generateCalendarHTML(events) {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth(); 
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const monthName = today.toLocaleDateString('default', { month: 'long' });
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    
+    // We use a safe date string for the header
+    const monthName = new Date(calYear, calMonth).toLocaleDateString('default', { month: 'long' });
 
     let html = `
     <div class="calendar-wrapper">
-        <h3 class="gold-text" style="margin-bottom: 15px; font-size: 1.2em;">${monthName} ${year}</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <span class="action-btn" style="font-size:1.5em;" onclick="changeCalendarMonth(-1)">◀</span>
+            <h3 class="gold-text" style="margin: 0; font-size: 1.2em; padding-bottom: 0;">${monthName} ${calYear}</h3>
+            <span class="action-btn" style="font-size:1.5em;" onclick="changeCalendarMonth(1)">▶</span>
+        </div>
         <div class="calendar-grid">
             <div class="cal-day-name">Su</div><div class="cal-day-name">Mo</div><div class="cal-day-name">Tu</div>
             <div class="cal-day-name">We</div><div class="cal-day-name">Th</div><div class="cal-day-name">Fr</div><div class="cal-day-name">Sa</div>`;
@@ -94,10 +105,10 @@ function generateCalendarHTML(events) {
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const hasEvent = events && events.some(e => e.start_date && e.start_date.startsWith(dateStr) && e.text !== 'completed');
         const marker = hasEvent ? `<div class="cal-marker"></div>` : '';
-        const isToday = (day === today.getDate()) ? 'today' : '';
+        const isToday = (day === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear()) ? 'today' : '';
         html += `<div class="cal-cell ${isToday}" onclick="prefillDate('${dateStr}')"><span>${day}</span>${marker}</div>`;
     }
     html += `</div></div>`;
@@ -119,7 +130,6 @@ function prefillDate(dateStr) {
 async function buildGrimoireHTML() {
     let html = `<h2 class="gold-text">Kitchen Grimoire</h2><div class="portal-scroll-container">`;
 
-    // RECIPES
     html += `<div class="section-header closed" onclick="toggleSection(this)">Sacred Recipes</div><div class="section-panel closed">`;
     [...myRecipes, ...myTeas].forEach(item => {
         let ingList = item.ingredients ? item.ingredients.map(ing => `<li><span>${ing}</span></li>`).join('') : '';
@@ -134,49 +144,62 @@ async function buildGrimoireHTML() {
             </div>
         </div>`;
     });
+
+    if (db) {
+        const { data: dbRecipes } = await db.from('recipes').select('*').order('created_at', { ascending: false });
+        if (dbRecipes) {
+            dbRecipes.forEach(item => {
+                html += `
+                <div class="grimoire-item">
+                    <button class="grimoire-header" onclick="toggleAccordion(this)">📜 ${item.title}</button>
+                    <div class="grimoire-panel">
+                        <p style="white-space: pre-wrap;">${item.description}</p>
+                        <div style="text-align: right; margin-top: 10px;">
+                            <button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('recipes', '${item.id}', 'grimoire')">Purge Entry</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+    }
     html += `</div>`; 
 
-    // WEEKLY PROVISIONS
+    // Quick Add Recipe
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Quick Recipe</div><div class="section-panel closed">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
+            <input type="text" id="recipe-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;">
+            <textarea id="recipe-desc" placeholder="Ingredients & Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+            <button onclick="addDetailedItem('recipes', 'recipe-title', 'recipe-desc', 'grimoire')" class="portal-btn" style="width: 100%;">Add to Grimoire</button>
+        </div>
+    </div>`;
+
     html += `<div class="section-header closed" onclick="toggleSection(this)">Weekly Provisions</div><div class="section-panel closed">
         <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
             <input type="text" id="new-meal-item" placeholder="e.g. Moonday: Stew..." class="portal-input">
             <button onclick="addDynamicItem('meal_plans', 'new-meal-item', 'grimoire')" class="portal-btn">Add</button>
         </div>`;
-        
     if (db) {
         const { data: meals } = await db.from('meal_plans').select('*').order('created_at', { ascending: true });
         if (meals) {
             meals.forEach(item => {
                 const isDone = item.is_completed ? 'completed' : '';
-                html += `
-                <div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')">
-                    <div class="quest-checkbox"></div>
-                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
-                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div>
-                </div>`;
+                html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div></div>`;
             });
         }
-    } else { html += `<p style="color: rgba(191,149,63,0.5); font-style: italic;">Awaiting connection...</p>`; }
+    }
     html += `</div>`;
 
-    // MARKET LIST
     html += `<div class="section-header closed" onclick="toggleSection(this)">Market List</div><div class="section-panel closed">
         <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
             <input type="text" id="new-market-item" placeholder="Add an item..." class="portal-input">
             <button onclick="addDynamicItem('market_items', 'new-market-item', 'grimoire')" class="portal-btn">Add</button>
         </div>`;
-        
     if (db) {
         const { data: marketItems } = await db.from('market_items').select('*').order('created_at', { ascending: false });
         if (marketItems) {
             marketItems.forEach(item => {
                 const isDone = item.is_completed ? 'completed' : '';
-                html += `
-                <div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')">
-                    <div class="quest-checkbox"></div>
-                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
-                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div>
-                </div>`;
+                html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div></div>`;
             });
         }
     }
@@ -187,66 +210,34 @@ async function buildGrimoireHTML() {
 async function buildBountyBoardHTML() {
     let html = `<h2 class="gold-text">The Bounty Board</h2><div class="portal-scroll-container">`;
     let events = [];
-    
     if (db) {
         const { data } = await db.from('calendar_events').select('*').order('start_date', { ascending: true });
         events = data || [];
     }
     
-    // CALENDAR GRID
     html += generateCalendarHTML(events);
 
-    // ALIGNMENTS LEDGER
     html += `<div class="section-header closed" onclick="toggleSection(this)">Alignments Ledger</div><div class="section-panel closed">`;
     if (events.length > 0) {
         events.forEach(ev => {
             const isDone = ev.text === 'completed' ? 'completed' : ''; 
             const dateStr = ev.start_date ? new Date(ev.start_date).toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'}) : '';
-            html += `
-            <div class="quest-item ${isDone}" onclick="toggleEvent('${ev.id}', '${ev.text}')">
-                <div class="quest-checkbox"></div>
-                <div class="quest-details">
-                    <h3 class="quest-title">${ev.title}</h3>
-                    <div style="font-size: 0.8em; color: rgba(191, 149, 63, 0.8);">${dateStr}</div>
-                </div>
-                <div class="delete-icon" onclick="event.stopPropagation(); deleteEvent('${ev.id}')">✕</div>
-            </div>`;
+            html += `<div class="quest-item ${isDone}" onclick="toggleEvent('${ev.id}', '${ev.text}')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${ev.title}</h3><div style="font-size: 0.8em; color: rgba(191, 149, 63, 0.8);">${dateStr}</div></div><div class="delete-icon" onclick="event.stopPropagation(); deleteEvent('${ev.id}')">✕</div></div>`;
         });
-    } else {
-        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic;">No current alignments recorded.</p>`;
-    }
+    } else { html += `<p style="color: rgba(191,149,63,0.5); font-style: italic;">No current alignments recorded.</p>`; }
     html += `</div>`; 
 
-    // SCRIBE ALIGNMENT
-    html += `
-    <div id="scribe-section" class="section-header closed" onclick="toggleSection(this)">Scribe Alignment</div>
-    <div id="scribe-panel" class="section-panel closed">
-        <div style="margin-top: 10px; margin-bottom: 15px;">
-            <input type="text" id="ev-title" placeholder="Alignment Title..." class="portal-input" style="margin-bottom: 10px;">
-            <input type="datetime-local" id="ev-date" class="portal-input" style="margin-bottom: 10px;">
-            <button onclick="addEvent()" class="portal-btn" style="width: 100%;">Seal in the Stars</button>
-            <div id="ev-status" style="font-size: 0.8em; margin-top:5px; color:#bf953f; text-align:center;"></div>
-        </div>
-    </div>`;
+    html += `<div id="scribe-section" class="section-header closed" onclick="toggleSection(this)">Scribe Alignment</div><div id="scribe-panel" class="section-panel closed">
+        <div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="ev-title" placeholder="Alignment Title..." class="portal-input" style="margin-bottom: 10px;"><input type="datetime-local" id="ev-date" class="portal-input" style="margin-bottom: 10px;"><button onclick="addEvent()" class="portal-btn" style="width: 100%;">Seal in the Stars</button><div id="ev-status" style="font-size: 0.8em; margin-top:5px; color:#bf953f; text-align:center;"></div></div></div>`;
 
-    // DAILY ENDEAVORS
     html += `<div class="section-header closed" onclick="toggleSection(this)">Daily Endeavors</div><div class="section-panel closed">
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
-            <input type="text" id="new-quest-item" placeholder="Scribe a quick chore..." class="portal-input">
-            <button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button>
-        </div>`;
-        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-quest-item" placeholder="Scribe a quick chore..." class="portal-input"><button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button></div>`;
     if (db) {
         const { data: quests } = await db.from('daily_quests').select('*').order('created_at', { ascending: false });
         if (quests) {
             quests.forEach(item => {
                 const isDone = item.is_completed ? 'completed' : '';
-                html += `
-                <div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')">
-                    <div class="quest-checkbox"></div>
-                    <div class="quest-details"><h3 class="quest-title">${item.text}</h3></div>
-                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div>
-                </div>`;
+                html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div></div>`;
             });
         }
     }
@@ -256,8 +247,6 @@ async function buildBountyBoardHTML() {
 
 async function buildTeacupHTML() {
     let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
-    
-    // JOURNAL INPUT
     html += `
         <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;">
             <textarea id="journal-text" placeholder="Record your thoughts or visions..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea>
@@ -270,7 +259,6 @@ async function buildTeacupHTML() {
             <div id="journal-status" style="font-size: 0.8em; color: #a89f91; margin-top: 5px;"></div>
         </div>`;
 
-    // PAST JOURNALS
     if (db) {
         const { data: notes } = await db.from('family_notes').select('*').order('created_at', { ascending: false });
         if (notes) {
@@ -296,46 +284,80 @@ async function buildTeacupHTML() {
     return html + `</div>`;
 }
 
-function buildApothecaryHTML() {
+async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
     myApothecary.forEach(item => { 
-        html += `
-        <div class="alchemy-card">
-            <h3 class="alchemy-title">${item.icon} ${item.title}</h3>
-            <p style="color:#d4c8a8; font-style:italic; margin-top:0;">${item.description}</p>
-            <div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Components:</strong> <span style="color:#e0e0e0;">${item.ingredients}</span></div>
-            <p style="color:#d4c8a8; font-size:0.9em; margin:0;">${item.instructions}</p>
-        </div>`; 
+        html += `<div class="alchemy-card"><h3 class="alchemy-title">${item.icon} ${item.title}</h3><p style="color:#d4c8a8; font-style:italic; margin-top:0;">${item.description}</p><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Components:</strong> <span style="color:#e0e0e0;">${item.ingredients}</span></div><p style="color:#d4c8a8; font-size:0.9em; margin:0;">${item.instructions}</p></div>`; 
     });
-    return html + `</div>`;
+
+    if (db) {
+        const { data: apoth } = await db.from('apothecary').select('*').order('created_at', { ascending: false });
+        if (apoth) {
+            apoth.forEach(item => {
+                html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🏺 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('apothecary', '${item.id}', 'alchemy')">✕</button></div><p style="color:#d4c8a8; font-size:0.9em; margin:0; white-space:pre-wrap;">${item.description}</p></div>`;
+            });
+        }
+    }
+
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Recipe</div><div class="section-panel closed">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
+            <input type="text" id="apo-title" placeholder="Tincture or Salve Name..." class="portal-input" style="margin-bottom: 10px;">
+            <textarea id="apo-desc" placeholder="Components & Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+            <button onclick="addDetailedItem('apothecary', 'apo-title', 'apo-desc', 'alchemy')" class="portal-btn" style="width: 100%;">Add to Apothecary</button>
+        </div>
+    </div></div>`;
+    return html;
 }
 
-function buildHerbsHTML() {
-    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container" id="herbs-container">`;
+async function buildHerbsHTML() {
+    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div id="herbs-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">`;
     myHerbs.forEach(herb => { 
-        html += `
-        <div class="herb-card">
-            <div style="font-size: 2em; margin-bottom:8px;">${herb.icon}</div>
-            <h3 class="gold-text" style="font-size:1.1em; margin:0 0 5px 0; padding-bottom: 0;">${herb.title}</h3>
-            <div style="color:#fcf6ba; font-size:0.85em; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.2); padding-bottom:8px; margin-bottom:10px;">${herb.properties}</div>
-            <p style="color:#d4c8a8; font-size:0.85em; margin:0;">${herb.description}</p>
-        </div>`; 
+        html += `<div class="herb-card"><div style="font-size: 2em; margin-bottom:8px;">${herb.icon}</div><h3 class="gold-text" style="font-size:1.1em; margin:0 0 5px 0; padding-bottom: 0;">${herb.title}</h3><div style="color:#fcf6ba; font-size:0.85em; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.2); padding-bottom:8px; margin-bottom:10px;">${herb.properties}</div><p style="color:#d4c8a8; font-size:0.85em; margin:0;">${herb.description}</p></div>`; 
     });
-    return html + `</div>`;
+
+    if (db) {
+        const { data: herbs } = await db.from('herbs').select('*').order('created_at', { ascending: false });
+        if (herbs) {
+            herbs.forEach(item => {
+                html += `<div class="herb-card"><div style="display:flex; justify-content:space-between;"><h3 class="gold-text" style="font-size:1.1em; margin:0; border:none; padding:0;">🌿 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('herbs', '${item.id}', 'herbs')">✕</button></div><p style="color:#d4c8a8; font-size:0.85em; margin-top:10px; white-space:pre-wrap; text-align:left;">${item.description}</p></div>`;
+            });
+        }
+    }
+    html += `</div>`; // Close grid
+
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Record Herb Lore</div><div class="section-panel closed">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
+            <input type="text" id="herb-title" placeholder="Botanical Name..." class="portal-input" style="margin-bottom: 10px;">
+            <textarea id="herb-desc" placeholder="Properties & Lore..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+            <button onclick="addDetailedItem('herbs', 'herb-title', 'herb-desc', 'herbs')" class="portal-btn" style="width: 100%;">Add to Rack</button>
+        </div>
+    </div></div>`;
+    return html;
 }
 
-function buildSewingHTML() {
+async function buildSewingHTML() {
     let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
     mySewing.forEach(project => { 
-        html += `
-        <div class="sewing-card">
-            <h3 class="sewing-title">${project.title}</h3>
-            <div style="display:inline-block; background:rgba(191,149,63,0.15); color:#fcf6ba; padding:3px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; margin-bottom:10px; border:1px solid rgba(191,149,63,0.4);">${project.status}</div>
-            <div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Fabric:</strong> ${project.fabric}</div>
-            <div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5);">${project.notes}</div>
-        </div>`; 
+        html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div style="display:inline-block; background:rgba(191,149,63,0.15); color:#fcf6ba; padding:3px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; margin-bottom:10px; border:1px solid rgba(191,149,63,0.4);">${project.status}</div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Fabric:</strong> ${project.fabric}</div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5);">${project.notes}</div></div>`; 
     });
-    return html + `</div>`;
+
+    if (db) {
+        const { data: sewing } = await db.from('sewing').select('*').order('created_at', { ascending: false });
+        if (sewing) {
+            sewing.forEach(item => {
+                html += `<div class="sewing-card"><div style="display:flex; justify-content:space-between;"><h3 class="sewing-title">✂️ ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('sewing', '${item.id}', 'sewing')">✕</button></div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); white-space:pre-wrap;">${item.description}</div></div>`;
+            });
+        }
+    }
+
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Project</div><div class="section-panel closed">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
+            <input type="text" id="sew-title" placeholder="Garment Name..." class="portal-input" style="margin-bottom: 10px;">
+            <textarea id="sew-desc" placeholder="Measurements & Fabric Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+            <button onclick="addDetailedItem('sewing', 'sew-title', 'sew-desc', 'sewing')" class="portal-btn" style="width: 100%;">Add to Log</button>
+        </div>
+    </div></div>`;
+    return html;
 }
 
 function buildAlmanacHTML() {
@@ -389,6 +411,22 @@ async function deleteDynamicItem(table, id, portal) {
     openPortal(portal);
 }
 
+// Generic add for Recipes, Apothecary, Sewing, Herbs
+async function addDetailedItem(table, titleId, descId, portal) {
+    if (!db) return;
+    const title = document.getElementById(titleId).value.trim();
+    const desc = document.getElementById(descId).value.trim();
+    if (!title) return;
+    await db.from(table).insert([{ title: title, description: desc }]);
+    openPortal(portal);
+}
+async function deleteDetailedItem(table, id, portal) {
+    if (!db) return;
+    await db.from(table).delete().eq('id', id);
+    openPortal(portal);
+}
+
+// Events
 async function addEvent() {
     if (!db) return;
     const title = document.getElementById('ev-title').value.trim();
@@ -410,6 +448,7 @@ async function toggleEvent(id, currentText) {
     openPortal('cat');
 }
 
+// Journal
 async function submitJournalEntry() {
     if (!db) return;
     const textInput = document.getElementById('journal-text').value.trim();
@@ -441,7 +480,6 @@ async function deleteJournalEntry(id) {
 
 // === 7. OPEN & CLOSE PORTALS ===
 async function openPortal(portalName) {
-    console.log("Portal active:", portalName); // Debugging trace
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     const bg = document.getElementById('bg-art');
@@ -463,9 +501,9 @@ async function openPortal(portalName) {
     else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
     else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
     else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
-    else if (portalName === 'alchemy') content.innerHTML = buildApothecaryHTML(); 
-    else if (portalName === 'herbs') content.innerHTML = buildHerbsHTML(); 
-    else if (portalName === 'sewing') content.innerHTML = buildSewingHTML();
+    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
+    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
+    else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
 }
 
 function closePortal() {
@@ -476,6 +514,10 @@ function closePortal() {
     overlay.classList.remove('active');
     if (bg) bg.classList.remove('dimmed');
     if (soundscape) soundscape.style.display = 'none';
+    
+    // Reset calendar back to current month when closing the portal
+    calMonth = new Date().getMonth();
+    calYear = new Date().getFullYear();
 }
 
 window.onclick = function(event) {
