@@ -1,5 +1,4 @@
 // === 1. THE RECIPE BOOK ===
-// To add a new recipe, just copy one of these blocks and change the text! No HTML required.
 const myRecipes = [
     {
         title: "🌿 Highland Potato Stew",
@@ -20,48 +19,51 @@ const myRecipes = [
             "Flour and a pinch of cinnamon"
         ],
         instructions: "Bake until the crust is a deep golden brown. Serve warm with butter."
+    }
+]; // (You can still add your other recipes back in here!)
+
+// === 2. THE BOUNTY BOARD (Daily Chores) ===
+// Add, remove, or change your daily tasks right here!
+const myQuests = [
+    {
+        title: "Guild Duties: Instruction",
+        description: "Guide the son and daughter through today's homeschool modules."
     },
     {
-        title: "🍋 Lemon Blueberry Bread",
-        description: "Bright citrus and sweet berries. A refined, scholarly treat.",
-        ingredients: [
-            "A handful of fresh blueberries",
-            "Zest and juice of one large lemon",
-            "Standard sweet bread batter"
-        ],
-        instructions: "Fold the berries in gently so they don't burst. Best enjoyed alongside Lady Grey tea."
+        title: "Coin Purse Bounty",
+        description: "Head out and complete a DoorDash delivery shift."
     },
     {
-        title: "🍫 Easy Chocolate Cobbler",
-        description: "A simple, rich, and decadent comfort dessert for when the winter winds howl.",
-        ingredients: [
-            "Cocoa powder, sugar, and flour base",
-            "Boiling water poured over the top before baking"
-        ],
-        instructions: "The magic happens in the oven, creating a rich cake on top and a thick fudge sauce underneath."
+        title: "Familiar Care",
+        description: "Ensure the cat is fed, watered, and sufficiently adored."
+    },
+    {
+        title: "Hearth Tender",
+        description: "Prepare a meal from the Grimoire for the family."
+    },
+    {
+        title: "Arcane Tinkering",
+        description: "Spend a little time working on app development and code."
     }
 ];
 
-// === 2. PORTAL TEXT DATA ===
+// === 3. PORTAL TEXT DATA ===
 const portalData = {
     'window': '<h2>Fen Almanac</h2><p>Focus: Lavender & Chamomile</p>',
     'herbs': '<h2>The Drying Rack</h2><p>Lavender, Eucalyptus, Dandelion Root</p>',
     'audio': '<h2>Bardic Soundscapes</h2><p>Select your ambient mix.</p>',
     'alchemy': '<h2>Apothecary</h2><p>Vibrant Ink Protectant & Salve</p>',
     'teacup': '<h2>The Stillness</h2><p>Lady Grey with Honey.</p>',
-    'cat': '<h2>Bounty Board</h2><p>Homeschool Module & DoorDash Shift</p>',
     'sewing': '<h2>Measurement Log</h2><p>Spring Tunics: Linen Blend</p>'
 };
 
-// === 3. AUTO-GENERATE GRIMOIRE HTML ===
+// === 4. AUTO-GENERATE GRIMOIRE HTML ===
 function buildGrimoireHTML() {
     let html = `<h2>Kitchen Grimoire</h2><p>Select a recipe to read the parchment.</p>`;
     html += `<div id="grimoire-container" style="margin-top:15px; max-height:50vh; overflow-y:auto; padding-right:10px;">`;
     
     myRecipes.forEach(recipe => {
-        // Automatically turns your ingredients list into bullet points
         let ingredientsList = recipe.ingredients.map(ing => `<li><span>${ing}</span></li>`).join('');
-        
         html += `
         <div class="grimoire-item">
             <button class="grimoire-header" onclick="toggleAccordion(this)">${recipe.title}</button>
@@ -77,7 +79,27 @@ function buildGrimoireHTML() {
     return html;
 }
 
-// === 4. ACCORDION ANIMATION LOGIC ===
+// === 5. AUTO-GENERATE BOUNTY BOARD HTML ===
+function buildBountyBoardHTML() {
+    let html = `<h2>Bounty Board</h2><p>Tap a quest to mark it complete and claim the glory.</p>`;
+    html += `<div id="bounty-container">`;
+    
+    myQuests.forEach(quest => {
+        html += `
+        <div class="quest-item" onclick="toggleQuest(this)">
+            <div class="quest-checkbox"></div>
+            <div class="quest-details">
+                <h3 class="quest-title">${quest.title}</h3>
+                <p class="quest-desc">${quest.description}</p>
+            </div>
+        </div>`;
+    });
+    
+    html += `</div>`;
+    return html;
+}
+
+// === 6. INTERACTIVE LOGIC ===
 function toggleAccordion(button) {
     button.classList.toggle('active');
     const panel = button.nextElementSibling;
@@ -90,16 +112,23 @@ function toggleAccordion(button) {
     }
 }
 
-// === 5. OPEN & CLOSE PORTALS ===
+function toggleQuest(questElement) {
+    // Toggles the 'completed' class which triggers the CSS cross-out and gold checkbox
+    questElement.classList.toggle('completed');
+}
+
+// === 7. OPEN & CLOSE PORTALS ===
 function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     const bg = document.getElementById('bg-art');
     const soundscape = document.getElementById('soundscape-container'); 
     
-    // If it's the grimoire, run our generator. Otherwise, load standard text.
+    // Check which generator to run, or fall back to standard text
     if (portalName === 'grimoire') {
         content.innerHTML = buildGrimoireHTML();
+    } else if (portalName === 'cat') {
+        content.innerHTML = buildBountyBoardHTML();
     } else if (portalData[portalName]) {
         content.innerHTML = portalData[portalName];
     }
