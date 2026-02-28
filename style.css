@@ -603,3 +603,79 @@ margin: 0; padding-bottom: 25px;
   margin: 0;
   font-family: 'Quicksand', sans-serif;
 }
+/* --- 15. THE MEASUREMENT LOG (Sewing) --- */
+#sewing-container {
+  margin-top: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#sewing-container::-webkit-scrollbar { width: 6px; }
+#sewing-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+#sewing-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
+
+.sewing-card {
+  background: rgba(8, 8, 10, 0.6);
+  border: 1px solid rgba(191, 149, 63, 0.4);
+  border-top: 3px double #bf953f; /* Gives it a neat ledger book aesthetic */
+  padding: 15px;
+  margin-bottom: 15px;
+  text-align: left;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Adds a subtle "stitched" border effect inside the card */
+.sewing-card::before {
+  content: '';
+  position: absolute;
+  top: 5px; left: 5px; right: 5px; bottom: 5px;
+  border: 1px dashed rgba(191, 149, 63, 0.2); 
+  pointer-events: none;
+}
+
+.sewing-card:hover {
+  background: rgba(191, 149, 63, 0.1);
+  border-color: #fcf6ba;
+}
+
+.sewing-title {
+  color: #fcf6ba;
+  font-family: 'Cinzel', serif;
+  font-size: 1.15em;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.sewing-status {
+  display: inline-block;
+  background: rgba(191, 149, 63, 0.15);
+  color: #fcf6ba;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(191, 149, 63, 0.4);
+}
+
+.sewing-fabric {
+  color: #bf953f;
+  font-size: 0.9em;
+  margin-bottom: 8px;
+  font-family: 'Quicksand', sans-serif;
+}
+
+.sewing-notes {
+  color: #d4c8a8;
+  font-size: 0.9em;
+  line-height: 1.5;
+  margin: 0;
+  font-family: 'Quicksand', sans-serif;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px;
+  border-radius: 2px;
+  border-left: 2px solid rgba(191, 149, 63, 0.5);
+}
