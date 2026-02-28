@@ -413,3 +413,69 @@ margin: 0; padding-bottom: 25px;
   border-top: 1px dashed rgba(191, 149, 63, 0.3);
   padding-top: 10px;
 }
+/* --- 12. THE APOTHECARY --- */
+#apothecary-container {
+  margin-top: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#apothecary-container::-webkit-scrollbar { width: 6px; }
+#apothecary-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+#apothecary-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
+
+.alchemy-card {
+  background: rgba(8, 8, 10, 0.6);
+  border: 1px solid rgba(191, 149, 63, 0.3);
+  border-left: 3px solid #bf953f; /* Gives it a neat ledger-book feel */
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.alchemy-card:hover {
+  background: rgba(191, 149, 63, 0.1);
+  border-color: #fcf6ba;
+  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
+}
+
+.alchemy-title {
+  color: #fcf6ba;
+  font-family: 'Cinzel', serif;
+  font-size: 1.15em;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alchemy-desc {
+  color: #d4c8a8;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-bottom: 10px;
+  margin-top: 0;
+}
+
+.alchemy-ingredients {
+  color: #bf953f;
+  font-size: 0.9em;
+  margin-bottom: 8px;
+  font-family: 'Quicksand', sans-serif;
+}
+
+.alchemy-ingredients span {
+  color: #e0e0e0;
+}
+
+.alchemy-instructions {
+  color: #d4c8a8;
+  font-size: 0.9em;
+  line-height: 1.5;
+  margin: 0;
+  font-family: 'Quicksand', sans-serif;
+}
