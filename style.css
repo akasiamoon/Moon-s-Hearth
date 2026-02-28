@@ -539,3 +539,67 @@ margin: 0; padding-bottom: 25px;
   margin: 0;
   font-family: 'Quicksand', sans-serif;
 }
+/* --- 14. THE STILLNESS (Teacup) --- */
+#teacup-container {
+  margin-top: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#teacup-container::-webkit-scrollbar { width: 6px; }
+#teacup-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+#teacup-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
+
+.tea-card {
+  background: rgba(8, 8, 10, 0.4);
+  border: 1px solid rgba(191, 149, 63, 0.2);
+  border-radius: 8px; /* Softer, rounder edges for a calming feel */
+  padding: 15px;
+  margin-bottom: 15px;
+  text-align: left;
+  transition: all 0.4s ease;
+}
+
+.tea-card:hover {
+  border-color: #bf953f;
+  background: rgba(191, 149, 63, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tea-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px dashed rgba(191, 149, 63, 0.3);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.tea-icon {
+  font-size: 2.2em;
+  filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.4));
+}
+
+.tea-title {
+  color: #fcf6ba;
+  font-family: 'Cinzel', serif;
+  font-size: 1.15em;
+  margin: 0 0 4px 0;
+  letter-spacing: 1px;
+}
+
+.tea-brew {
+  color: #bf953f;
+  font-size: 0.85em;
+  font-family: 'Quicksand', sans-serif;
+  font-style: italic;
+}
+
+.tea-desc {
+  color: #d4c8a8;
+  font-size: 0.95em;
+  line-height: 1.6;
+  margin: 0;
+  font-family: 'Quicksand', sans-serif;
+}
