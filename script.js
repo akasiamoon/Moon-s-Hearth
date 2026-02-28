@@ -481,66 +481,32 @@ window.onclick = function(event) {
     const overlay = document.getElementById('parchment-overlay');
     if (event.target == overlay) closePortal();
 }
-// === 8. BARDIC SOUNDSCAPES (AUDIO ENGINE) ===
-const audioMixer = {}; // This holds our playing tracks so they can overlap
 
-function toggleSound(soundName, fileUrl, btnElement) {
-    if (audioMixer[soundName]) {
-        // If it is already playing, pause it and remove it
-        audioMixer[soundName].audio.pause();
-        delete audioMixer[soundName];
-        btnElement.classList.remove('active');
-        btnElement.style.color = "#d4c8a8"; // Reset text color
-    } else {
-        // If it is not playing, conjure the audio
-        const track = new Audio(fileUrl);
-        track.loop = true; // Ambient sounds should loop infinitely!
-        
-        // Check the slider position to set the correct volume
-        const slider = btnElement.nextElementSibling;
-        if (slider && slider.classList.contains('volume-slider')) {
-            track.volume = slider.value / 100;
-        } else {
-            track.volume = 0.5;
-        }
-
-        track.play().catch(e => console.error("Audio blocked by browser:", e));
-        
-        // Save it to the mixer and highlight the button
-        audioMixer[soundName] = { audio: track };
-        btnElement.classList.add('active');
-        btnElement.style.color = "#fff"; // Make text bright when active
-    }
-}
-
-function adjustVolume(soundName, sliderElement) {
-    // If the track is currently playing, adjust its volume in real-time
-    if (audioMixer[soundName]) {
-        audioMixer[soundName].audio.volume = sliderElement.value / 100;
-    }
-}
 // === 8. BARDIC SOUNDSCAPES (NATIVE AUDIO ENGINE) ===
-// This listens for clicks on ANY play button in your specific HTML setup
+// This listens for clicks on your specific HTML buttons!
 document.addEventListener('click', function(e) {
+    // Check if what we clicked is a play button with a data-target
     if (e.target.classList.contains('play-btn') && e.target.hasAttribute('data-target')) {
         const audioId = e.target.getAttribute('data-target');
         const audioEl = document.getElementById(audioId);
         
         if (audioEl) {
+            // If it's paused, play it and make the button glow
             if (audioEl.paused) {
                 audioEl.play().catch(err => console.error("Audio playback failed:", err));
                 e.target.classList.add('active');
-                e.target.style.color = "#fff";
+                e.target.style.color = "#fff"; // Brighten text
             } else {
+                // If it's playing, pause it and dim the button
                 audioEl.pause();
                 e.target.classList.remove('active');
-                e.target.style.color = "#d4c8a8";
+                e.target.style.color = "#d4c8a8"; // Dim text
             }
         }
     }
 });
 
-// This listens for adjustments on your specific volume sliders
+// This listens for slider movements to adjust volume in real-time
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('volume-slider') && e.target.hasAttribute('data-target')) {
         const audioId = e.target.getAttribute('data-target');
