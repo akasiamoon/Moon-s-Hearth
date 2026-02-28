@@ -29,7 +29,37 @@
         <span class="close-btn" onclick="closePortal()">&times;</span>
         <div id="portal-content"></div>
     </div>
+    
+<script>
+  // Setup Play/Pause Buttons
+  const playButtons = document.querySelectorAll('.play-btn');
 
+  playButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const targetId = button.getAttribute('data-target');
+      const audioEl = document.getElementById(targetId);
+
+      if (audioEl.paused) {
+        audioEl.play();
+        button.style.opacity = "0.7"; // Just a slight visual change when playing
+      } else {
+        audioEl.pause();
+        button.style.opacity = "1"; // Resets when paused
+      }
+    });
+  });
+
+  // Setup Volume Sliders
+  const volumeSliders = document.querySelectorAll('.volume-slider');
+
+  volumeSliders.forEach(slider => {
+    slider.addEventListener('input', (event) => {
+      const targetId = slider.getAttribute('data-target');
+      const audioEl = document.getElementById(targetId);
+      audioEl.volume = event.target.value;
+    });
+  });
+</script>
     <script src="script.js"></script>
 </body>
 </html>
