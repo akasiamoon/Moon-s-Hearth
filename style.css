@@ -110,20 +110,18 @@ margin: 0; padding-bottom: 25px;
 #portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
 #portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
-/* --- 8. THE AUDIO GRIMOIRE (Soundscape) --- */
 
+/* --- 8. THE AUDIO GRIMOIRE (Soundscape) --- */
 #soundscape-container {
   display: grid;
-  /* Creates compact columns to fit inside your parchment overlay */
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
   margin-top: 15px;
-  max-height: 50vh; /* Prevents the overlay from growing taller than the screen */
-  overflow-y: auto; /* Adds a scrollbar if all 21 items don't fit */
+  max-height: 50vh;
+  overflow-y: auto;
   padding-right: 10px;
 }
 
-/* Custom Gilded Scrollbar for the audio menu */
 #soundscape-container::-webkit-scrollbar { width: 6px; }
 #soundscape-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
 #soundscape-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
@@ -172,8 +170,9 @@ margin: 0; padding-bottom: 25px;
 .volume-slider {
   width: 90%;
   cursor: pointer;
-  accent-color: #bf953f; /* Matches your gold gradient */
+  accent-color: #bf953f; 
 }
+
 /* --- 9. THE KITCHEN GRIMOIRE --- */
 #grimoire-container {
   margin-top: 15px;
@@ -216,9 +215,8 @@ margin: 0; padding-bottom: 25px;
   background: rgba(191, 149, 63, 0.2);
 }
 
-/* The magical expanding icon */
 .grimoire-header::after {
-  content: '\2727'; /* A four-pointed magic star */
+  content: '\2727'; 
   font-size: 1.2em;
   color: #bf953f;
   transition: transform 0.4s ease, opacity 0.4s ease;
@@ -247,7 +245,6 @@ margin: 0; padding-bottom: 25px;
   margin: 10px 0;
 }
 
-/* Golden bullet points */
 .grimoire-panel ul {
   list-style-type: square;
   color: #bf953f; 
@@ -257,6 +254,7 @@ margin: 0; padding-bottom: 25px;
 .grimoire-panel ul li span {
   color: #d4c8a8; 
 }
+
 /* --- 10. THE BOUNTY BOARD --- */
 #bounty-container {
   margin-top: 15px;
@@ -270,7 +268,6 @@ margin: 0; padding-bottom: 25px;
 #bounty-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
 #bounty-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
 
-/* The beautiful box for each quest */
 .quest-item {
   background: rgba(8, 8, 10, 0.8);
   border: 1px solid rgba(191, 149, 63, 0.4);
@@ -290,7 +287,6 @@ margin: 0; padding-bottom: 25px;
   box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
 }
 
-/* The custom empty checkbox */
 .quest-checkbox {
   width: 22px;
   height: 22px;
@@ -304,14 +300,12 @@ margin: 0; padding-bottom: 25px;
   margin-top: 2px;
 }
 
-/* What happens when you click it (Fills with gold) */
 .quest-item.completed .quest-checkbox {
   background: #bf953f;
   border-color: #fcf6ba;
   box-shadow: 0 0 8px rgba(191, 149, 63, 0.6);
 }
 
-/* The actual checkmark inside the box */
 .quest-item.completed .quest-checkbox::after {
   content: '✓';
   color: #000;
@@ -319,7 +313,6 @@ margin: 0; padding-bottom: 25px;
   font-size: 16px;
 }
 
-/* The text formatting */
 .quest-details {
   flex-grow: 1;
   transition: all 0.3s ease;
@@ -341,12 +334,12 @@ margin: 0; padding-bottom: 25px;
   font-family: 'Quicksand', sans-serif;
 }
 
-/* The satisfying strike-through effect when finished */
 .quest-item.completed .quest-details {
   opacity: 0.4;
   text-decoration: line-through;
   text-decoration-color: #bf953f;
 }
+
 /* --- 11. THE FEN ALMANAC --- */
 #almanac-container {
   margin-top: 15px;
@@ -413,6 +406,7 @@ margin: 0; padding-bottom: 25px;
   border-top: 1px dashed rgba(191, 149, 63, 0.3);
   padding-top: 10px;
 }
+
 /* --- 12. THE APOTHECARY --- */
 #apothecary-container {
   margin-top: 15px;
@@ -428,7 +422,7 @@ margin: 0; padding-bottom: 25px;
 .alchemy-card {
   background: rgba(8, 8, 10, 0.6);
   border: 1px solid rgba(191, 149, 63, 0.3);
-  border-left: 3px solid #bf953f; /* Gives it a neat ledger-book feel */
+  border-left: 3px solid #bf953f; 
   padding: 15px;
   border-radius: 4px;
   margin-bottom: 12px;
@@ -479,6 +473,7 @@ margin: 0; padding-bottom: 25px;
   margin: 0;
   font-family: 'Quicksand', sans-serif;
 }
+
 /* --- 13. THE DRYING RACK (Herbs) --- */
 #herbs-container {
   margin-top: 15px;
@@ -486,7 +481,6 @@ margin: 0; padding-bottom: 25px;
   overflow-y: auto;
   padding-right: 10px;
   display: grid;
-  /* Creates a beautiful side-by-side grid */
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 15px;
 }
@@ -497,7 +491,7 @@ margin: 0; padding-bottom: 25px;
 
 .herb-card {
   background: rgba(8, 8, 10, 0.5);
-  border: 1px dashed rgba(191, 149, 63, 0.5); /* Dashed border looks like hanging twine */
+  border: 1px dashed rgba(191, 149, 63, 0.5); 
   padding: 15px;
   border-radius: 4px;
   text-align: center;
@@ -507,7 +501,7 @@ margin: 0; padding-bottom: 25px;
 .herb-card:hover {
   border-color: #fcf6ba;
   background: rgba(191, 149, 63, 0.15);
-  transform: translateY(-3px); /* Gentle lift when hovered */
+  transform: translateY(-3px); 
 }
 
 .herb-icon {
@@ -539,6 +533,7 @@ margin: 0; padding-bottom: 25px;
   margin: 0;
   font-family: 'Quicksand', sans-serif;
 }
+
 /* --- 14. THE STILLNESS (Teacup) --- */
 #teacup-container {
   margin-top: 15px;
@@ -554,7 +549,7 @@ margin: 0; padding-bottom: 25px;
 .tea-card {
   background: rgba(8, 8, 10, 0.4);
   border: 1px solid rgba(191, 149, 63, 0.2);
-  border-radius: 8px; /* Softer, rounder edges for a calming feel */
+  border-radius: 8px; 
   padding: 15px;
   margin-bottom: 15px;
   text-align: left;
@@ -603,6 +598,7 @@ margin: 0; padding-bottom: 25px;
   margin: 0;
   font-family: 'Quicksand', sans-serif;
 }
+
 /* --- 15. THE MEASUREMENT LOG (Sewing) --- */
 #sewing-container {
   margin-top: 15px;
@@ -618,7 +614,7 @@ margin: 0; padding-bottom: 25px;
 .sewing-card {
   background: rgba(8, 8, 10, 0.6);
   border: 1px solid rgba(191, 149, 63, 0.4);
-  border-top: 3px double #bf953f; /* Gives it a neat ledger book aesthetic */
+  border-top: 3px double #bf953f; 
   padding: 15px;
   margin-bottom: 15px;
   text-align: left;
@@ -626,7 +622,6 @@ margin: 0; padding-bottom: 25px;
   position: relative;
 }
 
-/* Adds a subtle "stitched" border effect inside the card */
 .sewing-card::before {
   content: '';
   position: absolute;
@@ -678,4 +673,84 @@ margin: 0; padding-bottom: 25px;
   padding: 10px;
   border-radius: 2px;
   border-left: 2px solid rgba(191, 149, 63, 0.5);
+}
+
+/* --- 16. THE ARCHIVE (Live Database Inputs & Buttons) --- */
+
+/* Text inputs and Journal area */
+.portal-input {
+  background: rgba(8, 8, 10, 0.8);
+  color: #d4c8a8;
+  border: 1px solid rgba(191, 149, 63, 0.4);
+  border-radius: 4px;
+  padding: 10px;
+  font-family: 'Quicksand', sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.portal-input:focus {
+  border-color: #fcf6ba;
+  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
+  background: rgba(8, 8, 10, 0.95);
+}
+
+.portal-input::placeholder {
+  color: rgba(191, 149, 63, 0.6);
+  font-style: italic;
+}
+
+/* Add Item and Seal Memory buttons */
+.portal-btn {
+  padding: 8px 16px;
+  background: rgba(8, 8, 10, 0.8);
+  color: #bf953f;
+  border: 1px solid rgba(191, 149, 63, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.portal-btn:hover {
+  background: rgba(191, 149, 63, 0.15);
+  color: #fcf6ba;
+  border-color: #fcf6ba;
+  box-shadow: 0 0 10px rgba(191, 149, 63, 0.15);
+  transform: translateY(-1px);
+}
+
+.portal-btn:active {
+  transform: translateY(1px);
+}
+
+.portal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(191, 149, 63, 0.2);
+  color: rgba(191, 149, 63, 0.5);
+}
+
+/* The File Upload (Choose Image) Button */
+input[type="file"]::-webkit-file-selector-button {
+  background: rgba(8, 8, 10, 0.8);
+  color: #bf953f;
+  border: 1px solid rgba(191, 149, 63, 0.4);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 12px;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+input[type="file"]::-webkit-file-selector-button:hover {
+  background: rgba(191, 149, 63, 0.15);
+  color: #fcf6ba;
+  border-color: #fcf6ba;
 }
