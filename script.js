@@ -28,14 +28,21 @@ const myHerbs = [
 ];
 
 // === 5. THE STILLNESS (Teacup) ===
-// Add your favorite tea rituals, brewing times, and affirmations here!
 const myTeas = [
     { title: "Lady Grey's Respite", icon: "☕", brew: "Steep 3 mins at 212°F", description: "A classic, elegant blend brightened with citrus and a touch of honey. Perfect for finding a quiet center in the afternoon." },
     { title: "Lavender Chamomile Nightcap", icon: "🍵", brew: "Steep 5 mins at 200°F", description: "A deeply soothing floral blend meant to quiet a racing mind and invite restful, restorative sleep." },
     { title: "Peppermint Clarity", icon: "🫖", brew: "Steep 4 mins at 212°F", description: "Bright, awakening, and sharp. An excellent companion for deciphering the Grimoire or writing code." }
 ];
 
-// === 6. THE LIVING FEN ALMANAC (Dynamic Data) ===
+// === 6. THE MEASUREMENT LOG (Sewing) ===
+// Add your crafting projects, fabrics, and dimensions here!
+const mySewing = [
+    { title: "Spring Tunic", status: "In Progress", fabric: "Linen Blend (Forest Green)", notes: "Measurements: Bust 38, Waist 30. Remember to add an extra inch to the hem for draping." },
+    { title: "Traveling Cloak", status: "Planning", fabric: "Heavy Wool (Midnight Blue)", notes: "Need to order clasps. Requires 3 yards of fabric and a satin lining for the hood." },
+    { title: "Hearth Apron", status: "Completed", fabric: "Sturdy Canvas", notes: "Added deep pockets for gathering herbs and holding the kitchen Grimoire notes." }
+];
+
+// === 7. THE LIVING FEN ALMANAC (Dynamic Data) ===
 let dynamicAlmanac = { season: "", moonPhase: "", temp: "--°F", weather: "", planting: "", focus: "", entry: "" };
 
 function getMoonPhase(date) {
@@ -94,13 +101,12 @@ async function fetchLocalAtmosphere() {
 
 updateNatureLore(); fetchLocalAtmosphere();
 
-// === 7. PORTAL TEXT DATA (For any unbuilt portals) ===
+// === 8. PORTAL TEXT DATA (Just for Audio now) ===
 const portalData = {
-    'audio': '<h2>Bardic Soundscapes</h2><p>Select your ambient mix.</p>',
-    'sewing': '<h2>Measurement Log</h2><p>Spring Tunics: Linen Blend</p>'
+    'audio': '<h2>Bardic Soundscapes</h2><p>Select your ambient mix.</p>'
 };
 
-// === 8. HTML BUILDERS ===
+// === 9. HTML BUILDERS ===
 function buildGrimoireHTML() {
     let html = `<h2>Kitchen Grimoire</h2><p>Select a recipe to read the parchment.</p><div id="grimoire-container" style="margin-top:15px; max-height:50vh; overflow-y:auto; padding-right:10px;">`;
     myRecipes.forEach(recipe => {
@@ -137,16 +143,20 @@ function buildHerbsHTML() {
 function buildTeacupHTML() {
     let html = `<h2>The Stillness</h2><p style="font-style: italic; color: #d4c8a8; margin-bottom: 20px;">"Breathe deep. The storm outside cannot touch the warmth within."</p><div id="teacup-container">`;
     myTeas.forEach(tea => {
+        html += `<div class="tea-card"><div class="tea-header"><span class="tea-icon">${tea.icon}</span><div class="tea-info"><h3 class="tea-title">${tea.title}</h3><div class="tea-brew">${tea.brew}</div></div></div><p class="tea-desc">${tea.description}</p></div>`;
+    });
+    return html + `</div>`;
+}
+
+function buildSewingHTML() {
+    let html = `<h2>Measurement Log</h2><p>Tracking the threads of current projects.</p><div id="sewing-container">`;
+    mySewing.forEach(project => {
         html += `
-        <div class="tea-card">
-            <div class="tea-header">
-                <span class="tea-icon">${tea.icon}</span>
-                <div class="tea-info">
-                    <h3 class="tea-title">${tea.title}</h3>
-                    <div class="tea-brew">${tea.brew}</div>
-                </div>
-            </div>
-            <p class="tea-desc">${tea.description}</p>
+        <div class="sewing-card">
+            <h3 class="sewing-title">${project.title}</h3>
+            <div class="sewing-status">${project.status}</div>
+            <div class="sewing-fabric"><strong>Fabric:</strong> ${project.fabric}</div>
+            <div class="sewing-notes">${project.notes}</div>
         </div>`;
     });
     return html + `</div>`;
@@ -158,7 +168,7 @@ function buildAlmanacHTML() {
     return `<h2>Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div><div class="almanac-divider">◈━━━━━━༺ ❦ ༻━━━━━━◈</div><div class="almanac-focus">Daily Focus: ${dynamicAlmanac.focus}</div><p class="almanac-entry">"${dynamicAlmanac.entry}"</p><div class="almanac-planting"><strong>Nature's Lore:</strong> ${dynamicAlmanac.planting}</div></div>`;
 }
 
-// === 9. INTERACTIVE LOGIC ===
+// === 10. INTERACTIVE LOGIC ===
 function toggleAccordion(button) {
     button.classList.toggle('active');
     const panel = button.nextElementSibling;
@@ -172,7 +182,7 @@ function toggleAccordion(button) {
 }
 function toggleQuest(questElement) { questElement.classList.toggle('completed'); }
 
-// === 10. OPEN & CLOSE PORTALS ===
+// === 11. OPEN & CLOSE PORTALS ===
 function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
@@ -184,7 +194,8 @@ function openPortal(portalName) {
     else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
     else if (portalName === 'alchemy') content.innerHTML = buildApothecaryHTML(); 
     else if (portalName === 'herbs') content.innerHTML = buildHerbsHTML(); 
-    else if (portalName === 'teacup') content.innerHTML = buildTeacupHTML(); // Added Teacup!
+    else if (portalName === 'teacup') content.innerHTML = buildTeacupHTML(); 
+    else if (portalName === 'sewing') content.innerHTML = buildSewingHTML(); // Added Sewing!
     else if (portalData[portalName]) content.innerHTML = portalData[portalName];
 
     if (soundscape) soundscape.style.display = (portalName === 'audio') ? 'grid' : 'none';
