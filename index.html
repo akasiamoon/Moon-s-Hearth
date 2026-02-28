@@ -31,6 +31,137 @@
     </div>
     
 <script>
+ <div id="soundscape-container">
+  
+  <div class="sound-item">
+    <audio id="audio-rain" src="rain.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-rain">🌧️ Rain</button>
+    <input type="range" class="volume-slider" data-target="audio-rain" min="0" max="1" step="0.01" value="0.5">
+  </div>
+  
+  <div class="sound-item">
+    <audio id="audio-thunder" src="thunder.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-thunder">🌩️ Thunder</button>
+    <input type="range" class="volume-slider" data-target="audio-thunder" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-winterwind" src="winterwind.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-winterwind">🌬️ Winter Wind</button>
+    <input type="range" class="volume-slider" data-target="audio-winterwind" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-owls" src="owls.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-owls">🦉 Owls</button>
+    <input type="range" class="volume-slider" data-target="audio-owls" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-raven" src="raven.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-raven">🐦‍⬛ Raven</button>
+    <input type="range" class="volume-slider" data-target="audio-raven" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-frogs" src="frogs.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-frogs">🐸 Night Frogs</button>
+    <input type="range" class="volume-slider" data-target="audio-frogs" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-crickets" src="crickets.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-crickets">🦗 Crickets</button>
+    <input type="range" class="volume-slider" data-target="audio-crickets" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-fire" src="fire.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-fire">🔥 Fire</button>
+    <input type="range" class="volume-slider" data-target="audio-fire" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-simmeringpot" src="simmeringpot.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-simmeringpot">🍲 Simmering Pot</button>
+    <input type="range" class="volume-slider" data-target="audio-simmeringpot" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-teacup" src="teacup.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-teacup">☕ Teacup</button>
+    <input type="range" class="volume-slider" data-target="audio-teacup" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-clock" src="clock.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-clock">🕰️ Ticking Clock</button>
+    <input type="range" class="volume-slider" data-target="audio-clock" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-cat" src="cat.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-cat">🐾 Cat Purring</button>
+    <input type="range" class="volume-slider" data-target="audio-cat" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-windchimes" src="windchimes.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-windchimes">🎐 Windchimes</button>
+    <input type="range" class="volume-slider" data-target="audio-windchimes" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-musicbox1" src="musicbox1.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-musicbox1">🎶 Music Box 1</button>
+    <input type="range" class="volume-slider" data-target="audio-musicbox1" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-musicbox2" src="musicbox2.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-musicbox2">🎶 Music Box 2</button>
+    <input type="range" class="volume-slider" data-target="audio-musicbox2" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-musicbox3" src="musicbox3.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-musicbox3">🎶 Music Box 3</button>
+    <input type="range" class="volume-slider" data-target="audio-musicbox3" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-xmasmusicbox1" src="xmasmusicbox1.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-xmasmusicbox1">🎄 Xmas Box 1</button>
+    <input type="range" class="volume-slider" data-target="audio-xmasmusicbox1" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-xmasmusicbox2" src="xmasmusicbox2.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-xmasmusicbox2">🎄 Xmas Box 2</button>
+    <input type="range" class="volume-slider" data-target="audio-xmasmusicbox2" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-xmasmusicbox3" src="xmasmusicbox3.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-xmasmusicbox3">🎄 Xmas Box 3</button>
+    <input type="range" class="volume-slider" data-target="audio-xmasmusicbox3" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-darkmusic1" src="darkmusic1.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-darkmusic1">🖤 Dark Music 1</button>
+    <input type="range" class="volume-slider" data-target="audio-darkmusic1" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <div class="sound-item">
+    <audio id="audio-binarymusicbox" src="binarymusicbox.mp3" loop></audio>
+    <button class="play-btn" data-target="audio-binarymusicbox">🎵 Binary Box</button>
+    <input type="range" class="volume-slider" data-target="audio-binarymusicbox" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+</div>
+
+<script>
   // Setup Play/Pause Buttons
   const playButtons = document.querySelectorAll('.play-btn');
 
@@ -41,7 +172,7 @@
 
       if (audioEl.paused) {
         audioEl.play();
-        button.style.opacity = "0.7"; // Just a slight visual change when playing
+        button.style.opacity = "0.7"; // Slight visual change when playing
       } else {
         audioEl.pause();
         button.style.opacity = "1"; // Resets when paused
@@ -58,6 +189,8 @@
       const audioEl = document.getElementById(targetId);
       audioEl.volume = event.target.value;
     });
+  });
+</script>
   });
 </script>
     <script src="script.js"></script>
