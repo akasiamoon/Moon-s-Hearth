@@ -155,3 +155,85 @@ h2, .gold-text {
     background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
     padding: 12px 15px; border-radius: 4px; margin-bottom: 10px;
     display: flex; align-items: flex-start; gap: 15px; transition: all 0.3s ease; cursor: pointer;
+}
+.quest-item:hover { background: rgba(191, 149, 63, 0.15); border-color: #fcf6ba; }
+.quest-checkbox {
+    width: 22px; height: 22px; border: 2px solid #bf953f; border-radius: 3px;
+    display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 2px;
+}
+.quest-item.completed .quest-checkbox { background: #bf953f; border-color: #fcf6ba; }
+.quest-item.completed .quest-checkbox::after { content: '✓'; color: #000; font-weight: bold; font-size: 16px; }
+.quest-details { flex-grow: 1; transition: all 0.3s ease; }
+.quest-title { color: #bf953f; font-family: 'Cinzel', serif; font-size: 1.1em; margin: 0 0 4px 0; }
+.quest-desc { color: #d4c8a8; font-size: 0.9em; margin: 0; opacity: 0.9; }
+.quest-item.completed .quest-details { opacity: 0.4; text-decoration: line-through; text-decoration-color: #bf953f; }
+
+.delete-icon {
+    color: rgba(191, 149, 63, 0.5); font-size: 1.2em; cursor: pointer;
+    transition: all 0.2s; padding: 0 5px; display: flex; align-items: center;
+}
+.delete-icon:hover { color: #ff5555; transform: scale(1.1); }
+
+/* --- 12. LITERAL CALENDAR --- */
+.calendar-wrapper {
+    background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
+    padding: 15px; border-radius: 4px; margin-bottom: 20px;
+}
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.cal-day-name { color: #bf953f; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; border-bottom: 1px dashed rgba(191,149,63,0.3); padding-bottom: 5px; margin-bottom: 5px;}
+.cal-cell {
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(191,149,63,0.1); border-radius: 3px;
+    padding: 8px 0; color: #d4c8a8; position: relative; font-family: 'Cinzel', serif; transition: all 0.2s;
+}
+.cal-cell:hover { border-color: #fcf6ba; background: rgba(191,149,63,0.2); cursor: pointer; }
+.cal-cell.today { background: rgba(191,149,63,0.3); border-color: #fcf6ba; color: #fcf6ba; font-weight: bold; }
+.cal-cell.empty { background: transparent; border: none; }
+.cal-marker { width: 6px; height: 6px; background: #bf953f; border-radius: 50%; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); }
+
+/* --- 13. ALMANAC & CARDS --- */
+.alchemy-card, .tea-card, .sewing-card {
+    background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3);
+    padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left;
+}
+.alchemy-card { border-left: 3px solid #bf953f; }
+.tea-card { border-radius: 8px; }
+.sewing-card { border-top: 3px double #bf953f; position: relative; }
+.sewing-card::before { content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 1px dashed rgba(191, 149, 63, 0.2); pointer-events: none; }
+.alchemy-title, .tea-title, .sewing-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; }
+.alchemy-ingredients { color: #bf953f; font-size: 0.9em; margin-bottom: 8px; }
+.alchemy-ingredients span { color: #e0e0e0; }
+#herbs-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+.herb-card { background: rgba(8, 8, 10, 0.5); border: 1px dashed rgba(191, 149, 63, 0.5); padding: 15px; text-align: center; }
+
+#almanac-container { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.4); padding: 20px 15px; text-align: center; }
+.almanac-temp { color: #fcf6ba; font-size: 1.5em; font-family: 'Cinzel', serif; margin: 10px 0; text-shadow: 0 0 5px rgba(191, 149, 63, 0.4); }
+.almanac-stat { color: #d4c8a8; font-size: 1.1em; margin: 8px 0; font-family: 'Cinzel', serif; }
+.almanac-stat span { color: #bf953f; font-weight: bold; }
+.almanac-focus { color: #fcf6ba; font-size: 1.3em; font-family: 'Cinzel', serif; margin: 15px 0; text-shadow: 0 0 8px rgba(191, 149, 63, 0.3); }
+
+/* --- 14. INPUTS, BUTTONS, & UPLOADS --- */
+.portal-input {
+    background: rgba(15, 12, 10, 0.9); color: #d4c8a8;
+    border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px;
+    font-family: 'Quicksand', sans-serif; font-size: 1.05em; width: 100%; box-sizing: border-box; outline: none;
+}
+.portal-input:focus { border-color: #fcf6ba; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
+.portal-input::placeholder { color: rgba(191, 149, 63, 0.5); font-style: italic; }
+::-webkit-calendar-picker-indicator { filter: invert(70%) sepia(80%) saturate(400%) hue-rotate(350deg); cursor: pointer; }
+
+.portal-btn {
+    padding: 8px 16px; background: rgba(8, 8, 10, 0.8); color: #bf953f;
+    border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer;
+    font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; transition: all 0.2s;
+}
+.portal-btn:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
+
+input[type="file"] { display: none; }
+.custom-file-label {
+    display: inline-block; padding: 8px 15px; background: rgba(8, 8, 10, 0.8);
+    color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px;
+    cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; transition: all 0.2s ease;
+}
+.custom-file-label:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
+.action-btn { background: none; border: none; color: #bf953f; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; padding: 0 5px; }
+.action-btn:hover { color: #fcf6ba; }
