@@ -479,3 +479,63 @@ margin: 0; padding-bottom: 25px;
   margin: 0;
   font-family: 'Quicksand', sans-serif;
 }
+/* --- 13. THE DRYING RACK (Herbs) --- */
+#herbs-container {
+  margin-top: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+  display: grid;
+  /* Creates a beautiful side-by-side grid */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+#herbs-container::-webkit-scrollbar { width: 6px; }
+#herbs-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+#herbs-container::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
+
+.herb-card {
+  background: rgba(8, 8, 10, 0.5);
+  border: 1px dashed rgba(191, 149, 63, 0.5); /* Dashed border looks like hanging twine */
+  padding: 15px;
+  border-radius: 4px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.herb-card:hover {
+  border-color: #fcf6ba;
+  background: rgba(191, 149, 63, 0.15);
+  transform: translateY(-3px); /* Gentle lift when hovered */
+}
+
+.herb-icon {
+  font-size: 2em;
+  margin-bottom: 8px;
+}
+
+.herb-title {
+  color: #bf953f;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1em;
+  margin: 0 0 5px 0;
+  letter-spacing: 1px;
+}
+
+.herb-prop {
+  color: #fcf6ba;
+  font-size: 0.85em;
+  margin-bottom: 10px;
+  font-style: italic;
+  border-bottom: 1px solid rgba(191, 149, 63, 0.2);
+  padding-bottom: 8px;
+}
+
+.herb-desc {
+  color: #d4c8a8;
+  font-size: 0.85em;
+  line-height: 1.5;
+  margin: 0;
+  font-family: 'Quicksand', sans-serif;
+}
