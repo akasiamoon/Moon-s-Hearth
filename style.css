@@ -10,7 +10,7 @@
 0% { transform: translate(0, 0); opacity: 0; }
 20% { opacity: 0.8; }
 80% { opacity: 0.8; }
-100% { transform: translate(80px, -120px); opacity: 0; }
+100% { transform: translate(100px, -150px); opacity: 0; }
 }
 
 @keyframes goldShimmer {
@@ -34,16 +34,19 @@ pointer-events: none;
 animation: hearthPulse 4s infinite ease-in-out;
 }
 
-/* --- 4. THE DUST MOTES --- */
+/* --- 4. THE DUST MOTES (Fixed: No more dot grid) --- */
 .dust-container {
 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
 z-index: 10; pointer-events: none;
-background-image:
-radial-gradient(circle, rgba(255, 202, 40, 0.7) 2.5px, transparent 2.5px),
-radial-gradient(circle, rgba(255, 255, 255, 0.5) 1.5px, transparent 1.5px);
-background-size: 180px 180px, 250px 250px;
+background-image: 
+    radial-gradient(circle at 10% 20%, rgba(255, 202, 40, 0.6) 1px, transparent 3px),
+    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.4) 1.5px, transparent 4px),
+    radial-gradient(circle at 60% 40%, rgba(255, 202, 40, 0.5) 2px, transparent 5px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.3) 1px, transparent 3px),
+    radial-gradient(circle at 90% 10%, rgba(255, 202, 40, 0.7) 1.5px, transparent 4px);
+background-size: 150vw 150vh; /* Huge size prevents the repeating grid look */
 filter: blur(0.5px);
-animation: dustDrift 15s linear infinite;
+animation: dustDrift 20s linear infinite;
 }
 
 /* --- 5. THE BACKGROUND --- */
@@ -115,7 +118,6 @@ margin: 0; padding-bottom: 25px;
 ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
 ::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
 
-/* --- 8. SHARED PORTAL CONTAINERS --- */
 .portal-scroll-container {
   margin-top: 15px;
   max-height: 55vh;
@@ -124,37 +126,75 @@ margin: 0; padding-bottom: 25px;
   text-align: left;
 }
 
-/* --- 9. NEW SECTION HEADERS (Collapsible Areas) --- */
+/* --- 8. AUDIO GRIMOIRE (Restored Perfectly) --- */
+#soundscape-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-top: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.sound-item {
+  background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.2);
+  padding: 10px; border-radius: 2px; text-align: center; transition: all 0.3s ease;
+}
+.sound-item:hover { border-color: #bf953f; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
+.play-btn {
+  width: 100%; background: transparent; color: #d4c8a8; border: 1px solid rgba(191, 149, 63, 0.4);
+  padding: 8px 4px; font-family: 'Quicksand', sans-serif; font-size: 0.85em; cursor: pointer;
+  margin-bottom: 8px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+}
+.play-btn:hover { background: rgba(191, 149, 63, 0.15); color: #fcf6ba; }
+.play-btn.active { background: rgba(191, 149, 63, 0.3); border-color: #fcf6ba; color: #fff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+.volume-slider { width: 90%; cursor: pointer; accent-color: #bf953f; }
+
+/* --- 9. EXPENSIVE COLLAPSIBLE HEADERS --- */
 .section-header {
   width: 100%;
-  background: rgba(191, 149, 63, 0.1);
-  color: #fcf6ba;
-  border: 1px solid rgba(191, 149, 63, 0.4);
+  background: linear-gradient(90deg, rgba(20, 15, 12, 0.95) 0%, rgba(35, 28, 22, 0.85) 100%);
+  color: #d4c8a8;
+  border: 1px solid rgba(191, 149, 63, 0.2);
   border-left: 3px solid #bf953f;
-  padding: 12px 15px;
+  border-radius: 3px;
+  padding: 14px 18px;
   font-family: 'Cinzel', serif;
-  font-size: 1.1em;
+  font-size: 1.05em;
   text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 2px;
   cursor: pointer;
-  margin-bottom: 5px;
   margin-top: 15px;
+  margin-bottom: 5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: all 0.3s ease;
-  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
-.section-header:hover { background: rgba(191, 149, 63, 0.2); }
-.section-header::after { content: '▼'; font-size: 0.8em; transition: transform 0.3s ease; color: #bf953f; }
-.section-header.closed::after { transform: rotate(-90deg); }
-.section-panel {
-  max-height: 2000px; /* Open by default */
-  overflow: hidden;
-  transition: max-height 0.5s ease-in-out;
+.section-header:hover { 
+  background: linear-gradient(90deg, rgba(35, 28, 22, 0.95) 0%, rgba(50, 40, 30, 0.85) 100%);
+  color: #fcf6ba; 
+  border-color: rgba(191, 149, 63, 0.5);
 }
-.section-panel.closed { max-height: 0; }
+.section-header::after { content: '▼'; font-size: 0.7em; transition: transform 0.4s ease; color: #bf953f; }
+.section-header.closed::after { transform: rotate(-90deg); opacity: 0.7; }
 
-/* --- 10. GRIMOIRE ACCORDIONS (For Recipes inside the sections) --- */
+.section-panel {
+  max-height: 2000px;
+  overflow: hidden;
+  padding: 5px 10px;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease, opacity 0.4s ease;
+  opacity: 1;
+}
+.section-panel.closed { 
+  max-height: 0; 
+  padding: 0 10px;
+  opacity: 0;
+}
+
+/* --- 10. GRIMOIRE RECIPE ACCORDIONS --- */
 .grimoire-header {
   width: 100%; background: rgba(8, 8, 10, 0.8); color: #bf953f;
   border: 1px solid rgba(191, 149, 63, 0.4); padding: 12px 18px;
@@ -174,48 +214,52 @@ margin: 0; padding-bottom: 25px;
 .grimoire-panel ul { list-style-type: square; color: #bf953f; padding-left: 20px; }
 .grimoire-panel ul li span { color: #d4c8a8; }
 
-/* --- 11. QUEST ITEMS & APPOINTMENTS --- */
+/* --- 11. DYNAMIC LIST ITEMS (Quests, Meals, Calendar) --- */
 .quest-item {
-  background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
+  background: rgba(12, 10, 8, 0.85); 
+  border: 1px solid rgba(191, 149, 63, 0.3);
   padding: 12px 15px; border-radius: 4px; margin-bottom: 10px;
-  display: flex; align-items: flex-start; gap: 15px; transition: all 0.3s ease; cursor: pointer;
+  display: flex; align-items: center; gap: 15px; transition: all 0.3s ease; cursor: pointer;
 }
-.quest-item:hover { background: rgba(191, 149, 63, 0.15); border-color: #fcf6ba; }
+.quest-item:hover { background: rgba(191, 149, 63, 0.1); border-color: #bf953f; }
 .quest-checkbox {
-  width: 22px; height: 22px; border: 2px solid #bf953f; border-radius: 3px;
-  display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 2px;
+  width: 20px; height: 20px; border: 2px solid #bf953f; border-radius: 3px;
+  display: flex; justify-content: center; align-items: center; flex-shrink: 0;
 }
 .quest-item.completed .quest-checkbox { background: #bf953f; border-color: #fcf6ba; }
-.quest-item.completed .quest-checkbox::after { content: '✓'; color: #000; font-weight: bold; font-size: 16px; }
+.quest-item.completed .quest-checkbox::after { content: '✓'; color: #000; font-weight: bold; font-size: 14px; }
 .quest-details { flex-grow: 1; transition: all 0.3s ease; }
-.quest-title { color: #bf953f; font-family: 'Cinzel', serif; font-size: 1.1em; margin: 0 0 4px 0; }
-.quest-desc { color: #d4c8a8; font-size: 0.9em; margin: 0; opacity: 0.9; }
+.quest-title { color: #bf953f; font-family: 'Cinzel', serif; font-size: 1.05em; margin: 0; letter-spacing: 0.5px; }
+.quest-desc { color: #d4c8a8; font-size: 0.85em; margin: 4px 0 0 0; opacity: 0.8; }
 .quest-item.completed .quest-details { opacity: 0.4; text-decoration: line-through; text-decoration-color: #bf953f; }
 
-/* Little Gold Delete Icon */
 .delete-icon {
-  color: rgba(191, 149, 63, 0.5); font-size: 1.2em; cursor: pointer;
-  transition: all 0.2s; padding: 0 5px; height: 100%; display: flex; align-items: center;
+  color: rgba(191, 149, 63, 0.4); font-size: 1.2em; cursor: pointer;
+  transition: all 0.2s; padding: 5px; margin-left: auto;
 }
-.delete-icon:hover { color: #ff5555; text-shadow: 0 0 5px rgba(255,85,85,0.4); transform: scale(1.1); }
+.delete-icon:hover { color: #ff5555; text-shadow: 0 0 8px rgba(255,85,85,0.4); transform: scale(1.1); }
 
 /* --- 12. CARDS (Alchemy, Herbs, Tea, Almanac, Sewing) --- */
 .alchemy-card, .tea-card, .sewing-card {
-  background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3);
+  background: rgba(12, 10, 8, 0.7); border: 1px solid rgba(191, 149, 63, 0.3);
   padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left;
 }
 .alchemy-card { border-left: 3px solid #bf953f; }
 .tea-card { border-radius: 8px; }
+
+/* SEWING RESTORED EXACTLY */
 .sewing-card { border-top: 3px double #bf953f; position: relative; }
-.sewing-card::before {
-  content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
-  border: 1px dashed rgba(191, 149, 63, 0.2); pointer-events: none;
-}
-.alchemy-title, .tea-title, .sewing-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; }
+.sewing-card::before { content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 1px dashed rgba(191, 149, 63, 0.2); pointer-events: none; }
+.sewing-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; letter-spacing: 1px; }
+.sewing-status { display: inline-block; background: rgba(191, 149, 63, 0.15); color: #fcf6ba; padding: 3px 10px; border-radius: 12px; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; border: 1px solid rgba(191, 149, 63, 0.4); }
+.sewing-fabric { color: #bf953f; font-size: 0.9em; margin-bottom: 8px; font-family: 'Quicksand', sans-serif; }
+.sewing-notes { color: #d4c8a8; font-size: 0.9em; line-height: 1.5; margin: 0; font-family: 'Quicksand', sans-serif; background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 2px; border-left: 2px solid rgba(191, 149, 63, 0.5); }
+
+.alchemy-title, .tea-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; }
 .alchemy-ingredients { color: #bf953f; font-size: 0.9em; margin-bottom: 8px; }
 .alchemy-ingredients span { color: #e0e0e0; }
 #herbs-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-.herb-card { background: rgba(8, 8, 10, 0.5); border: 1px dashed rgba(191, 149, 63, 0.5); padding: 15px; text-align: center; }
+.herb-card { background: rgba(12, 10, 8, 0.6); border: 1px dashed rgba(191, 149, 63, 0.5); padding: 15px; text-align: center; }
 
 /* --- 13. ALMANAC SPECIFICS --- */
 #almanac-container { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.4); padding: 20px 15px; text-align: center; }
@@ -226,29 +270,26 @@ margin: 0; padding-bottom: 25px;
 
 /* --- 14. INPUTS, BUTTONS, & UPLOADS --- */
 .portal-input {
-  background: rgba(15, 12, 10, 0.9); color: #d4c8a8;
-  border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px;
-  font-family: 'Quicksand', sans-serif; font-size: 1.05em; width: 100%; box-sizing: border-box; outline: none;
+  background: rgba(0, 0, 0, 0.6); color: #d4c8a8;
+  border: 1px solid rgba(191, 149, 63, 0.3); border-radius: 4px; padding: 10px;
+  font-family: 'Quicksand', sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; outline: none;
 }
-.portal-input:focus { border-color: #fcf6ba; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
-.portal-input::placeholder { color: rgba(191, 149, 63, 0.5); font-style: italic; }
+.portal-input:focus { border-color: #bf953f; box-shadow: 0 0 8px rgba(191, 149, 63, 0.2); }
+.portal-input::placeholder { color: rgba(191, 149, 63, 0.4); font-style: italic; }
 
 .portal-btn {
-  padding: 8px 16px; background: rgba(8, 8, 10, 0.8); color: #bf953f;
+  padding: 8px 16px; background: rgba(20, 15, 12, 0.9); color: #bf953f;
   border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer;
   font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; transition: all 0.2s;
 }
 .portal-btn:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 
-/* Custom File Upload Label to hide the ugly white button */
 input[type="file"] { display: none; }
 .custom-file-label {
-  display: inline-block; padding: 8px 15px; background: rgba(8, 8, 10, 0.8);
+  display: inline-block; padding: 8px 15px; background: rgba(20, 15, 12, 0.9);
   color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px;
   cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; transition: all 0.2s ease;
 }
 .custom-file-label:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
-
-/* Action Buttons (Edit/Delete text) */
 .action-btn { background: none; border: none; color: #bf953f; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; padding: 0 5px; }
 .action-btn:hover { color: #fcf6ba; }
