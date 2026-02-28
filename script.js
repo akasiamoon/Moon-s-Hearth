@@ -1,7 +1,19 @@
-// === 0. SUPABASE CONNECTION ===
+// === 0. SUPABASE CONNECTION (With Safety Net) ===
 const supabaseUrl = 'https://yflfpwcaowzkoxqnohso.supabase.co';
 const supabaseKey = 'sb_publishable_OUXpGQk3QkOoUu94S9YZNg_Sb34-Jc4';
-const db = supabase.createClient(supabaseUrl, supabaseKey);
+let db = null;
+
+try {
+    // This checks if you added the HTML script tag properly!
+    if (typeof supabase !== 'undefined') {
+        db = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log("✨ Stars aligned: Connected to the archive.");
+    } else {
+        console.warn("⚠️ Cannot find Supabase! Please add the CDN script tag to your HTML.");
+    }
+} catch (error) {
+    console.error("The magical currents are scrambled:", error);
+}
 
 // === 1. LOCAL DATA ===
 const myRecipes = [
@@ -58,6 +70,8 @@ async function fetchLocalAtmosphere() {
 
 updateNatureLore(); fetchLocalAtmosphere();
 
+// Safely isolates the Audio code so it is untouched
+const portalData = { 'audio': '<h2 class="gold-text">Bardic Soundscapes</h2><p style="color: rgba(191,149,63,0.8); font-style:italic; text-align:center;">Select your ambient mix.</p>' };
 
 // === 3. LITERAL CALENDAR GENERATOR ===
 function generateCalendarHTML(events) {
@@ -81,13 +95,9 @@ function generateCalendarHTML(events) {
 
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        
-        // Mark dates that have appointments
-        const hasEvent = events.some(e => e.start_date && e.start_date.startsWith(dateStr) && e.text !== 'completed');
+        const hasEvent = events && events.some(e => e.start_date && e.start_date.startsWith(dateStr) && e.text !== 'completed');
         const marker = hasEvent ? `<div class="cal-marker"></div>` : '';
         const isToday = (day === today.getDate()) ? 'today' : '';
-        
-        // Clicking a day opens the scribe form
         html += `<div class="cal-cell ${isToday}" onclick="prefillDate('${dateStr}')"><span>${day}</span>${marker}</div>`;
     }
     html += `</div></div>`;
@@ -106,9 +116,8 @@ function prefillDate(dateStr) {
 }
 
 // === 4. HTML BUILDERS ===
-
 async function buildGrimoireHTML() {
-    let html = `<h2>Kitchen Grimoire</h2><div class="portal-scroll-container">`;
+    let html = `<h2 class="gold-text">Kitchen Grimoire</h2><div class="portal-scroll-container">`;
 
     // RECIPES
     html += `<div class="section-header closed" onclick="toggleSection(this)">Sacred Recipes</div><div class="section-panel closed">`;
@@ -134,18 +143,20 @@ async function buildGrimoireHTML() {
             <button onclick="addDynamicItem('meal_plans', 'new-meal-item', 'grimoire')" class="portal-btn">Add</button>
         </div>`;
         
-    const { data: meals } = await db.from('meal_plans').select('*').order('created_at', { ascending: true });
-    if (meals) {
-        meals.forEach(item => {
-            const isDone = item.is_completed ? 'completed' : '';
-            html += `
-            <div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')">
-                <div class="quest-checkbox"></div>
-                <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
-                <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div>
-            </div>`;
-        });
-    }
+    if (db) {
+        const { data: meals } = await db.from('meal_plans').select('*').order('created_at', { ascending: true });
+        if (meals) {
+            meals.forEach(item => {
+                const isDone = item.is_completed ? 'completed' : '';
+                html += `
+                <div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')">
+                    <div class="quest-checkbox"></div>
+                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
+                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div>
+                </div>`;
+            });
+        }
+    } else { html += `<p style="color: rgba(191,149,63,0.5); font-style: italic;">Awaiting connection...</p>`; }
     html += `</div>`;
 
     // MARKET LIST
@@ -155,32 +166,39 @@ async function buildGrimoireHTML() {
             <button onclick="addDynamicItem('market_items', 'new-market-item', 'grimoire')" class="portal-btn">Add</button>
         </div>`;
         
-    const { data: marketItems } = await db.from('market_items').select('*').order('created_at', { ascending: false });
-    if (marketItems) {
-        marketItems.forEach(item => {
-            const isDone = item.is_completed ? 'completed' : '';
-            html += `
-            <div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')">
-                <div class="quest-checkbox"></div>
-                <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
-                <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div>
-            </div>`;
-        });
+    if (db) {
+        const { data: marketItems } = await db.from('market_items').select('*').order('created_at', { ascending: false });
+        if (marketItems) {
+            marketItems.forEach(item => {
+                const isDone = item.is_completed ? 'completed' : '';
+                html += `
+                <div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')">
+                    <div class="quest-checkbox"></div>
+                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
+                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div>
+                </div>`;
+            });
+        }
     }
     html += `</div></div>`; 
     return html;
 }
 
 async function buildBountyBoardHTML() {
-    let html = `<h2>The Bounty Board</h2><div class="portal-scroll-container">`;
-    const { data: events } = await db.from('calendar_events').select('*').order('start_date', { ascending: true });
+    let html = `<h2 class="gold-text">The Bounty Board</h2><div class="portal-scroll-container">`;
+    let events = [];
+    
+    if (db) {
+        const { data } = await db.from('calendar_events').select('*').order('start_date', { ascending: true });
+        events = data || [];
+    }
     
     // CALENDAR GRID
-    html += generateCalendarHTML(events || []);
+    html += generateCalendarHTML(events);
 
     // ALIGNMENTS LEDGER
     html += `<div class="section-header closed" onclick="toggleSection(this)">Alignments Ledger</div><div class="section-panel closed">`;
-    if (events && events.length > 0) {
+    if (events.length > 0) {
         events.forEach(ev => {
             const isDone = ev.text === 'completed' ? 'completed' : ''; 
             const dateStr = ev.start_date ? new Date(ev.start_date).toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'}) : '';
@@ -194,6 +212,8 @@ async function buildBountyBoardHTML() {
                 <div class="delete-icon" onclick="event.stopPropagation(); deleteEvent('${ev.id}')">✕</div>
             </div>`;
         });
+    } else {
+        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic;">No current alignments recorded.</p>`;
     }
     html += `</div>`; 
 
@@ -216,24 +236,26 @@ async function buildBountyBoardHTML() {
             <button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button>
         </div>`;
         
-    const { data: quests } = await db.from('daily_quests').select('*').order('created_at', { ascending: false });
-    if (quests) {
-        quests.forEach(item => {
-            const isDone = item.is_completed ? 'completed' : '';
-            html += `
-            <div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')">
-                <div class="quest-checkbox"></div>
-                <div class="quest-details"><h3 class="quest-title">${item.text}</h3></div>
-                <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div>
-            </div>`;
-        });
+    if (db) {
+        const { data: quests } = await db.from('daily_quests').select('*').order('created_at', { ascending: false });
+        if (quests) {
+            quests.forEach(item => {
+                const isDone = item.is_completed ? 'completed' : '';
+                html += `
+                <div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')">
+                    <div class="quest-checkbox"></div>
+                    <div class="quest-details"><h3 class="quest-title">${item.text}</h3></div>
+                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div>
+                </div>`;
+            });
+        }
     }
     html += `</div></div>`; 
     return html;
 }
 
 async function buildTeacupHTML() {
-    let html = `<h2>The Stillness</h2><div class="portal-scroll-container">`;
+    let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
     
     // JOURNAL INPUT
     html += `
@@ -249,31 +271,33 @@ async function buildTeacupHTML() {
         </div>`;
 
     // PAST JOURNALS
-    const { data: notes } = await db.from('family_notes').select('*').order('created_at', { ascending: false });
-    if (notes) {
-        notes.forEach(note => {
-            let imageHtml = '';
-            if (note.image_url) {
-                const { data } = db.storage.from('note-images').getPublicUrl(note.image_url);
-                imageHtml = `<img src="${data.publicUrl}" style="max-width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid rgba(191,149,63,0.3);" alt="Memory"/>`;
-            }
-            const dateStr = new Date(note.timestamp || note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
-            html += `
-            <div class="tea-card">
-                <div style="font-size: 0.85em; color: rgba(191,149,63,0.8); margin-bottom: 8px; border-bottom: 1px dashed rgba(191, 149, 63, 0.3); padding-bottom: 5px; display: flex; justify-content: space-between;">
-                    <span>${dateStr}</span>
-                    <button class="action-btn" style="color: #ff6b6b;" onclick="deleteJournalEntry('${note.id}')">Delete</button>
-                </div>
-                <p style="margin: 0; white-space: pre-wrap; font-size: 1.05em;">${note.note}</p>
-                ${imageHtml}
-            </div>`;
-        });
+    if (db) {
+        const { data: notes } = await db.from('family_notes').select('*').order('created_at', { ascending: false });
+        if (notes) {
+            notes.forEach(note => {
+                let imageHtml = '';
+                if (note.image_url) {
+                    const { data } = db.storage.from('note-images').getPublicUrl(note.image_url);
+                    imageHtml = `<img src="${data.publicUrl}" style="max-width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid rgba(191,149,63,0.3);" alt="Memory"/>`;
+                }
+                const dateStr = new Date(note.timestamp || note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
+                html += `
+                <div class="tea-card">
+                    <div style="font-size: 0.85em; color: rgba(191,149,63,0.8); margin-bottom: 8px; border-bottom: 1px dashed rgba(191, 149, 63, 0.3); padding-bottom: 5px; display: flex; justify-content: space-between;">
+                        <span>${dateStr}</span>
+                        <button class="action-btn" style="color: #ff6b6b;" onclick="deleteJournalEntry('${note.id}')">Delete</button>
+                    </div>
+                    <p style="margin: 0; white-space: pre-wrap; font-size: 1.05em;">${note.note}</p>
+                    ${imageHtml}
+                </div>`;
+            });
+        }
     }
     return html + `</div>`;
 }
 
 function buildApothecaryHTML() {
-    let html = `<h2>Apothecary</h2><div class="portal-scroll-container">`;
+    let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
     myApothecary.forEach(item => { 
         html += `
         <div class="alchemy-card">
@@ -287,7 +311,174 @@ function buildApothecaryHTML() {
 }
 
 function buildHerbsHTML() {
-    let html = `<h2>The Drying Rack</h2><div class="portal-scroll-container" id="herbs-container">`;
+    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container" id="herbs-container">`;
     myHerbs.forEach(herb => { 
         html += `
         <div class="herb-card">
+            <div style="font-size: 2em; margin-bottom:8px;">${herb.icon}</div>
+            <h3 class="gold-text" style="font-size:1.1em; margin:0 0 5px 0; padding-bottom: 0;">${herb.title}</h3>
+            <div style="color:#fcf6ba; font-size:0.85em; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.2); padding-bottom:8px; margin-bottom:10px;">${herb.properties}</div>
+            <p style="color:#d4c8a8; font-size:0.85em; margin:0;">${herb.description}</p>
+        </div>`; 
+    });
+    return html + `</div>`;
+}
+
+function buildSewingHTML() {
+    let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
+    mySewing.forEach(project => { 
+        html += `
+        <div class="sewing-card">
+            <h3 class="sewing-title">${project.title}</h3>
+            <div style="display:inline-block; background:rgba(191,149,63,0.15); color:#fcf6ba; padding:3px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; margin-bottom:10px; border:1px solid rgba(191,149,63,0.4);">${project.status}</div>
+            <div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Fabric:</strong> ${project.fabric}</div>
+            <div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5);">${project.notes}</div>
+        </div>`; 
+    });
+    return html + `</div>`;
+}
+
+function buildAlmanacHTML() {
+    const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+    const currentTime = new Date().toLocaleTimeString('en-US', timeOptions);
+    return `
+        <h2 class="gold-text">Fen Almanac</h2>
+        <div id="almanac-container">
+            <div class="almanac-temp">${dynamicAlmanac.temp}</div>
+            <div class="almanac-stat"><span>Time:</span> ${currentTime}</div>
+            <div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div>
+            <div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div>
+            <div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div>
+            <div style="color:rgba(191,149,63,0.5); margin:15px 0; font-size:0.9em; letter-spacing:2px;">◈━━━━━━༺ ❦ ༻━━━━━━◈</div>
+            <div style="color:#fcf6ba; font-size:1.3em; font-family:'Cinzel', serif; margin:15px 0;">Daily Focus: ${dynamicAlmanac.focus}</div>
+            <p style="color:#d4c8a8; font-style:italic; margin-bottom:15px;">"${dynamicAlmanac.entry}"</p>
+            <div style="color:#bf953f; font-size:0.95em; font-style:italic; margin-top:10px; border-top:1px dashed rgba(191,149,63,0.3); padding-top:10px;"><strong>Nature's Lore:</strong> ${dynamicAlmanac.planting}</div>
+        </div>`;
+}
+
+// === 5. UI LOGIC ===
+function toggleAccordion(button) {
+    button.classList.toggle('active');
+    const panel = button.nextElementSibling;
+    if (panel.style.maxHeight) { panel.style.maxHeight = null; panel.style.padding = "0 15px"; } 
+    else { panel.style.maxHeight = panel.scrollHeight + 30 + "px"; panel.style.padding = "10px 15px"; }
+}
+
+function toggleSection(headerBtn) {
+    headerBtn.classList.toggle('closed');
+    const panel = headerBtn.nextElementSibling;
+    panel.classList.toggle('closed');
+}
+
+// === 6. SUPABASE FUNCTIONS ===
+async function addDynamicItem(table, inputId, portal) {
+    if (!db) return;
+    const text = document.getElementById(inputId).value.trim();
+    if (!text) return;
+    await db.from(table).insert([{ text: text, is_completed: false }]);
+    openPortal(portal); 
+}
+async function toggleDynamicItem(table, id, currentState, portal) {
+    if (!db) return;
+    await db.from(table).update({ is_completed: !currentState }).eq('id', id);
+    openPortal(portal); 
+}
+async function deleteDynamicItem(table, id, portal) {
+    if (!db) return;
+    await db.from(table).delete().eq('id', id);
+    openPortal(portal);
+}
+
+async function addEvent() {
+    if (!db) return;
+    const title = document.getElementById('ev-title').value.trim();
+    const date = document.getElementById('ev-date').value;
+    if (!title) return;
+    document.getElementById('ev-status').innerText = "Scribing...";
+    await db.from('calendar_events').insert([{ title: title, start_date: date, text: 'pending' }]);
+    openPortal('cat');
+}
+async function deleteEvent(id) {
+    if (!db) return;
+    await db.from('calendar_events').delete().eq('id', id);
+    openPortal('cat');
+}
+async function toggleEvent(id, currentText) {
+    if (!db) return;
+    const newState = currentText === 'completed' ? 'pending' : 'completed';
+    await db.from('calendar_events').update({ text: newState }).eq('id', id);
+    openPortal('cat');
+}
+
+async function submitJournalEntry() {
+    if (!db) return;
+    const textInput = document.getElementById('journal-text').value.trim();
+    const fileInput = document.getElementById('journal-image').files[0];
+    const submitBtn = document.getElementById('journal-submit-btn');
+
+    if (!textInput && !fileInput) return;
+    submitBtn.innerText = "Sealing..."; submitBtn.disabled = true;
+
+    try {
+        let imageUrl = null;
+        if (fileInput) {
+            const fileName = `${Math.random()}.${fileInput.name.split('.').pop()}`;
+            const { error } = await db.storage.from('note-images').upload(fileName, fileInput);
+            if (error) throw error;
+            imageUrl = fileName;
+        }
+        await db.from('family_notes').insert([{ note: textInput, image_url: imageUrl, timestamp: new Date().toISOString() }]);
+        openPortal('teacup');
+    } catch (error) {
+        submitBtn.innerText = "Seal Memory"; submitBtn.disabled = false;
+    }
+}
+async function deleteJournalEntry(id) {
+    if (!db) return;
+    await db.from('family_notes').delete().eq('id', id);
+    openPortal('teacup');
+}
+
+// === 7. OPEN & CLOSE PORTALS ===
+async function openPortal(portalName) {
+    console.log("Portal active:", portalName); // Debugging trace
+    const overlay = document.getElementById('parchment-overlay');
+    const content = document.getElementById('portal-content');
+    const bg = document.getElementById('bg-art');
+    const soundscape = document.getElementById('soundscape-container'); 
+    
+    overlay.classList.add('active'); if (bg) bg.classList.add('dimmed');
+
+    // PROTECT AUDIO
+    if (portalName === 'audio') {
+        content.innerHTML = portalData['audio']; 
+        if (soundscape) soundscape.style.display = 'grid';
+        return; 
+    }
+
+    content.innerHTML = `<h2 class="gold-text" style="text-align: center; margin-top: 20px;">Consulting... ⏳</h2>`;
+    if (soundscape) soundscape.style.display = 'none';
+
+    if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
+    else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
+    else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
+    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
+    else if (portalName === 'alchemy') content.innerHTML = buildApothecaryHTML(); 
+    else if (portalName === 'herbs') content.innerHTML = buildHerbsHTML(); 
+    else if (portalName === 'sewing') content.innerHTML = buildSewingHTML();
+}
+
+function closePortal() {
+    const overlay = document.getElementById('parchment-overlay');
+    const bg = document.getElementById('bg-art');
+    const soundscape = document.getElementById('soundscape-container');
+    
+    overlay.classList.remove('active');
+    if (bg) bg.classList.remove('dimmed');
+    if (soundscape) soundscape.style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const overlay = document.getElementById('parchment-overlay');
+    if (event.target == overlay) closePortal();
+}
