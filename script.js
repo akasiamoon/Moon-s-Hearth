@@ -1,3 +1,29 @@
+// === 0. SUPABASE CONNECTION ===
+const supabaseUrl = 'https://yflfpwcaowzkoxqnohso.supabase.co';
+const supabaseKey = 'sb_publishable_OUXpGQk3QkOoUu94S9YZNg_Sb34-Jc4';
+const db = supabase.createClient(supabaseUrl, supabaseKey);
+
+// A function to fetch your events whenever we need them
+async function fetchCalendarEvents() {
+    try {
+        const { data: events, error } = await db
+            .from('calendar_events')
+            .select('id, title, start_date')
+            .order('start_date', { ascending: true });
+
+        if (error) {
+            console.error("The connection was interrupted:", error.message);
+            return [];
+        }
+        
+        console.log("Calendar events retrieved from the archive:", events);
+        return events;
+        
+    } catch (err) {
+        console.error("Could not read the stars:", err);
+        return [];
+    }
+}
 // === 1. THE RECIPE BOOK ===
 const myRecipes = [
     { title: "🌿 Highland Potato Stew", description: "A hearty, warming broth perfect for cold evenings. Earthy and grounding.", ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], instructions: "Simmer over a low hearth fire until the potatoes yield and the broth is thick and fragrant." },
