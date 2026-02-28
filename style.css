@@ -13,7 +13,7 @@
     100% { transform: translate(80px, -120px); opacity: 0; }
 }
 
-/* THE BRIGHT REFLECTIVE GOLD ANIMATION IS BACK */
+/* THE BRIGHT REFLECTIVE GOLD ANIMATION */
 @keyframes goldShimmer {
     to { background-position: 200% center; }
 }
@@ -34,7 +34,7 @@ body::before {
     animation: hearthPulse 4s infinite ease-in-out;
 }
 
-/* --- 4. ORGANIC DUST MOTES (No more grid!) --- */
+/* --- 4. ORGANIC DUST MOTES (Embers) --- */
 .dust-container {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 10; pointer-events: none;
@@ -42,7 +42,7 @@ body::before {
         radial-gradient(circle, rgba(255, 202, 40, 0.8) 2px, transparent 3px),
         radial-gradient(circle, rgba(255, 255, 255, 0.5) 1.5px, transparent 2px),
         radial-gradient(circle, rgba(255, 170, 50, 0.6) 2.5px, transparent 4px);
-    background-size: 350px 350px, 450px 450px, 550px 550px; /* Much larger spacing breaks the grid */
+    background-size: 350px 350px, 450px 450px, 550px 550px; 
     background-position: 0 0, 50px 100px, 150px 200px;
     filter: blur(0.5px);
     animation: dustDrift 18s linear infinite;
@@ -95,7 +95,20 @@ h2, .gold-text {
 .close-btn { position: absolute; top: 15px; right: 20px; color: #bf953f; font-size: 28px; cursor: pointer; z-index: 100; }
 .close-btn:hover { color: #fcf6ba; }
 
-/* --- 7. SCROLLBARS --- */
+/* --- 7. COORDINATES (THIS WAS WHAT I ACCIDENTALLY DELETED!) --- */
+.portal { position: absolute; cursor: crosshair; z-index: 1000; background: transparent; border: none; }
+.portal:hover { background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 75%); }
+
+#portal-window   { top: 5%;  left: 5%;   width: 35%; height: 50%; }
+#portal-herbs    { top: 2%;  left: 55%;  width: 20%; height: 20%; }
+#portal-audio    { top: 40%; left: 42%;  width: 10%; height: 15%; }
+#portal-grimoire { top: 38%; left: 55%;  width: 12%; height: 18%; }
+#portal-alchemy  { top: 60%; left: 10%;  width: 30%; height: 35%; }
+#portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
+#portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
+#portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
+
+/* --- 8. SCROLLBARS --- */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
 ::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
@@ -104,7 +117,7 @@ h2, .gold-text {
     margin-top: 15px; max-height: 50vh; overflow-y: auto; padding-right: 10px; text-align: left;
 }
 
-/* --- 8. AUDIO GRIMOIRE (Untouched) --- */
+/* --- 9. AUDIO GRIMOIRE (Untouched) --- */
 #soundscape-container {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;
     margin-top: 15px; max-height: 50vh; overflow-y: auto; padding-right: 10px;
@@ -116,7 +129,7 @@ h2, .gold-text {
 .play-btn.active { background: rgba(191, 149, 63, 0.3); border-color: #fcf6ba; color: #fff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
 .volume-slider { width: 90%; cursor: pointer; accent-color: #bf953f; }
 
-/* --- 9. COLLAPSIBLE HEADERS --- */
+/* --- 10. COLLAPSIBLE HEADERS --- */
 .section-header {
     width: 100%; background: rgba(20, 15, 12, 0.8); color: #fcf6ba;
     border: 1px solid rgba(191, 149, 63, 0.4); border-left: 3px solid #bf953f;
@@ -130,7 +143,7 @@ h2, .gold-text {
 .section-panel { max-height: 2000px; overflow: hidden; transition: max-height 0.5s ease-in-out; }
 .section-panel.closed { max-height: 0; }
 
-/* --- 10. GRIMOIRE ACCORDIONS --- */
+/* --- 11. GRIMOIRE ACCORDIONS --- */
 .grimoire-header {
     width: 100%; background: rgba(8, 8, 10, 0.8); color: #bf953f;
     border: 1px solid rgba(191, 149, 63, 0.4); padding: 12px 18px;
@@ -150,7 +163,7 @@ h2, .gold-text {
 .grimoire-panel ul { list-style-type: square; color: #bf953f; padding-left: 20px; }
 .grimoire-panel ul li span { color: #d4c8a8; }
 
-/* --- 11. QUESTS & APPOINTMENTS --- */
+/* --- 12. QUESTS & APPOINTMENTS --- */
 .quest-item {
     background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
     padding: 12px 15px; border-radius: 4px; margin-bottom: 10px;
@@ -174,7 +187,7 @@ h2, .gold-text {
 }
 .delete-icon:hover { color: #ff5555; transform: scale(1.1); }
 
-/* --- 12. LITERAL CALENDAR --- */
+/* --- 13. LITERAL CALENDAR --- */
 .calendar-wrapper {
     background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
     padding: 15px; border-radius: 4px; margin-bottom: 20px;
@@ -190,7 +203,7 @@ h2, .gold-text {
 .cal-cell.empty { background: transparent; border: none; }
 .cal-marker { width: 6px; height: 6px; background: #bf953f; border-radius: 50%; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); }
 
-/* --- 13. ALMANAC & CARDS --- */
+/* --- 14. ALMANAC & CARDS --- */
 .alchemy-card, .tea-card, .sewing-card {
     background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3);
     padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left;
@@ -211,7 +224,7 @@ h2, .gold-text {
 .almanac-stat span { color: #bf953f; font-weight: bold; }
 .almanac-focus { color: #fcf6ba; font-size: 1.3em; font-family: 'Cinzel', serif; margin: 15px 0; text-shadow: 0 0 8px rgba(191, 149, 63, 0.3); }
 
-/* --- 14. INPUTS, BUTTONS, & UPLOADS --- */
+/* --- 15. INPUTS, BUTTONS, & UPLOADS --- */
 .portal-input {
     background: rgba(15, 12, 10, 0.9); color: #d4c8a8;
     border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px;
