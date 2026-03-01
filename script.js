@@ -314,30 +314,71 @@ async function buildWorkshopHTML() {
     return html;
 }
 
-async function buildApothecaryHTML() {
-    let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
-    myApothecary.forEach(item => { html += `<div class="alchemy-card"><h3 class="alchemy-title">${item.icon} ${item.title}</h3><p style="color:#d4c8a8; font-style:italic; margin-top:0;">${item.description}</p><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Components:</strong> <span style="color:#e0e0e0;">${item.ingredients}</span></div><p style="color:#d4c8a8; font-size:0.9em; margin:0;">${item.instructions}</p></div>`; });
-    const apoth = await loadData('apothecary');
-    apoth.forEach(item => { html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🏺 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('apothecary', '${item.id}', 'alchemy')">✕</button></div><p style="color:#d4c8a8; font-size:0.9em; margin:0; white-space:pre-wrap;">${item.description}</p></div>`; }); 
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="apo-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="apo-desc" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('apothecary', 'apo-title', 'apo-desc', 'alchemy')" class="portal-btn" style="width: 100%;">Add to Apothecary</button></div></div></div>`;
-    return html;
-}
+// NEW: The Apprentices' Ledger 
+async function buildApprenticeHTML() {
+    let html = `<h2 class="gold-text">Apprentices' Ledger</h2><div class="portal-scroll-container">`;
 
-async function buildHerbsHTML() {
-    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div id="herbs-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">`;
-    myHerbs.forEach(herb => { html += `<div class="herb-card"><div style="font-size: 2em; margin-bottom:8px;">${herb.icon}</div><h3 class="gold-text" style="font-size:1.1em; margin:0 0 5px 0; padding-bottom: 0;">${herb.title}</h3><div style="color:#fcf6ba; font-size:0.85em; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.2); padding-bottom:8px; margin-bottom:10px;">${herb.properties}</div><p style="color:#d4c8a8; font-size:0.85em; margin:0;">${herb.description}</p></div>`; });
-    const herbs = await loadData('herbs');
-    herbs.forEach(item => { html += `<div class="herb-card"><div style="display:flex; justify-content:space-between;"><h3 class="gold-text" style="font-size:1.1em; margin:0; border:none; padding:0;">🌿 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('herbs', '${item.id}', 'herbs')">✕</button></div><p style="color:#d4c8a8; font-size:0.85em; margin-top:10px; white-space:pre-wrap; text-align:left;">${item.description}</p></div>`; });
-    html += `</div><div class="section-header closed" onclick="toggleSection(this)">Record Herb Lore</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="herb-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="herb-desc" placeholder="Lore..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('herbs', 'herb-title', 'herb-desc', 'herbs')" class="portal-btn" style="width: 100%;">Add to Rack</button></div></div></div>`;
-    return html;
-}
+    // 1. TODAY's INSPIRATION (The 31-Day Rotating Archive)
+    const dateDay = new Date().getDate(); // Gets a number between 1 and 31
+    const indoorActivities = [
+        "Build a magnificent blanket fort sanctuary and read a story inside with flashlights.",
+        "Kitchen Alchemy: Bake a sweet treat and have the apprentices measure the ingredients.",
+        "Construct an indoor obstacle course using pillows, chairs, and soft boundaries.",
+        "Create a magical map of your house and hide a small 'treasure' for them to find.",
+        "Hold a shadow-puppet theater using a flashlight and a blank wall.",
+        "The Floor is Lava! Navigate the living room using only designated safe zones.",
+        "Science Magic: Create a baking soda and vinegar volcano in the sink.",
+        "Indoor Scavenger Hunt: Find 5 things that are red, 4 that are soft, and 3 that are round.",
+        "Scribe a collaborative story: Take turns adding one sentence at a time.",
+        "Put on an impromptu living room play or talent show.",
+        "Have an indoor picnic on a blanket in the living room for lunch.",
+        "DIY Instruments: Make shakers from dry beans and containers, or drums from pots.",
+        "Cardboard Engineering: Turn an old box into a spaceship, castle, or car.",
+        "Play a classic board game or put together a jigsaw puzzle.",
+        "Tape a web of yarn across a hallway to create a 'laser maze' to navigate through.",
+        "Sock Skating: Put on smooth socks and have a sliding contest on hard floors.",
+        "Create 'stained glass' art using tissue paper and tape it to the window.",
+        "Play 'Keep the Balloon Up' - don't let it touch the ground!",
+        "Draw a life-sized self-portrait by tracing each other on large paper or cardboard.",
+        "Have a living room dance party to freeze dance music.",
+        "Hide and Seek, but hide a specific stuffed animal instead of people.",
+        "Origami Hour: Learn to fold paper boats, hats, or jumping frogs.",
+        "Write a letter or draw a picture to mail to a family member or friend.",
+        "Host an indoor 'camping' trip with sleeping bags and ghost stories.",
+        "Play 'Simon Says' or 'Follow the Leader'.",
+        "Setup a mini 'store' and practice counting coins to buy snacks or toys.",
+        "Make homemade playdough or slime using flour, water, and salt.",
+        "Have a paper airplane making contest to see whose flies the farthest.",
+        "Build the tallest tower possible out of plastic cups, books, or blocks.",
+        "Look through old photo albums and tell stories about the memories.",
+        "Quiet hour: Put on the Bardic Soundscapes and do independent drawing or reading."
+    ];
+    
+    // Arrays start at 0, so we subtract 1 from the date!
+    const dailyPrompt = indoorActivities[dateDay - 1]; 
 
-async function buildSewingHTML() {
-    let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
-    mySewing.forEach(project => { html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div style="display:inline-block; background:rgba(191,149,63,0.15); color:#fcf6ba; padding:3px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; margin-bottom:10px; border:1px solid rgba(191,149,63,0.4);">${project.status}</div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Fabric:</strong> ${project.fabric}</div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5);">${project.notes}</div></div>`; });
-    const sewing = await loadData('sewing');
-    sewing.forEach(item => { html += `<div class="sewing-card"><div style="display:flex; justify-content:space-between;"><h3 class="sewing-title">✂️ ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('sewing', '${item.id}', 'sewing')">✕</button></div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); white-space:pre-wrap;">${item.description}</div></div>`; });
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Project</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="sew-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="sew-desc" placeholder="Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('sewing', 'sew-title', 'sew-desc', 'sewing')" class="portal-btn" style="width: 100%;">Add to Log</button></div></div></div>`;
+    html += `<div class="alchemy-card" style="border-left: 3px solid #fcf6ba; background: rgba(191,149,63,0.15);">
+                <h3 class="alchemy-title" style="color: #fff; font-size: 1.05em;">✨ Today's Inspiration</h3>
+                <p style="color:#fcf6ba; font-style:italic; margin: 5px 0; font-size: 1.1em;">"${dailyPrompt}"</p>
+             </div>`;
+
+    // 2. CURRICULUM & LESSONS (The Checklist)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Curriculum Quests</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-lesson" placeholder="Assign a lesson or task..." class="portal-input"><button onclick="addDynamicItem('apprentice_lessons', 'new-lesson', 'apprentice')" class="portal-btn">Assign</button></div>`;
+    const lessons = await loadData('apprentice_lessons');
+    lessons.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('apprentice_lessons', '${item.id}', ${item.is_completed}, 'apprentice')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('apprentice_lessons', '${item.id}', 'apprentice')">✕</div></div>`; 
+    });
+    html += `</div>`;
+
+    // 3. MILESTONES & NOTES (Text Logging)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Milestones & Notes</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="milestone-title" placeholder="Subject or Milestone..." class="portal-input" style="margin-bottom: 10px;"><textarea id="milestone-desc" placeholder="Notes on their progress..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('apprentice_milestones', 'milestone-title', 'milestone-desc', 'apprentice')" class="portal-btn" style="width: 100%;">Record Note</button></div>`;
+    const milestones = await loadData('apprentice_milestones');
+    milestones.forEach(item => {
+        html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">📜 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('apprentice_milestones', '${item.id}', 'apprentice')">✕</button></div><p style="color:#d4c8a8; font-size:0.9em; margin:0; white-space:pre-wrap;">${item.description}</p></div>`;
+    });
+    html += `</div></div>`;
+
     return html;
 }
 
@@ -486,7 +527,7 @@ async function openPortal(portalName) {
     else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
     else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
     else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
-    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
+    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
     else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
 }
 
