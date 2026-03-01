@@ -603,41 +603,57 @@ function claimFamiliarLoot() {
 }
 
 setTimeout(updateFamiliarUI, 200);
+
 // === 10. SEASONAL & HOLIDAY TIME-WEAVER ===
 function applySeasonalDecor() {
     const today = new Date();
     const month = today.getMonth(); // Jan = 0, Dec = 11
     const day = today.getDate();
     const body = document.body;
+    const decorOverlay = document.getElementById('decor-overlay');
+    let decorSrc = ""; // Blank by default
 
     // 1. Set the Base Season
     if (month === 11 || month === 0 || month === 1) {
-        body.classList.add('season-winter'); // Dec, Jan, Feb
+        body.classList.add('season-winter'); 
+        decorSrc = "decor_winter.png";
     } else if (month >= 2 && month <= 4) {
-        body.classList.add('season-spring'); // Mar, Apr, May
+        body.classList.add('season-spring'); 
+        decorSrc = "decor_spring.png";
     } else if (month >= 5 && month <= 7) {
-        body.classList.add('season-summer'); // Jun, Jul, Aug (Defaults to standard gold embers)
+        body.classList.add('season-summer'); 
+        decorSrc = "decor_summer.png";
     } else if (month >= 8 && month <= 10) {
-        body.classList.add('season-autumn'); // Sep, Oct, Nov
+        body.classList.add('season-autumn'); 
+        decorSrc = "decor_autumn.png";
     }
 
-    // 2. Set Specific Holiday Overrides (Alters the lighting glow)
+    // 2. Set Specific Holiday Overrides (Overwrites the base season)
     
     // Halloweek (Oct 24 - Oct 31)
     if (month === 9 && day >= 24 && day <= 31) {
         body.classList.add('holiday-halloween');
+        decorSrc = "decor_halloween.png";
     }
     
     // Yule & Christmas (Dec 15 - Dec 26)
     if (month === 11 && day >= 15 && day <= 26) {
         body.classList.add('holiday-yule');
+        decorSrc = "decor_yule.png";
     }
     
     // Valentine's Week (Feb 10 - Feb 15)
     if (month === 1 && day >= 10 && day <= 15) {
         body.classList.add('holiday-valentines');
+        decorSrc = "decor_valentines.png";
+    }
+
+    // 3. Apply the Image
+    if (decorOverlay && decorSrc !== "") {
+        decorOverlay.src = decorSrc;
+        decorOverlay.classList.add('active');
     }
 }
 
-// Trigger the weather when the app opens
+// Trigger the weather and decor when the app opens
 applySeasonalDecor();
