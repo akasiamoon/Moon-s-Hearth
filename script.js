@@ -261,15 +261,10 @@ async function buildTeacupHTML() {
 
 async function buildLedgerHTML() {
     let html = `<h2 class="gold-text">Merchant's Ledger</h2><div class="portal-scroll-container">`;
-
-    // Calculate Balance
     const transactions = await loadData('ledger_transactions', 'created_at', false);
     let balance = 0;
     transactions.forEach(t => balance += parseFloat(t.amount || 0));
-
     html += `<div style="text-align:center; font-size:1.8em; color:#fcf6ba; font-family:'Cinzel', serif; margin-bottom:20px; text-shadow: 0 0 10px rgba(191,149,63,0.5);">Vault Balance: $${balance.toFixed(2)}</div>`;
-
-    // 1. Hearth Upkeep
     html += `<div class="section-header closed" onclick="toggleSection(this)">Hearth Upkeep</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-bill" placeholder="Add a bill..." class="portal-input"><button onclick="addDynamicItem('hearth_upkeep', 'new-bill', 'ledger')" class="portal-btn">Add</button></div>`;
     const bills = await loadData('hearth_upkeep');
     bills.forEach(item => {
@@ -277,10 +272,7 @@ async function buildLedgerHTML() {
         html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('hearth_upkeep', '${item.id}', ${item.is_completed}, 'ledger')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('hearth_upkeep', '${item.id}', 'ledger')">✕</div></div>`;
     });
     html += `</div>`;
-
-    // 2. Trade & Cashflow (MATH ENABLED)
     html += `<div class="section-header closed" onclick="toggleSection(this)">Trade & Cashflow</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="ledger-desc" placeholder="Description..." class="portal-input" style="flex: 2;"><input type="number" step="0.01" id="ledger-amt" placeholder="+/- $" class="portal-input" style="flex: 1;"><button onclick="addLedgerEntry('ledger_transactions', 'ledger-desc', 'ledger-amt', 'ledger')" class="portal-btn">Log</button></div>`;
-    
     transactions.forEach(item => {
         const amtValue = parseFloat(item.amount);
         const amtClass = amtValue >= 0 ? 'color: #8fce00;' : 'color: #ff6b6b;';
@@ -288,12 +280,35 @@ async function buildLedgerHTML() {
         html += `<div class="quest-item" style="cursor: default; padding: 10px 15px;"><div class="quest-details" style="display:flex; justify-content:space-between; width:100%; align-items:center;"><h3 class="quest-title" style="font-size:0.95em; margin:0;">${item.desc}</h3><div style="font-family:'Quicksand', sans-serif; font-weight:bold; font-size:1.1em; ${amtClass}">${sign}$${amtValue.toFixed(2)}</div></div><div class="delete-icon" style="margin-left: 10px;" onclick="deleteLedgerEntry('ledger_transactions', '${item.id}', 'ledger')">✕</div></div>`;
     });
     html += `</div>`;
-
-    // 3. Treasury Goals
     html += `<div class="section-header closed" onclick="toggleSection(this)">Treasury Goals</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="goal-title" placeholder="Goal..." class="portal-input" style="margin-bottom: 10px;"><input type="text" id="goal-amount" placeholder="Amount..." class="portal-input" style="margin-bottom: 10px;"><button onclick="addDetailedItem('savings_goals', 'goal-title', 'goal-amount', 'ledger')" class="portal-btn" style="width: 100%;">Set Goal</button></div>`;
     const goals = await loadData('savings_goals');
     goals.forEach(item => {
         html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">💰 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('savings_goals', '${item.id}', 'ledger')">✕</button></div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Target:</strong> <span style="color:#e0e0e0;">${item.description}</span></div></div>`;
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+async function buildWorkshopHTML() {
+    let html = `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container">`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Project Blueprints</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-project" placeholder="New project name..." class="portal-input"><button onclick="addDynamicItem('workshop_projects', 'new-project', 'workshop')" class="portal-btn">Add</button></div>`;
+    const projects = await loadData('workshop_projects');
+    projects.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('workshop_projects', '${item.id}', ${item.is_completed}, 'workshop')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('workshop_projects', '${item.id}', 'workshop')">✕</div></div>`; 
+    });
+    html += `</div>`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">The Tool Chest</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-tool" placeholder="Tool maintenance..." class="portal-input"><button onclick="addDynamicItem('tool_chest', 'new-tool', 'workshop')" class="portal-btn">Add</button></div>`;
+    const tools = await loadData('tool_chest');
+    tools.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('tool_chest', '${item.id}', ${item.is_completed}, 'workshop')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('tool_chest', '${item.id}', 'workshop')">✕</div></div>`; 
+    });
+    html += `</div>`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">The Material Pile</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="mat-name" placeholder="Material..." class="portal-input" style="margin-bottom: 10px;"><input type="text" id="mat-qty" placeholder="Quantity..." class="portal-input" style="margin-bottom: 10px;"><button onclick="addDetailedItem('material_pile', 'mat-name', 'mat-qty', 'workshop')" class="portal-btn" style="width: 100%;">Log Material</button></div>`;
+    const mats = await loadData('material_pile');
+    mats.forEach(item => {
+        html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🪵 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('material_pile', '${item.id}', 'workshop')">✕</button></div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>In Stock:</strong> <span style="color:#e0e0e0;">${item.description}</span></div></div>`;
     });
     html += `</div></div>`;
     return html;
@@ -471,6 +486,7 @@ async function openPortal(portalName) {
     else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
     else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
     else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
+    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
 }
 
 function closePortal() {
