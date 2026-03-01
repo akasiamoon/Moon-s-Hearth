@@ -355,10 +355,14 @@ async function addDynamicItem(table, inputId, portal) {
     await insertData(table, { text: text, is_completed: false });
     openPortal(portal); 
 }
+
+// 🐾 Added Familiar Feed hook here!
 async function toggleDynamicItem(table, id, currentState, portal) {
     await updateData(table, id, { is_completed: !currentState });
+    if (!currentState) feedFamiliar(); // Feeds cat when a task is checked off!
     openPortal(portal); 
 }
+
 async function deleteDynamicItem(table, id, portal) {
     await removeData(table, id);
     openPortal(portal);
@@ -388,9 +392,12 @@ async function deleteEvent(id) {
     await removeData('calendar_events', id);
     openPortal('cat');
 }
+
+// 🐾 Added Familiar Feed hook here!
 async function toggleEvent(id, currentText) {
     const newState = currentText === 'completed' ? 'pending' : 'completed';
     await updateData('calendar_events', id, { text: newState });
+    if (newState === 'completed') feedFamiliar(); // Feeds cat when calendar event is completed!
     openPortal('cat');
 }
 
@@ -517,3 +524,77 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+// === 9. THE FAMILIAR (ALINOR SHADOW CAT) ===
+let familiarXP = 0;
+const maxXP = 5;
+
+function feedFamiliar() {
+    if (familiarXP < maxXP) {
+        familiarXP++;
+        updateFamiliarUI();
+    }
+}
+
+function updateFamiliarUI() {
+    const xpCircle = document.getElementById('xp-circle');
+    const avatar = document.getElementById('familiar-avatar');
+    if (!xpCircle || !avatar) return; // Safety check in case HTML hasn't loaded
+    
+    // Calculate the ring fill (289 is the full circle)
+    const offset = 289 - (289 * (familiarXP / maxXP));
+    xpCircle.style.strokeDashoffset = offset;
+    
+    // Update states and swap images!
+    avatar.className = ''; // reset animations
+    
+    if (familiarXP === 0) {
+        avatar.src = "cat_sleep.jpg";
+        avatar.classList.add('state-sleeping');
+        xpCircle.style.stroke = "#bf953f";
+        
+    } else if (familiarXP > 0 && familiarXP < maxXP) {
+        avatar.src = "cat_sit.jpg";
+        avatar.classList.add('state-awake');
+        xpCircle.style.stroke = "#bf953f";
+        
+    } else if (familiarXP === maxXP) {
+        avatar.src = "cat_play.jpg";
+        avatar.classList.add('state-zoomies');
+        xpCircle.style.stroke = "#fcf6ba"; // Glows bright white-gold!
+    }
+}
+
+function claimFamiliarLoot() {
+    const speech = document.getElementById('familiar-speech');
+    if (!speech) return;
+    
+    if (familiarXP < maxXP) {
+        // Just petting it
+        feedFamiliar(); // (Temporary: lets you click to feed it for testing!)
+        return;
+    }
+
+    // Loot Drop!
+    const lootMessages = [
+        "✨ The shadows purr. You feel rested.",
+        "🦇 A rare gold coin was dug up!",
+        "🔮 The UI glimmers with chaotic magic.",
+        "📜 A new spell idea forms in your mind.",
+        "🐾 The Alinor cat headbutts your hand."
+    ];
+    
+    const randomLoot = lootMessages[Math.floor(Math.random() * lootMessages.length)];
+    speech.innerText = randomLoot;
+    speech.classList.remove('hidden');
+    
+    // Reset after claiming
+    setTimeout(() => {
+        speech.classList.add('hidden');
+        familiarXP = 0;
+        updateFamiliarUI();
+    }, 4000);
+}
+
+// Wake him up when the app starts
+setTimeout(updateFamiliarUI, 200);
