@@ -315,7 +315,37 @@ async function buildSewingHTML() {
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Project</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="sew-title" placeholder="Garment Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="sew-desc" placeholder="Measurements & Fabric Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('sewing', 'sew-title', 'sew-desc', 'sewing')" class="portal-btn" style="width: 100%;">Add to Log</button></div></div></div>`;
     return html;
 }
+async function buildLedgerHTML() {
+    let html = `<h2 class="gold-text">Merchant's Ledger</h2><div class="portal-scroll-container">`;
 
+    // 1. HEARTH UPKEEP (Bills & Expenses)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Hearth Upkeep</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-bill" placeholder="Add a bill or expense..." class="portal-input"><button onclick="addDynamicItem('hearth_upkeep', 'new-bill', 'ledger')" class="portal-btn">Add</button></div>`;
+    const bills = await loadData('hearth_upkeep');
+    bills.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('hearth_upkeep', '${item.id}', ${item.is_completed}, 'ledger')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('hearth_upkeep', '${item.id}', 'ledger')">✕</div></div>`; 
+    });
+    html += `</div>`;
+
+    // 2. TRADE & CASHFLOW (Income Log)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Trade & Cashflow</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-income" placeholder="Log income (Dashes, store sales, etc.)..." class="portal-input"><button onclick="addDynamicItem('cashflow_log', 'new-income', 'ledger')" class="portal-btn">Log</button></div>`;
+    const income = await loadData('cashflow_log');
+    income.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('cashflow_log', '${item.id}', ${item.is_completed}, 'ledger')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('cashflow_log', '${item.id}', 'ledger')">✕</div></div>`; 
+    });
+    html += `</div>`;
+
+    // 3. TREASURY GOALS (Savings)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Treasury Goals</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="goal-title" placeholder="Target (e.g., New Tools, Vacation)..." class="portal-input" style="margin-bottom: 10px;"><input type="text" id="goal-amount" placeholder="Amount needed..." class="portal-input" style="margin-bottom: 10px;"><button onclick="addDetailedItem('savings_goals', 'goal-title', 'goal-amount', 'ledger')" class="portal-btn" style="width: 100%;">Set Goal</button></div>`;
+    const goals = await loadData('savings_goals');
+    goals.forEach(item => {
+        html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">💰 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('savings_goals', '${item.id}', 'ledger')">✕</button></div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Target:</strong> <span style="color:#e0e0e0;">${item.description}</span></div></div>`;
+    });
+    html += `</div></div>`;
+
+    return html;
+}
 function buildAlmanacHTML() {
     const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
     const currentTime = new Date().toLocaleTimeString('en-US', timeOptions);
