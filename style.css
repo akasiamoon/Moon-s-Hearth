@@ -96,7 +96,7 @@ h2, .gold-text {
 .close-btn:hover { color: #fcf6ba; }
 
 /* --- 7. COORDINATES --- */
-.portal { position: absolute; cursor: crosshair; z-index: 1000; background: transparent; border: none; }
+.portal { position: absolute; cursor: crosshair; z-index: 1000; background: rgba(255, 0, 0, 0.4);; border: none; }
 .portal:hover { background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 75%); }
 
 #portal-window   { top: 5%;  left: 5%;  width: 35%; height: 50%; }
