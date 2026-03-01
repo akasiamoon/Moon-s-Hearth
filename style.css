@@ -109,7 +109,7 @@ h2, .gold-text {
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
 #portal-ledger   { top: 5%;  left: 80%; width: 15%; height: 15%; }
 #portal-workshop { top: 55%; left: 42%; width: 12%; height: 12%; }
-#portal-apprentice { top: 45%; left: 2%; width: 10%; height: 15%; }
+#portal-apprentice { top: 35%; left: 2%; width: 10%; height: 15%; }
 
 /* --- 8. SCROLLBARS --- */
 ::-webkit-scrollbar { width: 6px; }
