@@ -487,6 +487,7 @@ async function openPortal(portalName) {
     else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
     else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
     else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
+    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
 }
 
 function closePortal() {
