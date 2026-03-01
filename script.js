@@ -489,13 +489,14 @@ async function openPortal(portalName) {
         document.body.appendChild(soundscape);
     }
 
-    if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
+   if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
     else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
     else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
     else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
     else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
     else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
     else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
+    else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML(); // <-- Add this line!
 }
 
 function closePortal() {
