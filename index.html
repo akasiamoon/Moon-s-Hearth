@@ -149,12 +149,25 @@
                 <input type="range" class="volume-slider" data-target="audio-darkmusic1" min="0" max="1" step="0.01" value="0.5">
             </div>
 
-         <div class="sound-item">
+            <div class="sound-item">
                 <audio id="audio-binarymusicbox" src="binarymusicbox.mp3" loop></audio>
                 <button class="play-btn" data-target="audio-binarymusicbox">🎵 Binary Box</button>
                 <input type="range" class="volume-slider" data-target="audio-binarymusicbox" min="0" max="1" step="0.01" value="0.5">
             </div>
+        </div> 
+    </div> 
 
-        </div> </div> <script src="script.js"></script>
+    <div id="familiar-container" onclick="claimFamiliarLoot()">
+        <svg class="xp-ring" viewBox="0 0 100 100">
+            <circle class="xp-ring-bg" cx="50" cy="50" r="46"></circle>
+            <circle class="xp-ring-fill" id="xp-circle" cx="50" cy="50" r="46"></circle>
+        </svg>
+        <div class="familiar-glass">
+            <img id="familiar-avatar" class="state-sleeping" src="cat_sleep.jpg" alt="Alinor Familiar">
+        </div>
+        <div id="familiar-speech" class="hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
