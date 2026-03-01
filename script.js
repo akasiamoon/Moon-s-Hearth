@@ -603,3 +603,41 @@ function claimFamiliarLoot() {
 }
 
 setTimeout(updateFamiliarUI, 200);
+// === 10. SEASONAL & HOLIDAY TIME-WEAVER ===
+function applySeasonalDecor() {
+    const today = new Date();
+    const month = today.getMonth(); // Jan = 0, Dec = 11
+    const day = today.getDate();
+    const body = document.body;
+
+    // 1. Set the Base Season
+    if (month === 11 || month === 0 || month === 1) {
+        body.classList.add('season-winter'); // Dec, Jan, Feb
+    } else if (month >= 2 && month <= 4) {
+        body.classList.add('season-spring'); // Mar, Apr, May
+    } else if (month >= 5 && month <= 7) {
+        body.classList.add('season-summer'); // Jun, Jul, Aug (Defaults to standard gold embers)
+    } else if (month >= 8 && month <= 10) {
+        body.classList.add('season-autumn'); // Sep, Oct, Nov
+    }
+
+    // 2. Set Specific Holiday Overrides (Alters the lighting glow)
+    
+    // Halloweek (Oct 24 - Oct 31)
+    if (month === 9 && day >= 24 && day <= 31) {
+        body.classList.add('holiday-halloween');
+    }
+    
+    // Yule & Christmas (Dec 15 - Dec 26)
+    if (month === 11 && day >= 15 && day <= 26) {
+        body.classList.add('holiday-yule');
+    }
+    
+    // Valentine's Week (Feb 10 - Feb 15)
+    if (month === 1 && day >= 10 && day <= 15) {
+        body.classList.add('holiday-valentines');
+    }
+}
+
+// Trigger the weather when the app opens
+applySeasonalDecor();
