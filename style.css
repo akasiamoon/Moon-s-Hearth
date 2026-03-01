@@ -96,7 +96,7 @@ h2, .gold-text {
 .close-btn:hover { color: #fcf6ba; }
 
 /* --- 7. COORDINATES --- */
-.portal { position: absolute; cursor: crosshair; z-index: 1000; background: rgba(255, 0, 0, 0.4);; border: none; }
+.portal { position: absolute; cursor: crosshair; z-index: 1000; background: rgba(255, 0, 0, 0.4); border: none; }
 .portal:hover { background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 75%); }
 
 #portal-window   { top: 5%;  left: 5%;  width: 35%; height: 50%; }
@@ -107,7 +107,8 @@ h2, .gold-text {
 #portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
 #portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
-#portal-ledger { top: 5%; left: 80%; width: 15%; height: 15%; }
+#portal-ledger   { top: 5%;  left: 80%; width: 15%; height: 15%; }
+#portal-workshop { top: 55%; left: 42%; width: 12%; height: 12%; }
 
 /* --- 8. SCROLLBARS --- */
 ::-webkit-scrollbar { width: 6px; }
