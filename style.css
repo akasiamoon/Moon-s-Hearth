@@ -107,7 +107,7 @@ h2, .gold-text {
 #portal-teacup   { top: 70%; left: 55%;  width: 10%; height: 12%; }
 #portal-cat      { top: 65%; left: 68%;  width: 28%; height: 30%; }
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
-#portal-ledger   { top: 20%; left: 20%;  width: 15%; height: 20%; }
+#portal-ledger { top: 5%; left: 80%; width: 15%; height: 15%; }
 
 /* --- 8. SCROLLBARS --- */
 ::-webkit-scrollbar { width: 6px; }
