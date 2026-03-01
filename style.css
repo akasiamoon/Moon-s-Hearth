@@ -270,14 +270,13 @@ input[type="file"] { display: none; }
     letter-spacing: 0;
     padding: 0 2px;
 }
-
 /* === 17. THE FAMILIAR (ALINOR SHADOW CAT) === */
 #familiar-container {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 80px;
-    height: 80px;
+    bottom: 30px;
+    right: 30px;
+    width: 150px;
+    height: 150px;
     cursor: pointer;
     z-index: 1000;
     transition: transform 0.3s ease;
@@ -359,7 +358,7 @@ input[type="file"] { display: none; }
 /* Speech Bubble */
 #familiar-speech {
     position: absolute;
-    bottom: 90px;
+    bottom: 160px;
     right: 10px;
     background: rgba(8, 8, 10, 0.85);
     border: 1px solid #bf953f;
