@@ -378,3 +378,65 @@ input[type="file"] { display: none; }
     opacity: 0;
     pointer-events: none;
 }
+/* === 18. SEASONAL & HOLIDAY MAGIC === */
+
+/* SPRING: Floating Pink Petals */
+body.season-spring .dust-container {
+    background-image:
+        radial-gradient(ellipse, rgba(255, 182, 193, 0.9) 3px, transparent 5px),
+        radial-gradient(ellipse, rgba(255, 105, 180, 0.6) 2px, transparent 4px),
+        radial-gradient(ellipse, rgba(255, 192, 203, 0.8) 4px, transparent 6px);
+    animation: petalDrift 20s linear infinite;
+}
+@keyframes petalDrift {
+    0% { transform: translate(0, 0); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { opacity: 0.8; }
+    100% { transform: translate(-100px, -150px); opacity: 0; }
+}
+
+/* AUTUMN: Falling Orange Leaves/Embers */
+body.season-autumn .dust-container {
+    background-image:
+        radial-gradient(ellipse, rgba(255, 140, 0, 0.9) 4px, transparent 5px),
+        radial-gradient(ellipse, rgba(200, 50, 0, 0.7) 3px, transparent 4px),
+        radial-gradient(ellipse, rgba(255, 200, 0, 0.8) 5px, transparent 6px);
+    animation: leafFall 18s ease-in-out infinite;
+}
+@keyframes leafFall {
+    0% { transform: translate(0, -50px); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { opacity: 0.8; }
+    100% { transform: translate(-80px, 150px); opacity: 0; }
+}
+
+/* WINTER: Falling Snowflakes */
+body.season-winter .dust-container {
+    background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.95) 2.5px, transparent 3.5px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.7) 1.5px, transparent 2.5px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.8) 3px, transparent 4px);
+    animation: snowFall 22s linear infinite;
+}
+@keyframes snowFall {
+    0% { transform: translate(0, -100px); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translate(50px, 200px); opacity: 0; }
+}
+
+/* HALLOWEEN OVERRIDE: Eerie Purple Hearth Glow */
+body.holiday-halloween::before {
+    background: radial-gradient(circle at 85% 85%, rgba(138, 43, 226, 0.55), transparent 70%);
+}
+
+/* YULE/XMAS OVERRIDE: Festive Red & Green Glow */
+body.holiday-yule::before {
+    background: radial-gradient(circle at 85% 85%, rgba(255, 50, 50, 0.4), transparent 60%),
+                radial-gradient(circle at 15% 15%, rgba(50, 255, 50, 0.25), transparent 60%);
+}
+
+/* VALENTINES OVERRIDE: Deep Rose Glow */
+body.holiday-valentines::before {
+    background: radial-gradient(circle at 85% 85%, rgba(255, 20, 147, 0.45), transparent 70%);
+}
