@@ -333,7 +333,25 @@ async function buildLedgerHTML() {
     income.forEach(item => { 
         const isDone = item.is_completed ? 'completed' : ''; 
         html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('cashflow_log', '${item.id}', ${item.is_completed}, 'ledger')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('cashflow_log', '${item.id}', 'ledger')">✕</div></div>`; 
-    });
+    });// === LEDGER MATH FUNCTIONS ===
+async function addLedgerEntry(table, descId, amtId, portal) {
+    const desc = document.getElementById(descId).value.trim();
+    const amtStr = document.getElementById(amtId).value.trim();
+    const amount = parseFloat(amtStr);
+    
+    // Make sure we have both a description and a valid number!
+    if (!desc || isNaN(amount)) return; 
+    
+    await insertData(table, { desc: desc, amount: amount });
+    
+    feedFamiliar(); // Reward the cat for logging finances!
+    openPortal(portal); 
+}
+
+async function deleteLedgerEntry(table, id, portal) {
+    await removeData(table, id);
+    openPortal(portal);
+}
     html += `</div>`;
 
     // 3. TREASURY GOALS (Savings)
