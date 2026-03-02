@@ -314,12 +314,38 @@ async function buildWorkshopHTML() {
     return html;
 }
 
+async function buildApothecaryHTML() {
+    let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
+    myApothecary.forEach(item => { html += `<div class="alchemy-card"><h3 class="alchemy-title">${item.icon} ${item.title}</h3><p style="color:#d4c8a8; font-style:italic; margin-top:0;">${item.description}</p><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Components:</strong> <span style="color:#e0e0e0;">${item.ingredients}</span></div><p style="color:#d4c8a8; font-size:0.9em; margin:0;">${item.instructions}</p></div>`; });
+    const apoth = await loadData('apothecary');
+    apoth.forEach(item => { html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🏺 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('apothecary', '${item.id}', 'alchemy')">✕</button></div><p style="color:#d4c8a8; font-size:0.9em; margin:0; white-space:pre-wrap;">${item.description}</p></div>`; }); 
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="apo-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="apo-desc" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('apothecary', 'apo-title', 'apo-desc', 'alchemy')" class="portal-btn" style="width: 100%;">Add to Apothecary</button></div></div></div>`;
+    return html;
+}
+
+async function buildHerbsHTML() {
+    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div id="herbs-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">`;
+    myHerbs.forEach(herb => { html += `<div class="herb-card"><div style="font-size: 2em; margin-bottom:8px;">${herb.icon}</div><h3 class="gold-text" style="font-size:1.1em; margin:0 0 5px 0; padding-bottom: 0;">${herb.title}</h3><div style="color:#fcf6ba; font-size:0.85em; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.2); padding-bottom:8px; margin-bottom:10px;">${herb.properties}</div><p style="color:#d4c8a8; font-size:0.85em; margin:0;">${herb.description}</p></div>`; });
+    const herbs = await loadData('herbs');
+    herbs.forEach(item => { html += `<div class="herb-card"><div style="display:flex; justify-content:space-between;"><h3 class="gold-text" style="font-size:1.1em; margin:0; border:none; padding:0;">🌿 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('herbs', '${item.id}', 'herbs')">✕</button></div><p style="color:#d4c8a8; font-size:0.85em; margin-top:10px; white-space:pre-wrap; text-align:left;">${item.description}</p></div>`; });
+    html += `</div><div class="section-header closed" onclick="toggleSection(this)">Record Herb Lore</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="herb-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="herb-desc" placeholder="Lore..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('herbs', 'herb-title', 'herb-desc', 'herbs')" class="portal-btn" style="width: 100%;">Add to Rack</button></div></div></div>`;
+    return html;
+}
+
+async function buildSewingHTML() {
+    let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
+    mySewing.forEach(project => { html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div style="display:inline-block; background:rgba(191,149,63,0.15); color:#fcf6ba; padding:3px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; margin-bottom:10px; border:1px solid rgba(191,149,63,0.4);">${project.status}</div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Fabric:</strong> ${project.fabric}</div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5);">${project.notes}</div></div>`; });
+    const sewing = await loadData('sewing');
+    sewing.forEach(item => { html += `<div class="sewing-card"><div style="display:flex; justify-content:space-between;"><h3 class="sewing-title">✂️ ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('sewing', '${item.id}', 'sewing')">✕</button></div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); white-space:pre-wrap;">${item.description}</div></div>`; });
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Project</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="sew-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="sew-desc" placeholder="Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('sewing', 'sew-title', 'sew-desc', 'sewing')" class="portal-btn" style="width: 100%;">Add to Log</button></div></div></div>`;
+    return html;
+}
+
 // NEW: The Apprentices' Ledger 
 async function buildApprenticeHTML() {
     let html = `<h2 class="gold-text">Apprentices' Ledger</h2><div class="portal-scroll-container">`;
 
-    // 1. TODAY's INSPIRATION (The 31-Day Rotating Archive)
-    const dateDay = new Date().getDate(); // Gets a number between 1 and 31
+    const dateDay = new Date().getDate(); 
     const indoorActivities = [
         "Build a magnificent blanket fort sanctuary and read a story inside with flashlights.",
         "Kitchen Alchemy: Bake a sweet treat and have the apprentices measure the ingredients.",
@@ -354,7 +380,6 @@ async function buildApprenticeHTML() {
         "Quiet hour: Put on the Bardic Soundscapes and do independent drawing or reading."
     ];
     
-    // Arrays start at 0, so we subtract 1 from the date!
     const dailyPrompt = indoorActivities[dateDay - 1]; 
 
     html += `<div class="alchemy-card" style="border-left: 3px solid #fcf6ba; background: rgba(191,149,63,0.15);">
@@ -362,7 +387,6 @@ async function buildApprenticeHTML() {
                 <p style="color:#fcf6ba; font-style:italic; margin: 5px 0; font-size: 1.1em;">"${dailyPrompt}"</p>
              </div>`;
 
-    // 2. CURRICULUM & LESSONS (The Checklist)
     html += `<div class="section-header closed" onclick="toggleSection(this)">Curriculum Quests</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-lesson" placeholder="Assign a lesson or task..." class="portal-input"><button onclick="addDynamicItem('apprentice_lessons', 'new-lesson', 'apprentice')" class="portal-btn">Assign</button></div>`;
     const lessons = await loadData('apprentice_lessons');
     lessons.forEach(item => { 
@@ -371,7 +395,6 @@ async function buildApprenticeHTML() {
     });
     html += `</div>`;
 
-    // 3. MILESTONES & NOTES (Text Logging)
     html += `<div class="section-header closed" onclick="toggleSection(this)">Milestones & Notes</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="milestone-title" placeholder="Subject or Milestone..." class="portal-input" style="margin-bottom: 10px;"><textarea id="milestone-desc" placeholder="Notes on their progress..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('apprentice_milestones', 'milestone-title', 'milestone-desc', 'apprentice')" class="portal-btn" style="width: 100%;">Record Note</button></div>`;
     const milestones = await loadData('apprentice_milestones');
     milestones.forEach(item => {
@@ -387,6 +410,167 @@ function buildAlmanacHTML() {
     const currentTime = new Date().toLocaleTimeString('en-US', timeOptions);
     return `<h2 class="gold-text">Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div><div style="color:rgba(191,149,63,0.5); margin:15px 0; font-size:0.9em; letter-spacing:2px;">◈━━━━━━༺ ❦ ༻━━━━━━◈</div><div style="color:#fcf6ba; font-size:1.3em; font-family:'Cinzel', serif; margin:15px 0;">Daily Focus: ${dynamicAlmanac.focus}</div><p style="color:#d4c8a8; font-style:italic; margin-bottom:15px;">"${dynamicAlmanac.entry}"</p><div style="color:#bf953f; font-size:0.95em; font-style:italic; margin-top:10px; border-top:1px dashed rgba(191,149,63,0.3); padding-top:10px;"><strong>Nature's Lore:</strong> ${dynamicAlmanac.planting}</div></div>`;
 }
+
+// === 6.5 INVENTORY & HOUSING ENGINE ===
+let editingItem = null;
+
+async function buildInventoryHTML() {
+    let html = `<h2 class="gold-text">The Grand Stash</h2><div class="portal-scroll-container">`;
+    
+    html += `<div style="text-align:center; margin-bottom: 20px;">
+                <button onclick="toggleEditMode()" id="edit-mode-btn" class="portal-btn" style="width: 100%; font-size: 1.1em; padding: 12px; border-color: #8fce00; color: #8fce00;">🔨 Enter Furnishing Mode</button>
+             </div>`;
+
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Store New Asset</div><div class="section-panel closed"><div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; margin-bottom: 20px;">
+                <input type="text" id="asset-name" placeholder="Asset Name (e.g., Gold Chalice)..." class="portal-input" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label for="asset-image" class="custom-file-label">Select .PNG</label>
+                    <input type="file" id="asset-image" accept="image/png, image/webp" onchange="document.getElementById('asset-file-name').innerText = this.files[0].name">
+                    <button onclick="uploadAsset()" id="asset-submit-btn" class="portal-btn">Store in Stash</button>
+                </div>
+                <div id="asset-file-name" style="font-size: 0.8em; color: rgba(191,149,63,0.7); margin-top: 5px; font-style: italic;"></div>
+             </div></div>`;
+
+    html += `<h3 style="color:#fcf6ba; font-family:'Cinzel', serif; border-bottom: 1px solid rgba(191,149,63,0.3); padding-bottom:5px;">Available Furnishings</h3>
+             <p style="font-size:0.85em; color:rgba(191,149,63,0.8); font-style:italic;">Click an item to spawn it.</p>
+             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px;">`;
+    
+    const stash = await loadData('inventory_stash');
+    stash.forEach(item => {
+        html += `<div class="sound-item" style="cursor:pointer;" onclick="spawnFurnishing('${item.id}', '${item.image_url}')">
+                    <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; margin-bottom:5px;">
+                    <div style="font-size:0.8em; color:#d4c8a8; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${item.name}</div>
+                 </div>`;
+    });
+    
+    html += `</div></div>`;
+    return html;
+}
+
+async function uploadAsset() {
+    const nameInput = document.getElementById('asset-name').value.trim();
+    const fileInput = document.getElementById('asset-image').files[0];
+    if (!nameInput || !fileInput) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        await insertData('inventory_stash', { name: nameInput, image_url: e.target.result });
+        openPortal('inventory'); 
+    };
+    reader.readAsDataURL(fileInput);
+}
+
+function toggleEditMode() {
+    const layer = document.getElementById('furnishing-layer');
+    const btn = document.getElementById('edit-mode-btn');
+    layer.classList.toggle('edit-mode');
+    if (layer.classList.contains('edit-mode')) {
+        btn.innerText = "❌ Exit Furnishing Mode";
+        btn.style.borderColor = "#ff6b6b"; btn.style.color = "#ff6b6b";
+        closePortal(); 
+    } else {
+        btn.innerText = "🔨 Enter Furnishing Mode";
+        btn.style.borderColor = "#8fce00"; btn.style.color = "#8fce00";
+        document.getElementById('furnish-controls').style.display = 'none'; 
+    }
+}
+
+async function spawnFurnishing(dbId, imageUrl) {
+    const newItem = { inventory_id: dbId, image_url: imageUrl, pos_x: '50%', pos_y: '50%', scale: 1 };
+    await insertData('active_room', newItem);
+    loadRoomFurnishings(); 
+}
+
+async function loadRoomFurnishings() {
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    layer.innerHTML = ''; 
+    const items = await loadData('active_room');
+    items.forEach(item => {
+        const img = document.createElement('img');
+        img.src = item.image_url;
+        img.className = 'furnishing-item';
+        img.style.left = item.pos_x;
+        img.style.top = item.pos_y;
+        img.style.transform = `translate(-50%, -50%) scale(${item.scale})`; 
+        img.dataset.id = item.id;
+        img.dataset.scale = item.scale;
+        img.onmousedown = startDrag;
+        layer.appendChild(img);
+    });
+}
+
+let isDragging = false;
+function startDrag(e) {
+    if (!document.getElementById('furnishing-layer').classList.contains('edit-mode')) return;
+    e.preventDefault();
+    isDragging = true;
+    editingItem = e.target;
+    const controls = document.getElementById('furnish-controls');
+    controls.style.display = 'block';
+    controls.style.left = e.clientX + 20 + 'px';
+    controls.style.top = e.clientY + 20 + 'px';
+    document.getElementById('furnish-scale').value = editingItem.dataset.scale;
+    document.onmousemove = dragItem;
+    document.onmouseup = stopDrag;
+}
+
+function dragItem(e) {
+    if (!isDragging || !editingItem) return;
+    editingItem.style.left = e.clientX + 'px';
+    editingItem.style.top = e.clientY + 'px';
+    const controls = document.getElementById('furnish-controls');
+    controls.style.left = e.clientX + 20 + 'px';
+    controls.style.top = e.clientY + 20 + 'px';
+}
+
+function stopDrag() {
+    isDragging = false;
+    document.onmousemove = null;
+    document.onmouseup = null;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const scaleSlider = document.getElementById('furnish-scale');
+    const lockBtn = document.getElementById('furnish-lock');
+    const delBtn = document.getElementById('furnish-delete');
+
+    if(scaleSlider) {
+        scaleSlider.addEventListener('input', function(e) {
+            if (editingItem) {
+                const newScale = e.target.value;
+                editingItem.style.transform = `translate(-50%, -50%) scale(${newScale})`;
+                editingItem.dataset.scale = newScale;
+            }
+        });
+    }
+
+    if(lockBtn) {
+        lockBtn.addEventListener('click', async function() {
+            if (editingItem) {
+                const id = editingItem.dataset.id;
+                await updateData('active_room', id, {
+                    pos_x: editingItem.style.left,
+                    pos_y: editingItem.style.top,
+                    scale: parseFloat(editingItem.dataset.scale)
+                });
+                document.getElementById('furnish-controls').style.display = 'none';
+                editingItem = null;
+            }
+        });
+    }
+
+    if(delBtn) {
+        delBtn.addEventListener('click', async function() {
+            if (editingItem) {
+                await removeData('active_room', editingItem.dataset.id);
+                editingItem.remove(); 
+                document.getElementById('furnish-controls').style.display = 'none';
+                editingItem = null;
+            }
+        });
+    }
+});
+
 
 // === 5. UI LOGIC ===
 function toggleAccordion(button) {
@@ -529,6 +713,7 @@ async function openPortal(portalName) {
     else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
     else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
     else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
+    else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
 }
 
 function closePortal() {
@@ -607,13 +792,12 @@ setTimeout(updateFamiliarUI, 200);
 // === 10. SEASONAL & HOLIDAY TIME-WEAVER ===
 function applySeasonalDecor() {
     const today = new Date();
-    const month = today.getMonth(); // Jan = 0, Dec = 11
+    const month = today.getMonth(); 
     const day = today.getDate();
     const body = document.body;
     const decorOverlay = document.getElementById('decor-overlay');
-    let decorSrc = ""; // Blank by default
+    let decorSrc = ""; 
 
-    // 1. Set the Base Season
     if (month === 11 || month === 0 || month === 1) {
         body.classList.add('season-winter'); 
         decorSrc = "decor_winter.png";
@@ -628,32 +812,26 @@ function applySeasonalDecor() {
         decorSrc = "decor_autumn.png";
     }
 
-    // 2. Set Specific Holiday Overrides (Overwrites the base season)
-    
-    // Halloweek (Oct 24 - Oct 31)
     if (month === 9 && day >= 24 && day <= 31) {
         body.classList.add('holiday-halloween');
         decorSrc = "decor_halloween.png";
     }
     
-    // Yule & Christmas (Dec 15 - Dec 26)
     if (month === 11 && day >= 15 && day <= 26) {
         body.classList.add('holiday-yule');
         decorSrc = "decor_yule.png";
     }
     
-    // Valentine's Week (Feb 10 - Feb 15)
     if (month === 1 && day >= 10 && day <= 15) {
         body.classList.add('holiday-valentines');
         decorSrc = "decor_valentines.png";
     }
 
-    // 3. Apply the Image
     if (decorOverlay && decorSrc !== "") {
         decorOverlay.src = decorSrc;
         decorOverlay.classList.add('active');
     }
 }
 
-// Trigger the weather and decor when the app opens
 applySeasonalDecor();
+setTimeout(loadRoomFurnishings, 500); // Ensures furnishings load after the season
