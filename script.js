@@ -841,3 +841,220 @@ function applySeasonalDecor() {
 
 applySeasonalDecor();
 setTimeout(loadRoomFurnishings, 500); // Ensures furnishings load after the season
+// ====================================================
+// === THE ARCHITECT'S STUDIO & TROPHY SYSTEM ===
+// ====================================================
+
+let isForging = false;
+let editingItem = null;
+let draftBgUrl = '';
+
+// 1. The Main Portal HTML
+async function buildInventoryHTML() {
+    let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
+    
+    // SECTION A: TROPHY GALLERY
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div><div class="section-panel closed"><div style="margin-top: 10px;">`;
+    const rooms = await loadData('trophy_rooms');
+    if (rooms.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">No sanctuaries forged yet.</p>`;
+    rooms.forEach(room => {
+        html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;">
+                    <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
+                    <div>
+                        <button class="portal-btn" style="padding: 4px 8px; font-size: 0.7em; border-color:#8fce00; color:#8fce00;" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button>
+                        <button class="action-btn" style="color: #ff6b6b; margin-left:10px;" onclick="deleteTrophy('${room.id}')">✕</button>
+                    </div>
+                 </div>`;
+    });
+    html += `</div></div>`;
+
+    // SECTION B: FORGE NEW TROPHY
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
+                <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; text-align:center;">
+                    <p style="color:#d4c8a8; font-size:0.85em; margin-top:0;">Upload a base background to enter the Forge.</p>
+                    <label for="room-bg-upload" class="custom-file-label" style="width:100%; box-sizing:border-box;">Select Background Image</label>
+                    <input type="file" id="room-bg-upload" accept="image/*" onchange="startForging(this)">
+                </div>
+             </div>`;
+
+    // SECTION C: GRAND STASH (ASSET UPLOAD)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div><div class="section-panel closed">
+                <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px;">
+                    <input type="text" id="asset-name" placeholder="Asset Name..." class="portal-input" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label for="asset-image" class="custom-file-label">Select .PNG</label>
+                        <input type="file" id="asset-image" accept="image/png, image/webp" onchange="document.getElementById('asset-file-name').innerText = this.files[0].name">
+                        <button onclick="uploadAsset()" class="portal-btn">Store</button>
+                    </div><div id="asset-file-name" style="font-size: 0.8em; color: #bf953f; margin-top: 5px; font-style: italic;"></div>
+                </div>
+                <h3 style="color:#fcf6ba; font-family:'Cinzel'; font-size:0.9em; margin-top:15px; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:5px;">Current Stash</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 10px;">`;
+    
+    const stash = await loadData('inventory_stash');
+    stash.forEach(item => {
+        html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
+                    <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain;">
+                    <button class="action-btn" style="position:absolute; top:-5px; right:-5px; background:#000; border-radius:50%; width:18px; height:18px; font-size:10px; color:#ff6b6b; padding:0; border:1px solid #ff6b6b;" onclick="deleteDynamicItem('inventory_stash', '${item.id}', 'inventory')">✕</button>
+                 </div>`;
+    });
+    html += `</div></div>`;
+
+    return html + `</div>`;
+}
+
+// 2. Uploading Stash Assets
+async function uploadAsset() {
+    const nameInput = document.getElementById('asset-name').value.trim();
+    const fileInput = document.getElementById('asset-image').files[0];
+    if (!nameInput || !fileInput) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        await insertData('inventory_stash', { name: nameInput, image_url: e.target.result });
+        openPortal('inventory'); 
+    };
+    reader.readAsDataURL(fileInput);
+}
+
+// 3. Entering The Forge
+async function startForging(input) {
+    if(!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        draftBgUrl = e.target.result;
+        document.getElementById('bg-art').src = draftBgUrl; // Swap background temporarily
+        
+        document.body.classList.add('building-mode'); // Hides normal portals
+        document.getElementById('furnishing-layer').innerHTML = ''; // Clears room
+        closePortal(); // Closes parchment
+        
+        // Populate the Toolbox with your Stash items
+        const stash = await loadData('inventory_stash');
+        const toolbox = document.getElementById('toolbox-stash');
+        toolbox.innerHTML = '';
+        stash.forEach(item => {
+            toolbox.innerHTML += `<div style="cursor:pointer; background:rgba(0,0,0,0.6); padding:5px; border:1px solid #bf953f; border-radius:4px;" onclick="spawnToForge('${item.image_url}')">
+                                     <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain;">
+                                  </div>`;
+        });
+        
+        document.getElementById('architect-toolbox').style.display = 'block';
+        document.getElementById('item-controls').style.display = 'none';
+        isForging = true;
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+function spawnToForge(imageUrl) {
+    const layer = document.getElementById('furnishing-layer');
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.className = 'furnishing-item';
+    img.style.left = '50%';
+    img.style.top = '50%';
+    img.style.zIndex = layer.children.length + 10;
+    img.style.transform = `translate(-50%, -50%) scale(1)`; 
+    img.dataset.scale = 1;
+    img.onmousedown = selectItemForEdit;
+    layer.appendChild(img);
+}
+
+// 4. Drag & Scale inside The Forge
+function selectItemForEdit(e) {
+    if (!isForging) return;
+    e.preventDefault();
+    editingItem = e.target;
+    document.getElementById('item-controls').style.display = 'block';
+    document.getElementById('forge-scale').value = editingItem.dataset.scale;
+    document.onmousemove = dragItem;
+    document.onmouseup = stopDrag;
+}
+
+function dragItem(e) {
+    if (!editingItem) return;
+    editingItem.style.left = e.clientX + 'px';
+    editingItem.style.top = e.clientY + 'px';
+}
+function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
+
+document.getElementById('forge-scale').addEventListener('input', function(e) {
+    if (editingItem) {
+        editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
+        editingItem.dataset.scale = e.target.value;
+    }
+});
+
+function deleteSelected() {
+    if(editingItem) {
+        editingItem.remove();
+        editingItem = null;
+        document.getElementById('item-controls').style.display = 'none';
+    }
+}
+
+// 5. Saving and Loading Trophies
+async function sealTrophy() {
+    const roomName = document.getElementById('trophy-name').value.trim() || "Nameless Sanctuary";
+    
+    // 1. Create Room Entry
+    const newRoom = { name: roomName, bg_url: draftBgUrl, created_at: new Date().toISOString(), id: Date.now().toString() };
+    let savedRooms = JSON.parse(localStorage.getItem('trophy_rooms') || '[]');
+    savedRooms.push(newRoom);
+    localStorage.setItem('trophy_rooms', JSON.stringify(savedRooms));
+
+    // 2. Save all current furnishings tied to this room ID
+    const layer = document.getElementById('furnishing-layer');
+    let savedFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+    
+    Array.from(layer.children).forEach(img => {
+        savedFurniture.push({
+            room_id: newRoom.id,
+            image_url: img.src,
+            pos_x: img.style.left,
+            pos_y: img.style.top,
+            scale: img.dataset.scale,
+            z_index: img.style.zIndex
+        });
+    });
+    localStorage.setItem('trophy_furnishings', JSON.stringify(savedFurniture));
+    
+    cancelForging();
+    loadTrophy(newRoom.id, newRoom.bg_url);
+}
+
+function cancelForging() {
+    document.body.classList.remove('building-mode');
+    document.getElementById('architect-toolbox').style.display = 'none';
+    isForging = false;
+    editingItem = null;
+    document.getElementById('furnishing-layer').innerHTML = ''; // Clears draft
+    document.getElementById('bg-art').src = "sanctuary.jpg"; // Reverts to base
+}
+
+function loadTrophy(roomId, bgUrl) {
+    document.getElementById('bg-art').src = bgUrl;
+    const layer = document.getElementById('furnishing-layer');
+    layer.innerHTML = ''; 
+    
+    const allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+    const roomFurniture = allFurniture.filter(f => f.room_id === roomId);
+    
+    roomFurniture.forEach(f => {
+        const img = document.createElement('img');
+        img.src = f.image_url;
+        img.className = 'furnishing-item';
+        img.style.left = f.pos_x;
+        img.style.top = f.pos_y;
+        img.style.zIndex = f.z_index;
+        img.style.transform = `translate(-50%, -50%) scale(${f.scale})`; 
+        layer.appendChild(img);
+    });
+    closePortal();
+}
+
+async function deleteTrophy(roomId) {
+    await removeData('trophy_rooms', roomId);
+    let allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+    allFurniture = allFurniture.filter(f => f.room_id !== roomId);
+    localStorage.setItem('trophy_furnishings', JSON.stringify(allFurniture));
+    openPortal('inventory');
+}
