@@ -321,7 +321,25 @@
                 <input type="range" class="volume-slider" data-target="audio-binarymusicbox" min="0" max="1" step="0.01" value="0.5">
 
             </div>
-
+<div id="architect-toolbox" style="display:none; position:fixed; right:20px; top:50%; transform:translateY(-50%); width:260px; background:rgba(10,10,12,0.98); border:2px solid #bf953f; border-radius:8px; padding:20px; z-index:10000; box-shadow:0 0 30px rgba(0,0,0,0.9);">
+        <h3 class="gold-text" style="font-size: 1.1em; margin-top: 0;">Architect's Forge</h3>
+        
+        <input type="text" id="trophy-name" placeholder="Name this Sanctuary..." class="portal-input" style="margin-bottom:15px; text-align: center;">
+        
+        <div style="border-bottom:1px dashed rgba(191,149,63,0.5); margin-bottom:10px; padding-bottom:5px; color:#bf953f; font-size:0.8em; text-align:center;">Click to Spawn</div>
+        
+        <div id="toolbox-stash" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+            </div>
+        
+        <button onclick="sealTrophy()" class="portal-btn" style="width:100%; border-color:#8fce00; color:#8fce00; margin-bottom:10px;">Seal & Save Trophy</button>
+        <button onclick="cancelForging()" class="portal-btn" style="width:100%; border-color:#ff6b6b; color:#ff6b6b;">Abandon Forge</button>
+        
+        <div id="item-controls" style="display:none; margin-top:15px; padding-top:15px; border-top:1px solid #bf953f;">
+            <div style="color:#d4c8a8; font-size:0.8em; margin-bottom:5px; text-align:center;">Scale Selected Item</div>
+            <input type="range" id="forge-scale" min="0.1" max="3" step="0.1" value="1" style="width:100%; margin-bottom:10px; accent-color:#bf953f;">
+            <button onclick="deleteSelected()" class="portal-btn" style="width:100%; font-size:0.7em; padding:5px; border-color:#ff6b6b; color:#ff6b6b;">Remove Selected</button>
+        </div>
+    </div>
         </div> 
 <div id="furnish-controls" style="display: none; position: fixed; background: rgba(8, 8, 10, 0.95); padding: 15px; border-radius: 8px; border: 1px solid #bf953f; z-index: 10000; min-width: 150px; box-shadow: 0 0 20px rgba(0,0,0,0.9);">
         <h4 class="gold-text" style="margin: 0 0 10px 0; font-family: 'Cinzel'; font-size: 0.8em; text-align: center;">Modify Asset</h4>
