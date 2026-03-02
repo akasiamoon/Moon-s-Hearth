@@ -842,7 +842,7 @@ function applySeasonalDecor() {
 applySeasonalDecor();
 setTimeout(loadRoomFurnishings, 500); // Ensures furnishings load after the season
 // ====================================================
-// === THE ARCHITECT'S STUDIO & TROPHY SYSTEM ===
+// === THE ARCHITECT'S STUDIO & TROPHY SYSTEM (SAFE) ===
 // ====================================================
 
 let isForging = false;
@@ -894,7 +894,7 @@ async function buildInventoryHTML() {
     stash.forEach(item => {
         html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
                     <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain;">
-                    <button class="action-btn" style="position:absolute; top:-5px; right:-5px; background:#000; border-radius:50%; width:18px; height:18px; font-size:10px; color:#ff6b6b; padding:0; border:1px solid #ff6b6b;" onclick="deleteDynamicItem('inventory_stash', '${item.id}', 'inventory')">✕</button>
+                    <button class="action-btn" style="position:absolute; top:-5px; right:-5px; background:#000; border-radius:50%; width:18px; height:18px; font-size:10px; color:#ff6b6b; padding:0; border:1px solid #ff6b6b;" onclick="event.stopPropagation(); deleteDynamicItem('inventory_stash', '${item.id}', 'inventory')">✕</button>
                  </div>`;
     });
     html += `</div></div>`;
@@ -921,24 +921,34 @@ async function startForging(input) {
     const reader = new FileReader();
     reader.onload = async (e) => {
         draftBgUrl = e.target.result;
-        document.getElementById('bg-art').src = draftBgUrl; // Swap background temporarily
         
-        document.body.classList.add('building-mode'); // Hides normal portals
-        document.getElementById('furnishing-layer').innerHTML = ''; // Clears room
-        closePortal(); // Closes parchment
+        const bgArt = document.getElementById('bg-art');
+        if(bgArt) bgArt.src = draftBgUrl; 
         
-        // Populate the Toolbox with your Stash items
+        document.body.classList.add('building-mode'); 
+        
+        const layer = document.getElementById('furnishing-layer');
+        if(layer) layer.innerHTML = ''; 
+        
+        closePortal(); 
+        
         const stash = await loadData('inventory_stash');
         const toolbox = document.getElementById('toolbox-stash');
-        toolbox.innerHTML = '';
-        stash.forEach(item => {
-            toolbox.innerHTML += `<div style="cursor:pointer; background:rgba(0,0,0,0.6); padding:5px; border:1px solid #bf953f; border-radius:4px;" onclick="spawnToForge('${item.image_url}')">
-                                     <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain;">
-                                  </div>`;
-        });
+        if(toolbox) {
+            toolbox.innerHTML = '';
+            stash.forEach(item => {
+                toolbox.innerHTML += `<div style="cursor:pointer; background:rgba(0,0,0,0.6); padding:5px; border:1px solid #bf953f; border-radius:4px;" onclick="spawnToForge('${item.image_url}')">
+                                         <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain;">
+                                      </div>`;
+            });
+        }
         
-        document.getElementById('architect-toolbox').style.display = 'block';
-        document.getElementById('item-controls').style.display = 'none';
+        const archToolbox = document.getElementById('architect-toolbox');
+        if(archToolbox) archToolbox.style.display = 'block';
+        
+        const itemControls = document.getElementById('item-controls');
+        if(itemControls) itemControls.style.display = 'none';
+        
         isForging = true;
     };
     reader.readAsDataURL(input.files[0]);
@@ -946,6 +956,7 @@ async function startForging(input) {
 
 function spawnToForge(imageUrl) {
     const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
     const img = document.createElement('img');
     img.src = imageUrl;
     img.className = 'furnishing-item';
@@ -963,8 +974,13 @@ function selectItemForEdit(e) {
     if (!isForging) return;
     e.preventDefault();
     editingItem = e.target;
-    document.getElementById('item-controls').style.display = 'block';
-    document.getElementById('forge-scale').value = editingItem.dataset.scale;
+    
+    const itemControls = document.getElementById('item-controls');
+    if(itemControls) itemControls.style.display = 'block';
+    
+    const forgeScale = document.getElementById('forge-scale');
+    if(forgeScale) forgeScale.value = editingItem.dataset.scale;
+    
     document.onmousemove = dragItem;
     document.onmouseup = stopDrag;
 }
@@ -976,10 +992,16 @@ function dragItem(e) {
 }
 function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
 
-document.getElementById('forge-scale').addEventListener('input', function(e) {
-    if (editingItem) {
-        editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
-        editingItem.dataset.scale = e.target.value;
+// Safe Event Listener Binding
+document.addEventListener('DOMContentLoaded', () => {
+    const forgeScale = document.getElementById('forge-scale');
+    if(forgeScale) {
+        forgeScale.addEventListener('input', function(e) {
+            if (editingItem) {
+                editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
+                editingItem.dataset.scale = e.target.value;
+            }
+        });
     }
 });
 
@@ -987,35 +1009,36 @@ function deleteSelected() {
     if(editingItem) {
         editingItem.remove();
         editingItem = null;
-        document.getElementById('item-controls').style.display = 'none';
+        const itemControls = document.getElementById('item-controls');
+        if(itemControls) itemControls.style.display = 'none';
     }
 }
 
 // 5. Saving and Loading Trophies
 async function sealTrophy() {
-    const roomName = document.getElementById('trophy-name').value.trim() || "Nameless Sanctuary";
+    const nameInput = document.getElementById('trophy-name');
+    const roomName = (nameInput && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Nameless Sanctuary";
     
-    // 1. Create Room Entry
     const newRoom = { name: roomName, bg_url: draftBgUrl, created_at: new Date().toISOString(), id: Date.now().toString() };
     let savedRooms = JSON.parse(localStorage.getItem('trophy_rooms') || '[]');
     savedRooms.push(newRoom);
     localStorage.setItem('trophy_rooms', JSON.stringify(savedRooms));
 
-    // 2. Save all current furnishings tied to this room ID
     const layer = document.getElementById('furnishing-layer');
-    let savedFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
-    
-    Array.from(layer.children).forEach(img => {
-        savedFurniture.push({
-            room_id: newRoom.id,
-            image_url: img.src,
-            pos_x: img.style.left,
-            pos_y: img.style.top,
-            scale: img.dataset.scale,
-            z_index: img.style.zIndex
+    if(layer) {
+        let savedFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+        Array.from(layer.children).forEach(img => {
+            savedFurniture.push({
+                room_id: newRoom.id,
+                image_url: img.src,
+                pos_x: img.style.left,
+                pos_y: img.style.top,
+                scale: img.dataset.scale,
+                z_index: img.style.zIndex
+            });
         });
-    });
-    localStorage.setItem('trophy_furnishings', JSON.stringify(savedFurniture));
+        localStorage.setItem('trophy_furnishings', JSON.stringify(savedFurniture));
+    }
     
     cancelForging();
     loadTrophy(newRoom.id, newRoom.bg_url);
@@ -1023,18 +1046,28 @@ async function sealTrophy() {
 
 function cancelForging() {
     document.body.classList.remove('building-mode');
-    document.getElementById('architect-toolbox').style.display = 'none';
+    
+    const archToolbox = document.getElementById('architect-toolbox');
+    if(archToolbox) archToolbox.style.display = 'none';
+    
     isForging = false;
     editingItem = null;
-    document.getElementById('furnishing-layer').innerHTML = ''; // Clears draft
-    document.getElementById('bg-art').src = "sanctuary.jpg"; // Reverts to base
+    
+    const layer = document.getElementById('furnishing-layer');
+    if(layer) layer.innerHTML = ''; 
+    
+    const bgArt = document.getElementById('bg-art');
+    if(bgArt) bgArt.src = "sanctuary.jpg"; 
 }
 
 function loadTrophy(roomId, bgUrl) {
-    document.getElementById('bg-art').src = bgUrl;
-    const layer = document.getElementById('furnishing-layer');
-    layer.innerHTML = ''; 
+    const bgArt = document.getElementById('bg-art');
+    if(bgArt) bgArt.src = bgUrl;
     
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    
+    layer.innerHTML = ''; 
     const allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
     const roomFurniture = allFurniture.filter(f => f.room_id === roomId);
     
@@ -1057,4 +1090,10 @@ async function deleteTrophy(roomId) {
     allFurniture = allFurniture.filter(f => f.room_id !== roomId);
     localStorage.setItem('trophy_furnishings', JSON.stringify(allFurniture));
     openPortal('inventory');
+}
+
+// MAKE SURE THIS IS PRESENT (If you haven't added it yet)
+// We define a safe, empty loadRoomFurnishings just so your bottom setTimeout doesn't crash!
+function loadRoomFurnishings() {
+    // Left intentionally empty because we use loadTrophy() now instead!
 }
