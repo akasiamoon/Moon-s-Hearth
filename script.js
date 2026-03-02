@@ -421,7 +421,6 @@ let draftBgUrl = '';
 async function buildInventoryHTML() {
     let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
     
-    // SECTION A: TROPHY GALLERY
     html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div><div class="section-panel closed"><div style="margin-top: 10px;">`;
     const rooms = await loadData('trophy_rooms');
     if (rooms.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">No sanctuaries forged yet.</p>`;
@@ -436,7 +435,6 @@ async function buildInventoryHTML() {
     });
     html += `</div></div>`;
 
-    // SECTION B: FORGE NEW TROPHY
     html += `<div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
                 <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; text-align:center;">
                     <p style="color:#d4c8a8; font-size:0.85em; margin-top:0;">Upload a base background to enter the Forge.</p>
@@ -445,7 +443,6 @@ async function buildInventoryHTML() {
                 </div>
              </div>`;
 
-    // SECTION C: GRAND STASH (ASSET UPLOAD)
     html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div><div class="section-panel closed">
                 <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px;">
                     <input type="text" id="asset-name" placeholder="Asset Name..." class="portal-input" style="margin-bottom: 10px;">
@@ -470,7 +467,6 @@ async function buildInventoryHTML() {
     return html + `</div>`;
 }
 
-// Uploading Stash Assets
 async function uploadAsset() {
     const nameInput = document.getElementById('asset-name').value.trim();
     const fileInput = document.getElementById('asset-image').files[0];
@@ -483,13 +479,11 @@ async function uploadAsset() {
     reader.readAsDataURL(fileInput);
 }
 
-// Entering The Forge
 async function startForging(input) {
     if(!input.files[0]) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
         draftBgUrl = e.target.result;
-        
         const bgArt = document.getElementById('bg-art');
         if(bgArt) bgArt.src = draftBgUrl; 
         
@@ -537,7 +531,6 @@ function spawnToForge(imageUrl) {
     layer.appendChild(img);
 }
 
-// Drag & Scale inside The Forge
 function selectItemForEdit(e) {
     if (!isForging) return;
     e.preventDefault();
@@ -569,7 +562,6 @@ function deleteSelected() {
     }
 }
 
-// Saving and Loading Trophies
 async function sealTrophy() {
     const nameInput = document.getElementById('trophy-name');
     const roomName = (nameInput && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Nameless Sanctuary";
@@ -589,13 +581,18 @@ async function sealTrophy() {
                 pos_x: img.style.left,
                 pos_y: img.style.top,
                 scale: img.dataset.scale,
-                z_index: img.style.zIndex
+                z_index: img.style.zIndex || 10
             });
         });
         localStorage.setItem('trophy_furnishings', JSON.stringify(savedFurniture));
     }
     
-    cancelForging();
+    document.body.classList.remove('building-mode');
+    const archToolbox = document.getElementById('architect-toolbox');
+    if(archToolbox) archToolbox.style.display = 'none';
+    isForging = false;
+    editingItem = null;
+
     loadTrophy(newRoom.id, newRoom.bg_url);
 }
 
@@ -605,32 +602,41 @@ function cancelForging() {
     if(archToolbox) archToolbox.style.display = 'none';
     isForging = false;
     editingItem = null;
-    const layer = document.getElementById('furnishing-layer');
-    if(layer) layer.innerHTML = ''; 
-    const bgArt = document.getElementById('bg-art');
-    if(bgArt) bgArt.src = "sanctuary.jpg"; 
+    loadActiveTrophy(); 
 }
 
 function loadTrophy(roomId, bgUrl) {
+    localStorage.setItem('active_trophy_id', roomId);
+    localStorage.setItem('active_trophy_bg', bgUrl);
+    loadActiveTrophy();
+    closePortal();
+}
+
+function loadActiveTrophy() {
+    const activeBg = localStorage.getItem('active_trophy_bg') || 'sanctuary.jpg';
+    const activeId = localStorage.getItem('active_trophy_id');
+    
     const bgArt = document.getElementById('bg-art');
-    if(bgArt) bgArt.src = bgUrl;
+    if(bgArt) bgArt.src = activeBg;
+    
     const layer = document.getElementById('furnishing-layer');
     if(!layer) return;
     layer.innerHTML = ''; 
     
-    const allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
-    const roomFurniture = allFurniture.filter(f => f.room_id === roomId);
-    roomFurniture.forEach(f => {
-        const img = document.createElement('img');
-        img.src = f.image_url;
-        img.className = 'furnishing-item';
-        img.style.left = f.pos_x;
-        img.style.top = f.pos_y;
-        img.style.zIndex = f.z_index;
-        img.style.transform = `translate(-50%, -50%) scale(${f.scale})`; 
-        layer.appendChild(img);
-    });
-    closePortal();
+    if(activeId) {
+        const allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+        const roomFurniture = allFurniture.filter(f => f.room_id === activeId);
+        roomFurniture.forEach(f => {
+            const img = document.createElement('img');
+            img.src = f.image_url;
+            img.className = 'furnishing-item';
+            img.style.left = f.pos_x;
+            img.style.top = f.pos_y;
+            img.style.zIndex = f.z_index;
+            img.style.transform = `translate(-50%, -50%) scale(${f.scale})`; 
+            layer.appendChild(img);
+        });
+    }
 }
 
 async function deleteTrophy(roomId) {
@@ -638,6 +644,12 @@ async function deleteTrophy(roomId) {
     let allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
     allFurniture = allFurniture.filter(f => f.room_id !== roomId);
     localStorage.setItem('trophy_furnishings', JSON.stringify(allFurniture));
+    
+    if (localStorage.getItem('active_trophy_id') === roomId) {
+        localStorage.removeItem('active_trophy_id');
+        localStorage.removeItem('active_trophy_bg');
+        loadActiveTrophy();
+    }
     openPortal('inventory');
 }
 
@@ -660,13 +672,13 @@ async function addDynamicItem(table, inputId, portal) {
     const text = document.getElementById(inputId).value.trim();
     if (!text) return;
     await insertData(table, { text: text, is_completed: false });
-    openPortal(portal); 
+    if(portal) openPortal(portal); 
 }
 
 async function toggleDynamicItem(table, id, currentState, portal) {
     await updateData(table, id, { is_completed: !currentState });
     if (!currentState) feedFamiliar();
-    openPortal(portal); 
+    if(portal) openPortal(portal); 
 }
 
 async function deleteDynamicItem(table, id, portal) {
@@ -679,12 +691,12 @@ async function addDetailedItem(table, titleId, descId, portal) {
     const desc = document.getElementById(descId).value.trim();
     if (!title) return;
     await insertData(table, { title: title, description: desc });
-    openPortal(portal);
+    if(portal) openPortal(portal);
 }
 
 async function deleteDetailedItem(table, id, portal) {
     await removeData(table, id);
-    openPortal(portal);
+    if(portal) openPortal(portal);
 }
 
 // === LEDGER MATH FUNCTIONS ===
@@ -695,12 +707,12 @@ async function addLedgerEntry(table, descId, amtId, portal) {
     if (!desc || isNaN(amount)) return; 
     await insertData(table, { desc: desc, amount: amount });
     feedFamiliar();
-    openPortal(portal); 
+    if(portal) openPortal(portal); 
 }
 
 async function deleteLedgerEntry(table, id, portal) {
     await removeData(table, id);
-    openPortal(portal);
+    if(portal) openPortal(portal);
 }
 
 async function addEvent() {
@@ -856,7 +868,6 @@ function claimFamiliarLoot() {
     setTimeout(() => { speech.classList.add('hidden'); familiarXP = 0; updateFamiliarUI(); }, 4000);
 }
 
-// BIND FORGE SCALE LISTENER SAFELY ON LOAD
 document.addEventListener('DOMContentLoaded', () => {
     const forgeScale = document.getElementById('forge-scale');
     if(forgeScale) {
@@ -876,42 +887,16 @@ function applySeasonalDecor() {
     const month = today.getMonth(); 
     const day = today.getDate();
     const body = document.body;
-    const decorOverlay = document.getElementById('decor-overlay');
-    let decorSrc = ""; 
 
-    if (month === 11 || month === 0 || month === 1) {
-        body.classList.add('season-winter'); 
-        decorSrc = "decor_winter.png";
-    } else if (month >= 2 && month <= 4) {
-        body.classList.add('season-spring'); 
-        decorSrc = "decor_spring.png";
-    } else if (month >= 5 && month <= 7) {
-        body.classList.add('season-summer'); 
-        decorSrc = "decor_summer.png";
-    } else if (month >= 8 && month <= 10) {
-        body.classList.add('season-autumn'); 
-        decorSrc = "decor_autumn.png";
-    }
+    if (month === 11 || month === 0 || month === 1) body.classList.add('season-winter');
+    else if (month >= 2 && month <= 4) body.classList.add('season-spring');
+    else if (month >= 5 && month <= 7) body.classList.add('season-summer');
+    else if (month >= 8 && month <= 10) body.classList.add('season-autumn');
 
-    if (month === 9 && day >= 24 && day <= 31) {
-        body.classList.add('holiday-halloween');
-        decorSrc = "decor_halloween.png";
-    }
-    
-    if (month === 11 && day >= 15 && day <= 26) {
-        body.classList.add('holiday-yule');
-        decorSrc = "decor_yule.png";
-    }
-    
-    if (month === 1 && day >= 10 && day <= 15) {
-        body.classList.add('holiday-valentines');
-        decorSrc = "decor_valentines.png";
-    }
-
-    if (decorOverlay && decorSrc !== "") {
-        decorOverlay.src = decorSrc;
-        decorOverlay.classList.add('active');
-    }
+    if (month === 9 && day >= 24 && day <= 31) body.classList.add('holiday-halloween');
+    if (month === 11 && day >= 15 && day <= 26) body.classList.add('holiday-yule');
+    if (month === 1 && day >= 10 && day <= 15) body.classList.add('holiday-valentines');
 }
 
 applySeasonalDecor();
+setTimeout(loadActiveTrophy, 500);
