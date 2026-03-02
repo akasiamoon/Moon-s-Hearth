@@ -835,3 +835,184 @@ function applySeasonalDecor() {
 
 applySeasonalDecor();
 setTimeout(loadRoomFurnishings, 500); // Ensures furnishings load after the season
+
+// ==========================================
+// === HOUSING & INVENTORY ENGINE APPEND ===
+// ==========================================
+let editingItem = null;
+let isDragging = false;
+
+// 1. The Inventory HTML Builder
+async function buildInventoryHTML() {
+    let html = `<h2 class="gold-text">The Grand Stash</h2><div class="portal-scroll-container">`;
+    
+    // Note: onclick is directly on the button here so it never breaks
+    html += `<div style="text-align:center; margin-bottom: 20px;">
+                <button onclick="toggleEditMode()" id="edit-mode-btn" class="portal-btn" style="width: 100%; font-size: 1.1em; padding: 12px; border-color: #8fce00; color: #8fce00;">🔨 Enter Furnishing Mode</button>
+             </div>`;
+
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Store New Asset</div>
+             <div class="section-panel closed">
+                 <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; margin-bottom: 20px;">
+                    <input type="text" id="asset-name" placeholder="Asset Name (e.g., Gold Chalice)..." class="portal-input" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label for="asset-image" class="custom-file-label">Select .PNG</label>
+                        <input type="file" id="asset-image" accept="image/png, image/webp" onchange="document.getElementById('asset-file-name').innerText = this.files[0].name">
+                        <button onclick="uploadAsset()" id="asset-submit-btn" class="portal-btn">Store in Stash</button>
+                    </div>
+                    <div id="asset-file-name" style="font-size: 0.8em; color: rgba(191,149,63,0.7); margin-top: 5px; font-style: italic;"></div>
+                 </div>
+             </div>`;
+
+    html += `<h3 style="color:#fcf6ba; font-family:'Cinzel', serif; border-bottom: 1px solid rgba(191,149,63,0.3); padding-bottom:5px;">Available Furnishings</h3>
+             <p style="font-size:0.85em; color:rgba(191,149,63,0.8); font-style:italic;">Click an item to spawn it.</p>
+             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px;">`;
+    
+    const stash = await loadData('inventory_stash');
+    stash.forEach(item => {
+        html += `<div class="sound-item" style="cursor:pointer;" onclick="spawnFurnishing('${item.id}', '${item.image_url}')">
+                    <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; margin-bottom:5px;">
+                    <div style="font-size:0.8em; color:#d4c8a8; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${item.name}</div>
+                 </div>`;
+    });
+    
+    html += `</div></div>`;
+    return html;
+}
+
+// 2. Uploading & Spawning
+async function uploadAsset() {
+    const nameInput = document.getElementById('asset-name').value.trim();
+    const fileInput = document.getElementById('asset-image').files[0];
+    if (!nameInput || !fileInput) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        await insertData('inventory_stash', { name: nameInput, image_url: e.target.result });
+        openPortal('inventory'); 
+    };
+    reader.readAsDataURL(fileInput);
+}
+
+async function spawnFurnishing(dbId, imageUrl) {
+    const newItem = { inventory_id: dbId, image_url: imageUrl, pos_x: '50%', pos_y: '50%', scale: 1 };
+    await insertData('active_room', newItem);
+    loadRoomFurnishings(); 
+}
+
+// 3. Toggling Edit Mode & Loading Room
+function toggleEditMode() {
+    const layer = document.getElementById('furnishing-layer');
+    const btn = document.getElementById('edit-mode-btn');
+    if (!layer) return;
+    
+    layer.classList.toggle('edit-mode');
+    
+    if (layer.classList.contains('edit-mode')) {
+        if(btn) { btn.innerText = "❌ Exit Furnishing Mode"; btn.style.borderColor = "#ff6b6b"; btn.style.color = "#ff6b6b"; }
+        closePortal(); 
+    } else {
+        if(btn) { btn.innerText = "🔨 Enter Furnishing Mode"; btn.style.borderColor = "#8fce00"; btn.style.color = "#8fce00"; }
+        document.getElementById('furnish-controls').style.display = 'none'; 
+    }
+}
+
+async function loadRoomFurnishings() {
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    layer.innerHTML = ''; 
+    const items = await loadData('active_room');
+    
+    // Z-index increment ensures newer items sit on top of older ones
+    items.forEach((item, index) => {
+        const img = document.createElement('img');
+        img.src = item.image_url;
+        img.className = 'furnishing-item';
+        img.style.left = item.pos_x;
+        img.style.top = item.pos_y;
+        img.style.zIndex = 100 + index; 
+        img.style.transform = `translate(-50%, -50%) scale(${item.scale})`; 
+        img.dataset.id = item.id;
+        img.dataset.scale = item.scale;
+        img.onmousedown = startDrag;
+        layer.appendChild(img);
+    });
+}
+
+// 4. Drag & Drop Mechanics
+function startDrag(e) {
+    if (!document.getElementById('furnishing-layer').classList.contains('edit-mode')) return;
+    e.preventDefault();
+    isDragging = true;
+    editingItem = e.target;
+    
+    const controls = document.getElementById('furnish-controls');
+    controls.style.display = 'block';
+    controls.style.left = e.clientX + 20 + 'px';
+    controls.style.top = e.clientY + 20 + 'px';
+    document.getElementById('furnish-scale').value = editingItem.dataset.scale;
+    
+    document.onmousemove = dragItem;
+    document.onmouseup = stopDrag;
+}
+
+function dragItem(e) {
+    if (!isDragging || !editingItem) return;
+    editingItem.style.left = e.clientX + 'px';
+    editingItem.style.top = e.clientY + 'px';
+    
+    const controls = document.getElementById('furnish-controls');
+    controls.style.left = e.clientX + 20 + 'px';
+    controls.style.top = e.clientY + 20 + 'px';
+}
+
+function stopDrag() {
+    isDragging = false;
+    document.onmousemove = null;
+    document.onmouseup = null;
+}
+
+// 5. Control Box Listeners (Scale, Seal, Banish)
+document.addEventListener('DOMContentLoaded', () => {
+    const scaleSlider = document.getElementById('furnish-scale');
+    const lockBtn = document.getElementById('furnish-lock');
+    const delBtn = document.getElementById('furnish-delete');
+
+    if(scaleSlider) {
+        scaleSlider.addEventListener('input', function(e) {
+            if (editingItem) {
+                const newScale = e.target.value;
+                editingItem.style.transform = `translate(-50%, -50%) scale(${newScale})`;
+                editingItem.dataset.scale = newScale;
+            }
+        });
+    }
+
+    if(lockBtn) {
+        lockBtn.addEventListener('click', async function() {
+            if (editingItem) {
+                const id = editingItem.dataset.id;
+                await updateData('active_room', id, {
+                    pos_x: editingItem.style.left,
+                    pos_y: editingItem.style.top,
+                    scale: parseFloat(editingItem.dataset.scale)
+                });
+                document.getElementById('furnish-controls').style.display = 'none';
+                editingItem = null;
+            }
+        });
+    }
+
+    if(delBtn) {
+        delBtn.addEventListener('click', async function() {
+            if (editingItem) {
+                await removeData('active_room', editingItem.dataset.id);
+                editingItem.remove(); 
+                document.getElementById('furnish-controls').style.display = 'none';
+                editingItem = null;
+            }
+        });
+    }
+    
+    // Auto-load furniture when the app boots
+    setTimeout(loadRoomFurnishings, 500);
+});
