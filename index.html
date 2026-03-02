@@ -22,7 +22,7 @@
 
         <img src="sanctuary.jpg" class="master-image" id="bg-art" alt="Sanctuary">
 
-        
+        <div id="furnishing-layer"></div>
 
         <img src="" id="decor-overlay" alt="Seasonal Decor">
 
@@ -53,8 +53,10 @@
         <div id="portal-workshop" class="portal" onclick="openPortal('workshop')"></div>
 
         <div id="portal-apprentice" class="portal" onclick="openPortal('apprentice')"></div>
-
+        
+        <div id="portal-inventory" class="portal" onclick="openPortal('inventory')"></div>
     </div>
+   
 
 
 
@@ -321,7 +323,15 @@
             </div>
 
         </div> 
-
+<div id="furnish-controls" style="display: none; position: fixed; background: rgba(8, 8, 10, 0.95); padding: 15px; border-radius: 8px; border: 1px solid #bf953f; z-index: 10000; min-width: 150px; box-shadow: 0 0 20px rgba(0,0,0,0.9);">
+        <h4 class="gold-text" style="margin: 0 0 10px 0; font-family: 'Cinzel'; font-size: 0.8em; text-align: center;">Modify Asset</h4>
+        <input type="range" id="furnish-scale" min="0.2" max="3" step="0.1" value="1" style="width: 100%; margin-bottom: 10px;">
+        <div style="display: flex; gap: 8px;">
+            <button id="furnish-lock" class="portal-btn" style="flex: 1; font-size: 0.7em; padding: 5px;">Seal</button>
+            <button id="furnish-delete" class="portal-btn" style="flex: 1; font-size: 0.7em; padding: 5px; border-color: #ff6b6b; color: #ff6b6b;">Banish</button>
+        </div>
+    </div>
+    <div id="familiar-container" onclick="claimFamiliarLoot()">
     </div> 
 
 
