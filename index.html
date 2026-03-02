@@ -1,169 +1,356 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Moon's Hearth Sanctuary</title>
+
     <link rel="stylesheet" href="style.css?v=6">
+
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 </head>
+
 <body>
-    <div class="sanctuary-container">
+
+   <div class="sanctuary-container">
+
         <img src="sanctuary.jpg" class="master-image" id="bg-art" alt="Sanctuary">
-        <img src="" id="decor-overlay" alt="Seasonal Decor">
+
         
-        <div id="furnishing-layer"></div>
+
+        <img src="" id="decor-overlay" alt="Seasonal Decor">
+
+        
 
         <div class="dust-container"></div>
 
-        <div id="portal-window" class="portal" onclick="openPortal('window')"></div>
+
+
+       <div id="portal-window" class="portal" onclick="openPortal('window')"></div>
+
         <div id="portal-herbs" class="portal" onclick="openPortal('herbs')"></div>
+
         <div id="portal-audio" class="portal" onclick="openPortal('audio')"></div>
+
         <div id="portal-grimoire" class="portal" onclick="openPortal('grimoire')"></div>
+
         <div id="portal-alchemy" class="portal" onclick="openPortal('alchemy')"></div>
+
         <div id="portal-teacup" class="portal" onclick="openPortal('teacup')"></div>
+
         <div id="portal-cat" class="portal" onclick="openPortal('cat')"></div>
+
         <div id="portal-sewing" class="portal" onclick="openPortal('sewing')"></div>
+
         <div id="portal-ledger" class="portal" onclick="openPortal('ledger')"></div>
+
         <div id="portal-workshop" class="portal" onclick="openPortal('workshop')"></div>
+
         <div id="portal-apprentice" class="portal" onclick="openPortal('apprentice')"></div>
-        
-        <div id="portal-inventory" class="portal" onclick="openPortal('inventory')"></div>
+
     </div>
+
+
 
     <div id="parchment-overlay">
+
         <span class="close-btn" onclick="closePortal()">&times;</span>
+
         <div id="portal-content"></div>
+
         
+
         <div id="soundscape-container" style="display: none;">
+
+            
+
             <div class="sound-item">
+
                 <audio id="audio-rain" src="rain.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-rain">🌧️ Rain</button>
+
                 <input type="range" class="volume-slider" data-target="audio-rain" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+            
+
             <div class="sound-item">
+
                 <audio id="audio-thunder" src="thunder.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-thunder">🌩️ Thunder</button>
+
                 <input type="range" class="volume-slider" data-target="audio-thunder" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-winterwind" src="winterwind.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-winterwind">🌬️ Winter Wind</button>
+
                 <input type="range" class="volume-slider" data-target="audio-winterwind" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-owls" src="owls.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-owls">🦉 Owls</button>
+
                 <input type="range" class="volume-slider" data-target="audio-owls" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-raven" src="raven.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-raven">🐦‍⬛ Raven</button>
+
                 <input type="range" class="volume-slider" data-target="audio-raven" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-frogs" src="frogs.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-frogs">🐸 Night Frogs</button>
+
                 <input type="range" class="volume-slider" data-target="audio-frogs" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-crickets" src="crickets.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-crickets">🦗 Crickets</button>
+
                 <input type="range" class="volume-slider" data-target="audio-crickets" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-fire" src="fire.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-fire">🔥 Fire</button>
+
                 <input type="range" class="volume-slider" data-target="audio-fire" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-simmeringpot" src="simmeringpot.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-simmeringpot">🍲 Simmering Pot</button>
+
                 <input type="range" class="volume-slider" data-target="audio-simmeringpot" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-teacup" src="teacup.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-teacup">☕ Teacup</button>
+
                 <input type="range" class="volume-slider" data-target="audio-teacup" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-clock" src="clock.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-clock">🕰️ Ticking Clock</button>
+
                 <input type="range" class="volume-slider" data-target="audio-clock" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-cat" src="cat.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-cat">🐾 Cat Purring</button>
+
                 <input type="range" class="volume-slider" data-target="audio-cat" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-windchimes" src="windchimes.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-windchimes">🎐 Windchimes</button>
+
                 <input type="range" class="volume-slider" data-target="audio-windchimes" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-musicbox1" src="musicbox1.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-musicbox1">🎶 Music Box 1</button>
+
                 <input type="range" class="volume-slider" data-target="audio-musicbox1" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-musicbox2" src="musicbox2.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-musicbox2">🎶 Music Box 2</button>
+
                 <input type="range" class="volume-slider" data-target="audio-musicbox2" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-musicbox3" src="musicbox3.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-musicbox3">🎶 Music Box 3</button>
+
                 <input type="range" class="volume-slider" data-target="audio-musicbox3" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-xmasmusicbox1" src="xmasmusicbox1.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-xmasmusicbox1">🎄 Xmas Box 1</button>
+
                 <input type="range" class="volume-slider" data-target="audio-xmasmusicbox1" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-xmasmusicbox2" src="xmasmusicbox2.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-xmasmusicbox2">🎄 Xmas Box 2</button>
+
                 <input type="range" class="volume-slider" data-target="audio-xmasmusicbox2" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-xmasmusicbox3" src="xmasmusicbox3.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-xmasmusicbox3">🎄 Xmas Box 3</button>
+
                 <input type="range" class="volume-slider" data-target="audio-xmasmusicbox3" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-darkmusic1" src="darkmusic1.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-darkmusic1">🖤 Dark Music 1</button>
+
                 <input type="range" class="volume-slider" data-target="audio-darkmusic1" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
+
+
             <div class="sound-item">
+
                 <audio id="audio-binarymusicbox" src="binarymusicbox.mp3" loop></audio>
+
                 <button class="play-btn" data-target="audio-binarymusicbox">🎵 Binary Box</button>
+
                 <input type="range" class="volume-slider" data-target="audio-binarymusicbox" min="0" max="1" step="0.01" value="0.5">
+
             </div>
+
         </div> 
+
     </div> 
 
-    <div id="furnish-controls" style="display: none; position: fixed; background: rgba(8, 8, 10, 0.9); padding: 15px; border-radius: 8px; border: 1px solid #bf953f; min-width: 120px;">
-        <h4 style="color: #fcf6ba; margin: 0 0 10px 0; font-family: 'Cinzel'; font-size: 0.8em; text-align: center;">Modify Asset</h4>
-        <input type="range" id="furnish-scale" min="0.2" max="3" step="0.1" value="1" style="width: 100%; margin-bottom: 10px;">
-        <div style="display: flex; gap: 8px;">
-            <button id="furnish-lock" class="portal-btn" style="flex: 1; font-size: 0.7em; padding: 5px;">Seal</button>
-            <button id="furnish-delete" class="portal-btn" style="flex: 1; font-size: 0.7em; padding: 5px; border-color: #ff6b6b; color: #ff6b6b;">Banish</button>
-        </div>
-    </div>
+
 
     <div id="familiar-container" onclick="claimFamiliarLoot()">
+
         <svg class="xp-ring" viewBox="0 0 100 100">
+
             <circle class="xp-ring-bg" cx="50" cy="50" r="46"></circle>
+
             <circle class="xp-ring-fill" id="xp-circle" cx="50" cy="50" r="46"></circle>
+
         </svg>
+
         <div class="familiar-glass">
+
             <img id="familiar-avatar" class="state-sleeping" src="cat_sleep.jpg" alt="Alinor Familiar">
+
         </div>
+
         <div id="familiar-speech" class="hidden"></div>
+
     </div>
 
+
+
     <script src="script.js?v=2"></script>
+
 </body>
+
 </html>
+
