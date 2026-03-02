@@ -48,14 +48,15 @@ body::before {
     animation: dustDrift 18s linear infinite;
 }
 
-/* --- 5. THE BACKGROUND --- */
+/* --- 5. THE BACKGROUND & DECOR OVERLAY --- */
 .master-image {
     width: 100%; height: 100%; object-fit: cover;
     position: fixed; top: 0; left: 0; z-index: 1;
     filter: brightness(0.5) contrast(1.1) sepia(0.2); transition: 0.8s ease;
 }
 .master-image.dimmed { filter: brightness(0.15) blur(12px); transform: scale(1.05); }
-/* --- THE DECOR OVERLAY --- */
+
+/* The Seasonal Decor Overlay Layer */
 #decor-overlay {
     width: 100%; 
     height: 100%; 
@@ -75,6 +76,7 @@ body::before {
 #decor-overlay.active {
     opacity: 1;
 }
+
 /* --- 6. THE GILDED DOSSIER --- */
 #parchment-overlay {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
@@ -115,7 +117,8 @@ h2, .gold-text {
 .close-btn:hover { color: #fcf6ba; }
 
 /* --- 7. COORDINATES --- */
-.portal { position: absolute; cursor: crosshair; z-index: 1000; background: rgba(255, 0, 0, 0.4); border: none; }
+/* To see your boxes for editing, change transparent to rgba(255, 0, 0, 0.4) */
+.portal { position: absolute; cursor: crosshair; z-index: 1000; background: transparent; border: none; }
 .portal:hover { background: radial-gradient(circle, rgba(255, 202, 40, 0.15) 0%, transparent 75%); }
 
 #portal-window   { top: 5%;  left: 5%;  width: 35%; height: 50%; }
@@ -128,7 +131,8 @@ h2, .gold-text {
 #portal-sewing   { top: 82%; left: 35%;  width: 15%; height: 15%; }
 #portal-ledger   { top: 5%;  left: 80%; width: 15%; height: 15%; }
 #portal-workshop { top: 55%; left: 42%; width: 12%; height: 12%; }
-#portal-apprentice { top: 65%; left: 2%; width: 10%; height: 15%; }
+#portal-apprentice { top: 45%; left: 2%; width: 10%; height: 15%; } 
+#portal-inventory { top: 75%; left: 10%; width: 15%; height: 15%; }
 
 /* --- 8. SCROLLBARS --- */
 ::-webkit-scrollbar { width: 6px; }
@@ -272,6 +276,7 @@ input[type="file"] { display: none; }
 .custom-file-label:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 .action-btn { background: none; border: none; color: #bf953f; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; padding: 0 5px; }
 .action-btn:hover { color: #fcf6ba; }
+
 /* --- 16. CALENDAR HOLIDAY HIGHLIGHTS --- */
 .cal-cell.holiday {
     border-color: rgba(255, 154, 158, 0.4);
@@ -292,6 +297,7 @@ input[type="file"] { display: none; }
     letter-spacing: 0;
     padding: 0 2px;
 }
+
 /* === 17. THE FAMILIAR (ALINOR SHADOW CAT) === */
 #familiar-container {
     position: fixed;
@@ -397,6 +403,7 @@ input[type="file"] { display: none; }
     opacity: 0;
     pointer-events: none;
 }
+
 /* === 18. SEASONAL & HOLIDAY MAGIC === */
 
 /* SPRING: Floating Pink Petals */
@@ -459,3 +466,35 @@ body.holiday-yule::before {
 body.holiday-valentines::before {
     background: radial-gradient(circle at 85% 85%, rgba(255, 20, 147, 0.45), transparent 70%);
 }
+
+/* === 19. HOUSING & INVENTORY ENGINE === */
+#furnishing-layer {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 5; pointer-events: none; /* Clicks pass through to portals normally */
+}
+#furnishing-layer.edit-mode {
+    pointer-events: auto; /* Grabs your mouse so you can drag things */
+    background: rgba(0, 20, 50, 0.2); /* Slight blue tint when editing */
+    border: 5px dashed rgba(191, 149, 63, 0.5);
+    box-sizing: border-box;
+}
+.furnishing-item {
+    position: absolute;
+    transform-origin: center;
+    user-select: none;
+    transition: filter 0.2s;
+}
+#furnishing-layer.edit-mode .furnishing-item {
+    cursor: grab;
+    filter: drop-shadow(0 0 8px rgba(191, 149, 63, 0.8)); /* Glows when you can grab it */
+}
+#furnishing-layer.edit-mode .furnishing-item:active { cursor: grabbing; }
+
+/* The popup scaling controls */
+#furnish-controls {
+    position: fixed; background: rgba(8, 8, 10, 0.95);
+    border: 1px solid #bf953f; padding: 12px; border-radius: 8px;
+    display: none; z-index: 10000; box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    width: 150px; text-align: center;
+}
+#furnish-controls h4 { margin: 0 0 10px 0; font-family: 'Cinzel', serif; color: #fcf6ba; font-size: 1.1em;}
