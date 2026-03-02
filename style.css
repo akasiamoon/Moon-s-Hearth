@@ -498,3 +498,30 @@ body.holiday-valentines::before {
     width: 150px; text-align: center;
 }
 #furnish-controls h4 { margin: 0 0 10px 0; font-family: 'Cinzel', serif; color: #fcf6ba; font-size: 1.1em;}
+/* === THE ARCHITECT'S STUDIO === */
+#furnishing-layer {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 5; pointer-events: none; /* Clicks pass through normally */
+}
+
+/* When Forging a Room */
+body.building-mode .portal {
+    pointer-events: none; 
+    opacity: 0; /* Hides portals so you can build in peace */
+}
+body.building-mode #furnishing-layer {
+    pointer-events: auto; /* Grabs your mouse */
+    background: rgba(0, 0, 0, 0.4); /* Dims the room slightly to focus */
+}
+
+.furnishing-item {
+    position: absolute; transform-origin: center; user-select: none;
+    transition: filter 0.2s; pointer-events: auto;
+}
+body.building-mode .furnishing-item {
+    cursor: grab; filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.5));
+}
+body.building-mode .furnishing-item:hover {
+    filter: drop-shadow(0 0 15px #fcf6ba); outline: 1px dashed rgba(191, 149, 63, 0.8);
+}
+body.building-mode .furnishing-item:active { cursor: grabbing; }
