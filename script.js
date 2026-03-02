@@ -514,4 +514,404 @@ async function startForging(input) {
         const archToolbox = document.getElementById('architect-toolbox');
         if(archToolbox) archToolbox.style.display = 'block';
         
-        const itemControls = document.getElementById('item
+        const itemControls = document.getElementById('item-controls');
+        if(itemControls) itemControls.style.display = 'none';
+        
+        isForging = true;
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+function spawnToForge(imageUrl) {
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.className = 'furnishing-item';
+    img.style.left = '50%';
+    img.style.top = '50%';
+    img.style.zIndex = layer.children.length + 10;
+    img.style.transform = `translate(-50%, -50%) scale(1)`; 
+    img.dataset.scale = 1;
+    img.onmousedown = selectItemForEdit;
+    layer.appendChild(img);
+}
+
+// Drag & Scale inside The Forge
+function selectItemForEdit(e) {
+    if (!isForging) return;
+    e.preventDefault();
+    editingItem = e.target;
+    
+    const itemControls = document.getElementById('item-controls');
+    if(itemControls) itemControls.style.display = 'block';
+    
+    const forgeScale = document.getElementById('forge-scale');
+    if(forgeScale) forgeScale.value = editingItem.dataset.scale;
+    
+    document.onmousemove = dragItem;
+    document.onmouseup = stopDrag;
+}
+
+function dragItem(e) {
+    if (!editingItem) return;
+    editingItem.style.left = e.clientX + 'px';
+    editingItem.style.top = e.clientY + 'px';
+}
+function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
+
+function deleteSelected() {
+    if(editingItem) {
+        editingItem.remove();
+        editingItem = null;
+        const itemControls = document.getElementById('item-controls');
+        if(itemControls) itemControls.style.display = 'none';
+    }
+}
+
+// Saving and Loading Trophies
+async function sealTrophy() {
+    const nameInput = document.getElementById('trophy-name');
+    const roomName = (nameInput && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Nameless Sanctuary";
+    
+    const newRoom = { name: roomName, bg_url: draftBgUrl, created_at: new Date().toISOString(), id: Date.now().toString() };
+    let savedRooms = JSON.parse(localStorage.getItem('trophy_rooms') || '[]');
+    savedRooms.push(newRoom);
+    localStorage.setItem('trophy_rooms', JSON.stringify(savedRooms));
+
+    const layer = document.getElementById('furnishing-layer');
+    if(layer) {
+        let savedFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+        Array.from(layer.children).forEach(img => {
+            savedFurniture.push({
+                room_id: newRoom.id,
+                image_url: img.src,
+                pos_x: img.style.left,
+                pos_y: img.style.top,
+                scale: img.dataset.scale,
+                z_index: img.style.zIndex
+            });
+        });
+        localStorage.setItem('trophy_furnishings', JSON.stringify(savedFurniture));
+    }
+    
+    cancelForging();
+    loadTrophy(newRoom.id, newRoom.bg_url);
+}
+
+function cancelForging() {
+    document.body.classList.remove('building-mode');
+    const archToolbox = document.getElementById('architect-toolbox');
+    if(archToolbox) archToolbox.style.display = 'none';
+    isForging = false;
+    editingItem = null;
+    const layer = document.getElementById('furnishing-layer');
+    if(layer) layer.innerHTML = ''; 
+    const bgArt = document.getElementById('bg-art');
+    if(bgArt) bgArt.src = "sanctuary.jpg"; 
+}
+
+function loadTrophy(roomId, bgUrl) {
+    const bgArt = document.getElementById('bg-art');
+    if(bgArt) bgArt.src = bgUrl;
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    layer.innerHTML = ''; 
+    
+    const allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+    const roomFurniture = allFurniture.filter(f => f.room_id === roomId);
+    roomFurniture.forEach(f => {
+        const img = document.createElement('img');
+        img.src = f.image_url;
+        img.className = 'furnishing-item';
+        img.style.left = f.pos_x;
+        img.style.top = f.pos_y;
+        img.style.zIndex = f.z_index;
+        img.style.transform = `translate(-50%, -50%) scale(${f.scale})`; 
+        layer.appendChild(img);
+    });
+    closePortal();
+}
+
+async function deleteTrophy(roomId) {
+    await removeData('trophy_rooms', roomId);
+    let allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+    allFurniture = allFurniture.filter(f => f.room_id !== roomId);
+    localStorage.setItem('trophy_furnishings', JSON.stringify(allFurniture));
+    openPortal('inventory');
+}
+
+// === 5. UI LOGIC ===
+function toggleAccordion(button) {
+    button.classList.toggle('active');
+    const panel = button.nextElementSibling;
+    if (panel.style.maxHeight) { panel.style.maxHeight = null; panel.style.padding = "0 15px"; } 
+    else { panel.style.maxHeight = panel.scrollHeight + 30 + "px"; panel.style.padding = "10px 15px"; }
+}
+
+function toggleSection(headerBtn) {
+    headerBtn.classList.toggle('closed');
+    const panel = headerBtn.nextElementSibling;
+    panel.classList.toggle('closed');
+}
+
+// === 6. INTERACTIVE ACTIONS ===
+async function addDynamicItem(table, inputId, portal) {
+    const text = document.getElementById(inputId).value.trim();
+    if (!text) return;
+    await insertData(table, { text: text, is_completed: false });
+    openPortal(portal); 
+}
+
+async function toggleDynamicItem(table, id, currentState, portal) {
+    await updateData(table, id, { is_completed: !currentState });
+    if (!currentState) feedFamiliar();
+    openPortal(portal); 
+}
+
+async function deleteDynamicItem(table, id, portal) {
+    await removeData(table, id);
+    if(portal) openPortal(portal);
+}
+
+async function addDetailedItem(table, titleId, descId, portal) {
+    const title = document.getElementById(titleId).value.trim();
+    const desc = document.getElementById(descId).value.trim();
+    if (!title) return;
+    await insertData(table, { title: title, description: desc });
+    openPortal(portal);
+}
+
+async function deleteDetailedItem(table, id, portal) {
+    await removeData(table, id);
+    openPortal(portal);
+}
+
+// === LEDGER MATH FUNCTIONS ===
+async function addLedgerEntry(table, descId, amtId, portal) {
+    const desc = document.getElementById(descId).value.trim();
+    const amtStr = document.getElementById(amtId).value.trim();
+    const amount = parseFloat(amtStr);
+    if (!desc || isNaN(amount)) return; 
+    await insertData(table, { desc: desc, amount: amount });
+    feedFamiliar();
+    openPortal(portal); 
+}
+
+async function deleteLedgerEntry(table, id, portal) {
+    await removeData(table, id);
+    openPortal(portal);
+}
+
+async function addEvent() {
+    const title = document.getElementById('ev-title').value.trim();
+    const date = document.getElementById('ev-date').value;
+    if (!title) return;
+    document.getElementById('ev-status').innerText = "Scribing...";
+    await insertData('calendar_events', { title: title, start_date: date, text: 'pending' });
+    openPortal('cat');
+}
+
+async function deleteEvent(id) {
+    await removeData('calendar_events', id);
+    openPortal('cat');
+}
+
+async function toggleEvent(id, currentText) {
+    const newState = currentText === 'completed' ? 'pending' : 'completed';
+    await updateData('calendar_events', id, { text: newState });
+    if (newState === 'completed') feedFamiliar();
+    openPortal('cat');
+}
+
+async function submitJournalEntry() {
+    const textInput = document.getElementById('journal-text').value.trim();
+    const fileInput = document.getElementById('journal-image').files[0];
+    const submitBtn = document.getElementById('journal-submit-btn');
+    if (!textInput && !fileInput) return;
+    submitBtn.innerText = "Sealing..."; submitBtn.disabled = true;
+    try {
+        let imageUrl = null;
+        if (fileInput && db) {
+            const fileName = `${Math.random()}.${fileInput.name.split('.').pop()}`;
+            const { error } = await db.storage.from('note-images').upload(fileName, fileInput);
+            if (!error) imageUrl = fileName;
+        } else if (fileInput) {
+             const reader = new FileReader();
+             reader.onload = async (e) => {
+                 await insertData('family_notes', { note: textInput, image_url: e.target.result });
+                 openPortal('teacup');
+             };
+             reader.readAsDataURL(fileInput);
+             return;
+        }
+        await insertData('family_notes', { note: textInput, image_url: imageUrl });
+        openPortal('teacup');
+    } catch (error) { submitBtn.innerText = "Seal Memory"; submitBtn.disabled = false; }
+}
+
+async function deleteJournalEntry(id) {
+    await removeData('family_notes', id);
+    openPortal('teacup');
+}
+
+// === 7. OPEN & CLOSE PORTALS ===
+async function openPortal(portalName) {
+    const overlay = document.getElementById('parchment-overlay');
+    const content = document.getElementById('portal-content');
+    const bg = document.getElementById('bg-art');
+    const soundscape = document.getElementById('soundscape-container'); 
+    overlay.classList.add('active'); if (bg) bg.classList.add('dimmed');
+
+    if (portalName === 'audio') {
+        content.innerHTML = portalData['audio']; 
+        if (soundscape) { content.appendChild(soundscape); soundscape.style.display = 'grid'; }
+        return; 
+    }
+
+    content.innerHTML = `<h2 class="gold-text" style="text-align: center; margin-top: 20px;">Consulting... ⏳</h2>`;
+    if (soundscape) { soundscape.style.display = 'none'; document.body.appendChild(soundscape); }
+
+    if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
+    else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
+    else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
+    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
+    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
+    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
+    else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
+    else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
+    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
+    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
+    else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
+}
+
+function closePortal() {
+    const overlay = document.getElementById('parchment-overlay');
+    const bg = document.getElementById('bg-art');
+    const soundscape = document.getElementById('soundscape-container');
+    overlay.classList.remove('active');
+    if (bg) bg.classList.remove('dimmed');
+    if (soundscape) { soundscape.style.display = 'none'; document.body.appendChild(soundscape); }
+    calMonth = new Date().getMonth(); calYear = new Date().getFullYear();
+}
+
+// === 8. BARDIC SOUNDSCAPES ===
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('play-btn') && e.target.hasAttribute('data-target')) {
+        const audioId = e.target.getAttribute('data-target');
+        const audioEl = document.getElementById(audioId);
+        if (audioEl) {
+            if (audioEl.paused) {
+                audioEl.play().catch(err => console.error("Audio playback failed:", err));
+                e.target.classList.add('active'); e.target.style.color = "#fff";
+            } else {
+                audioEl.pause(); e.target.classList.remove('active'); e.target.style.color = "#d4c8a8";
+            }
+        }
+    }
+});
+
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('volume-slider') && e.target.hasAttribute('data-target')) {
+        const audioId = e.target.getAttribute('data-target');
+        const audioEl = document.getElementById(audioId);
+        if (audioEl) { audioEl.volume = e.target.value; }
+    }
+});
+
+// === 9. THE FAMILIAR ===
+let familiarXP = 0;
+const maxXP = 5;
+
+function feedFamiliar() {
+    if (familiarXP < maxXP) { familiarXP++; updateFamiliarUI(); }
+}
+
+function updateFamiliarUI() {
+    const xpCircle = document.getElementById('xp-circle');
+    const avatar = document.getElementById('familiar-avatar');
+    if (!xpCircle || !avatar) return;
+    const offset = 289 - (289 * (familiarXP / maxXP));
+    xpCircle.style.strokeDashoffset = offset;
+    avatar.className = '';
+    if (familiarXP === 0) {
+        avatar.src = "cat_sleep.jpg"; avatar.classList.add('state-sleeping');
+        xpCircle.style.stroke = "#bf953f";
+    } else if (familiarXP > 0 && familiarXP < maxXP) {
+        avatar.src = "cat_sit.jpg"; avatar.classList.add('state-awake');
+        xpCircle.style.stroke = "#bf953f";
+    } else if (familiarXP === maxXP) {
+        avatar.src = "cat_play.jpg"; avatar.classList.add('state-zoomies');
+        xpCircle.style.stroke = "#fcf6ba";
+    }
+}
+
+function claimFamiliarLoot() {
+    const speech = document.getElementById('familiar-speech');
+    if (!speech) return;
+    if (familiarXP < maxXP) { feedFamiliar(); return; }
+    const lootMessages = ["✨ Purring shadows.", "🦇 Rare gold!", "🔮 Glimmering magic.", "📜 New spells.", "🐾 Headbutt!"];
+    speech.innerText = lootMessages[Math.floor(Math.random() * lootMessages.length)];
+    speech.classList.remove('hidden');
+    setTimeout(() => { speech.classList.add('hidden'); familiarXP = 0; updateFamiliarUI(); }, 4000);
+}
+
+// BIND FORGE SCALE LISTENER SAFELY ON LOAD
+document.addEventListener('DOMContentLoaded', () => {
+    const forgeScale = document.getElementById('forge-scale');
+    if(forgeScale) {
+        forgeScale.addEventListener('input', function(e) {
+            if (editingItem) {
+                editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
+                editingItem.dataset.scale = e.target.value;
+            }
+        });
+    }
+    updateFamiliarUI();
+});
+
+// === 10. SEASONAL & HOLIDAY TIME-WEAVER ===
+function applySeasonalDecor() {
+    const today = new Date();
+    const month = today.getMonth(); 
+    const day = today.getDate();
+    const body = document.body;
+    const decorOverlay = document.getElementById('decor-overlay');
+    let decorSrc = ""; 
+
+    if (month === 11 || month === 0 || month === 1) {
+        body.classList.add('season-winter'); 
+        decorSrc = "decor_winter.png";
+    } else if (month >= 2 && month <= 4) {
+        body.classList.add('season-spring'); 
+        decorSrc = "decor_spring.png";
+    } else if (month >= 5 && month <= 7) {
+        body.classList.add('season-summer'); 
+        decorSrc = "decor_summer.png";
+    } else if (month >= 8 && month <= 10) {
+        body.classList.add('season-autumn'); 
+        decorSrc = "decor_autumn.png";
+    }
+
+    if (month === 9 && day >= 24 && day <= 31) {
+        body.classList.add('holiday-halloween');
+        decorSrc = "decor_halloween.png";
+    }
+    
+    if (month === 11 && day >= 15 && day <= 26) {
+        body.classList.add('holiday-yule');
+        decorSrc = "decor_yule.png";
+    }
+    
+    if (month === 1 && day >= 10 && day <= 15) {
+        body.classList.add('holiday-valentines');
+        decorSrc = "decor_valentines.png";
+    }
+
+    if (decorOverlay && decorSrc !== "") {
+        decorOverlay.src = decorSrc;
+        decorOverlay.classList.add('active');
+    }
+}
+
+applySeasonalDecor();
