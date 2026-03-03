@@ -383,7 +383,6 @@ const myHerbs = [
         description: "Soothing for the lungs. Excellent for clearing the chest during those damp Tennessee months." 
     }
 ];
-];
 
 const mySewing = [
     { title: "Hearth Apron", status: "Completed", fabric: "Sturdy Canvas", notes: "Added deep pockets for gathering herbs." }
