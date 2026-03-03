@@ -355,7 +355,303 @@ const myTeas = [
 ];
 
 const myApothecary = [
-    { title: "Vibrant Ink Protectant Salve", icon: "🏺", description: "A deeply nourishing balm to protect and preserve skin artwork.", ingredients: "Beeswax, Shea Butter, Calendula Oil, Vitamin E", instructions: "Melt the wax and butter over a low hearth. Remove from heat, stir in the oils, and pour into a glass tin to set." }
+    // --- THE INK-KEEPER (Tattoo Care & Preservation) ---
+    { 
+        title: "Vibrant Ink Protectant Salve", 
+        icon: "🏺", 
+        description: "A deeply nourishing balm to protect and preserve skin artwork, keeping lines sharp and colors true.", 
+        ingredients: "Beeswax, Shea Butter, Calendula Oil, Vitamin E", 
+        instructions: "Melt the wax and butter over a low hearth. Remove from heat, stir in the oils, and pour into a glass tin to set." 
+    },
+    { 
+        title: "Soothe-and-Seal Tattoo Wash", 
+        icon: "🧼", 
+        description: "A gentle, antimicrobial cleanser for fresh ink that prevents irritation without stripping moisture.", 
+        ingredients: "Liquid Castille Soap, Distilled Water, Lavender Essential Oil, Tea Tree Oil", 
+        instructions: "Dilute the soap with water (1:3 ratio). Add 5 drops of each oil. Shake gently before use." 
+    },
+
+    // --- THE COURIER’S KITS (Stamina & Road Recovery for Dashing) ---
+    { 
+        title: "Dasher’s Focus Temple Balm", 
+        icon: "🧠", 
+        description: "A cooling, aromatic balm to rub on temples during long delivery shifts to combat road fatigue.", 
+        ingredients: "Coconut Oil, Peppermint Oil, Rosemary Oil, Eucalyptus Oil", 
+        instructions: "Blend oils into softened coconut oil. Apply to pressure points for an instant mental 'refresh'." 
+    },
+    { 
+        title: "Anti-Traffic Tension Roll-On", 
+        icon: "🚗", 
+        description: "A portable oil blend to soothe the nerves during heavy traffic or difficult delivery windows.", 
+        ingredients: "Jojoba Oil, Bergamot Essential Oil, Frankincense Oil", 
+        instructions: "Combine in a 10ml roller bottle. Apply to wrists and breathe deeply when road stress rises." 
+    },
+    { 
+        title: "Hearth-Bound Muscle Soak", 
+        icon: "🛁", 
+        description: "A powerful recovery salt blend for tired legs and backs after a day of driving through Adamsville.", 
+        ingredients: "Epsom Salts, Pink Himalayan Salt, Ginger Powder, Juniper Berry Oil", 
+        instructions: "Mix salts and powder in a jar. Add 10 drops of oil. Dissolve 1 cup into a hot bath for deep restoration." 
+    },
+
+    // --- THE APPRENTICE’S AID (Family & Homeschooling) ---
+    { 
+        title: "Quiet-Mind Pillow Spray", 
+        icon: "💤", 
+        description: "A gentle mist to transition the apprentices from lessons to sleep, calming restless energy.", 
+        ingredients: "Witch Hazel, Distilled Water, Chamomile Oil, Clary Sage Oil", 
+        instructions: "Combine in a dark glass spray bottle. Lightly mist bed linens ten minutes before sleep." 
+    },
+    { 
+        title: "Gilded Immunity Elderberry Syrup", 
+        icon: "🍷", 
+        description: "A daily tonic to bolster the family’s defenses against the Tennessee seasonal changes.", 
+        ingredients: "Dried Elderberries, Cinnamon Sticks, Cloves, Fresh Ginger, Raw Honey", 
+        instructions: "Simmer berries and spices in water for 45 mins. Strain, let cool slightly, and stir in honey until thick." 
+    },
+    { 
+        title: "Focus-Fire Study Mist", 
+        icon: "📚", 
+        description: "A bright, clarifying room spray to use in the homeschooling area to help the children focus on their tasks.", 
+        ingredients: "Distilled Water, Lemon Oil, Rosemary Oil, Peppermint Oil", 
+        instructions: "Combine in a spray bottle. Shake and spritz the air at the start of a new curriculum quest." 
+    },
+
+    // --- THE ALCHEMIST’S AESTHETIC (Gothic & Lisa Frank Inspired Care) ---
+    { 
+        title: "Blonde-Streak Brightening Rinse", 
+        icon: "✨", 
+        description: "A natural rinse to keep your blonde streak vibrant and clear of brassy tones.", 
+        ingredients: "Strongly brewed Chamomile tea, Lemon juice, Apple Cider Vinegar", 
+        instructions: "Mix cooled tea with a splash of juice and vinegar. Use as a final rinse after washing hair." 
+    },
+    { 
+        title: "Velvet Midnight Hair Mask", 
+        icon: "🌙", 
+        description: "A deep conditioning treatment for your graduated bob, maintaining that sleek, gothic shine.", 
+        ingredients: "Argan Oil, Avocado Oil, Rosemary Essential Oil", 
+        instructions: "Warm the oils slightly. Massage through damp hair, focusing on the ends. Wrap in a warm towel for 20 mins before washing." 
+    },
+    { 
+        title: "Neon-Flora Lip Glaze", 
+        icon: "💄", 
+        description: "A vibrant, Lisa Frank-inspired tinted balm that provides a pop of color with apothecary-grade hydration.", 
+        ingredients: "Beeswax, Coconut Oil, Beetroot Powder (for tint), Sweet Orange Oil", 
+        instructions: "Melt wax and oil. Stir in beetroot powder until the desired pink/red is achieved. Add oil and pour into tins." 
+    },
+    { 
+        title: "Gothic Velvet Facial Serum", 
+        icon: "🖤", 
+        description: "A luxurious, dark-themed oil for nighttime skin repair, matching your midnight aesthetics.", 
+        ingredients: "Rosehip Seed Oil, Argan Oil, Frankincense Resin, Dried Rose Petals", 
+        instructions: "Infuse petals in oils for one full moon cycle. Strain and apply 3 drops before sleep for a velvet finish." 
+    },
+            
+    // --- THE ARTISAN'S MAINTENANCE (For the Workshop & Gear) ---
+    { 
+        title: "Iron-Heart Blade Oil", 
+        icon: "⚔️", 
+        description: "A protective oil to prevent rust on your workshop tools and kitchen knives.", 
+        ingredients: "Mineral Oil, Clove Essential Oil", 
+        instructions: "Mix a few drops of clove oil into the mineral oil. Apply a thin layer to metal surfaces after cleaning to ward off dampness." 
+    },
+    { 
+        title: "Scribe’s Screen & Glass Cleanser", 
+        icon: "🖥️", 
+        description: "A streak-free, gentle cleaner for your development monitors and tablets.", 
+        ingredients: "Distilled Water, Isopropyl Alcohol (70%), 1 drop Dish Soap", 
+        instructions: "Mix in a fine-mist spray bottle. Spray onto a microfiber cloth (never the screen!) and wipe in a circular motion." 
+    },
+
+    // --- SEASONAL SHIELDS (For Tennessee Weather) ---
+    { 
+        title: "Storm-Soothe Chest Rub", 
+        icon: "🌬️", 
+        description: "A warming, vapor-style rub for the damp chill of an ice storm or rainy season.", 
+        ingredients: "Olive Oil, Beeswax, Eucalyptus Oil, Camphor Oil", 
+        instructions: "Melt oil and wax. Stir in essential oils as it cools. Massage onto chest and back to open the airways." 
+    },
+    { 
+        title: "Hearth-Fire Hand Salve", 
+        icon: "🧤", 
+        description: "A heavy-duty repair cream for dry, cracked skin caused by cold winter air and frequent washing.", 
+        ingredients: "Lanolin, Coconut Oil, Honey, Calendula Petals", 
+        instructions: "Infuse oil with petals, strain, then whisk in lanolin and honey until a thick, buttery paste forms." 
+    },
+
+    // --- THE COURIER'S COMFORT (For Long Shifts) ---
+    { 
+        title: "Fresh-Air Car Diffuser Blend", 
+        icon: "🌬️", 
+        description: "A bright, deodorizing blend to keep the 'Dasher-mobile' smelling like a sanctuary, even after food deliveries.", 
+        ingredients: "Lemon Oil, Grapefruit Oil, Pine Oil", 
+        instructions: "Drop onto a hanging clay ornament or wooden clip. The citrus cuts through food odors while the pine grounds the energy." 
+    },
+    { 
+        title: "Road-Steady Eye Compress", 
+        icon: "👁️", 
+        description: "A cooling treatment for tired, strained eyes after hours of night driving or coding.", 
+        ingredients: "Dried Cornflowers or Green Tea bags, Chilled Water", 
+        instructions: "Steep the herbs/tea, then chill the liquid. Soak cotton pads and rest over closed eyes for 10 minutes." 
+    },
+
+    // --- HOUSEHOLD SPIRIT (Atmosphere & Calm) ---
+    { 
+        title: "Gothic Rose Floor Wash", 
+        icon: "🥀", 
+        description: "A traditional cleansing wash to refresh the energy of the home and leave a faint, dark floral scent.", 
+        ingredients: "Hot Water, White Vinegar, Rose Water, Sea Salt", 
+        instructions: "Add ingredients to your mop bucket. The salt and vinegar 'clear' the space, while the rose water invites beauty." 
+    },
+    { 
+        title: "Lisa Frank 'Electric' Room Spray", 
+        icon: "🌈", 
+        description: "A high-vibe, colorful scent profile that makes the homeschooling area feel energetic and fun.", 
+        ingredients: "Witch Hazel, Orange Oil, Ylang Ylang, Vanilla Extract", 
+        instructions: "Combine in a spray bottle. It smells like 'bright sunshine and candy,' perfect for lifting the mood during math lessons." 
+    },
+
+    // --- ALCHEMICAL FIRST AID ---
+    { 
+        title: "Minor Burn Butter", 
+        icon: "🔥", 
+        description: "A cooling balm for minor kitchen mishaps or small workshop singes.", 
+        ingredients: "Aloe Vera Gel, Lavender Oil, Vitamin E Oil", 
+        instructions: "Whisk together until emulsified. Keep in the refrigerator for an extra cooling 'ice-spell' effect." 
+    },
+    { 
+        title: "The 'Bruise-Be-Gone' Liniment", 
+        icon: "🩹", 
+        description: "Speeds up the healing of bumps and bruises for active apprentices and busy parents.", 
+        ingredients: "Witch Hazel, Arnica Flowers (Infused), St. John’s Wort Oil", 
+        instructions: "Soak arnica in witch hazel for 2 weeks. Strain and mix with oil. Rub gently onto bruised areas." 
+    },
+    
+    // --- THE GOTHIC COLLECTION (Dark & Moody) ---
+    { 
+        title: "Obsidian Velvet Lip Stain", 
+        icon: "💄", 
+        description: "A deep, berry-to-black lip stain with a matte finish, perfect for a classic gothic look.", 
+        ingredients: "Beeswax, Jojoba Oil, Activated Charcoal (for black) or Beetroot Powder (for deep plum)", 
+        instructions: "Melt wax and oil. Whisk in charcoal or beetroot powder until the desired 'midnight' shade is achieved. Pour into a small glass pot to set." 
+    },
+    { 
+        title: "Raven's Wing Eye Coal", 
+        icon: "👁️", 
+        description: "A traditional, smudgeable cream eyeliner inspired by ancient kohl, providing a dark, dramatic frame for glasses.", 
+        ingredients: "Activated Charcoal, Shea Butter, a drop of Vitamin E Oil", 
+        instructions: "Slowly fold charcoal into softened shea butter until a thick, jet-black paste forms. Apply with a fine brush for a smokey, gothic effect." 
+    },
+
+    // --- THE LISA FRANK COLLECTION (Vibrant & Neon) ---
+    { 
+        title: "Electric Prism Highlighter", 
+        icon: "🌈", 
+        description: "A multi-tonal, shimmering cream that catches the light in vibrant pinks and purples.", 
+        ingredients: "Magnesium Stearate, Cosmetic-grade Neon Micas (Pink/Purple), Fractionated Coconut Oil", 
+        instructions: "Press the micas into the magnesium stearate. Add oil drop by drop until it forms a creamy, iridescent paste. Swipe on cheekbones for a high-energy glow." 
+    },
+    { 
+        title: "Neon-Flora Cheek Tint", 
+        icon: "🌸", 
+        description: "A bright, 'Electric Pink' cream blush that provides a pop of Lisa Frank-inspired color.", 
+        ingredients: "Alkanet Root Infused Oil, White Kaolin Clay, Beeswax", 
+        instructions: "Melt the wax into the infused red oil. Stir in kaolin clay to create an opaque, vibrant pink cream. Dabs on smoothly for a bold, artistic finish." 
+    },
+
+    // --- THE Y2K COLLECTION (Frosty & Shimmering) ---
+    { 
+        title: "Cyber-Frost Eye Glaze", 
+        icon: "❄️", 
+        description: "A frosty, shimmering white-silver cream eyeshadow that perfectly captures the turn-of-the-millennium aesthetic.", 
+        ingredients: "Aloe Vera Gel, Silver Mica Powder, Vegetable Glycerin", 
+        instructions: "Whisk silver mica into the aloe gel and glycerin. The result is a cooling, holographic glaze that stays 'wet' and bright all day." 
+    },
+    { 
+        title: "Millennium Glitz Lip Gloss", 
+        icon: "✨", 
+        description: "A high-shine, non-sticky clear gloss with suspended holographic glitter.", 
+        ingredients: "Castor Oil (for shine), Lanolin, Biodegradable Holographic Glitter", 
+        instructions: "Mix castor oil and lanolin until smooth. Stir in a generous amount of glitter. This provides the classic 'Y2K' shine while nourishing the skin." 
+    },
+
+    // --- ALCHEMICAL FINISHING TOUCHES ---
+    { 
+        title: "Obsidian Armor Nail Tonic", 
+        icon: "💅", 
+        description: "A strengthening oil to keep nails resilient beneath dark or vibrant polishes.", 
+        ingredients: "Horsetail-infused Olive Oil, Lemon Essential Oil, Myrrh Resin", 
+        instructions: "Soak myrrh resin in the oil for one week. Strain and add lemon oil. Massage into cuticles daily to prevent breakage and maintain nail health." 
+    },
+    { 
+        title: "Spectral Setting Mist", 
+        icon: "🌫️", 
+        description: "A lightweight spray to lock in your makeup and provide a faint, ethereal 'glow'.", 
+        ingredients: "Rose Water, Witch Hazel, a tiny pinch of Pearl Mica", 
+        instructions: "Combine in a fine-mist bottle. Shake well before each use to suspend the pearl mica, creating a 'ghostly' but beautiful finish." 
+    },
+    
+    // --- BODY LORE & LOTIONS ---
+    { 
+        title: "Midnight Velvet Body Butter", 
+        icon: "🌑", 
+        description: "A thick, luxurious cream for night-time restoration, perfect for keeping skin soft during the dry Tennessee winters.", 
+        ingredients: "Mango Butter, Grapeseed Oil, Dried Hibiscus (for a deep purple tint), Vanilla Bean", 
+        instructions: "Infuse the oil with hibiscus and vanilla for 2 hours on low heat. Strain, let cool until semi-solid, then whip with mango butter until it reaches a cloud-like consistency." 
+    },
+    { 
+        title: "Neon Glow Shimmer Lotion", 
+        icon: "🌈", 
+        description: "A bright, Lisa Frank-inspired body lotion that leaves a multi-tonal holographic shimmer on the skin.", 
+        ingredients: "Aloe Vera Gel, Sweet Almond Oil, Pink and Blue Eco-Glitter, Peach Essence", 
+        instructions: "Emulsify the aloe and oil by whisking vigorously. Fold in the eco-glitter and peach essence. Provides a vibrant, 'electric' glow for summer days by the pool." 
+    },
+    { 
+        title: "Dasher’s Heel & Pedal Shield", 
+        icon: "👣", 
+        description: "A heavy-duty barrier balm designed specifically for the foot fatigue and dry heels caused by long delivery shifts.", 
+        ingredients: "Beeswax, Neem Oil, Peppermint Essential Oil, Arnica Infusion", 
+        instructions: "Melt beeswax and arnica oil. Add neem and peppermint. Pour into a wide tin. The arnica soothes muscle strain while the peppermint provides a cooling 'stamina boost'." 
+    },
+
+    // --- ALCHEMICAL SCRUBS ---
+    { 
+        title: "Graveyard Dirt Coffee Scrub", 
+        icon: "⚰️", 
+        description: "A gritty, dark-themed scrub that uses caffeine to tighten the skin and charcoal to draw out impurities.", 
+        ingredients: "Spent Coffee Grounds, Brown Sugar, Activated Charcoal, Coconut Oil", 
+        instructions: "Mix dry ingredients until the color is a uniform 'earthy' black. Fold in coconut oil until the texture resembles damp soil. Best used in the morning for a gothic wake-up call." 
+    },
+    { 
+        title: "Cyber-Frost Peppermint Scrub", 
+        icon: "❄️", 
+        description: "A Y2K-inspired, tingly sugar scrub that leaves the skin feeling icy and refreshed.", 
+        ingredients: "White Sugar, Fractionated Coconut Oil, Blue Spirulina (for color), Peppermint Oil", 
+        instructions: "Blend the sugar and oil. Add a tiny pinch of blue spirulina for a 'frosted' look. The peppermint provides a sharp, metallic-cold sensation that wakes up the senses." 
+    },
+    { 
+        title: "Apprentice 'Candy-Shop' Salt Scrub", 
+        icon: "🍭", 
+        description: "A gentle, colorful scrub for the kids to use after a day of outdoor play and swimming.", 
+        ingredients: "Fine Sea Salt, Jojoba Oil, Watermelon Extract, Beetroot Powder (for pink swirls)", 
+        instructions: "Divide the salt into two bowls. Tint one pink with beetroot. Layer them in a jar with jojoba oil to create a vibrant 'candy-stripe' effect." 
+    },
+
+    // --- COSMETIC ALCHEMY ---
+    { 
+        title: "Phantom Color-Shift Lip Gloss", 
+        icon: "🔮", 
+        description: "A gothic gloss that appears deep purple in the vial but shifts to a custom berry pink based on skin pH.", 
+        ingredients: "Castor Oil, Red 27 (Lip-safe color shift pigment), Gold Mica", 
+        instructions: "Mix the pigment into the castor oil until dissolved. Add a pinch of gold mica for a 'magical' sparkle. The result is a sheer, personalized tint." 
+    },
+    { 
+        title: "Stardust Setting Powder", 
+        icon: "✨", 
+        description: "A lightweight, translucent powder that blurs imperfections beneath glasses and provides a matte finish.", 
+        ingredients: "Arrowroot Powder, Kaolin Clay, a pinch of French Green Clay (to neutralize redness)", 
+        instructions: "Sift the powders together through a fine mesh three times. Store in a shaker jar and apply with a large, fluffy brush to lock in your 'Raven’s Wing' eyeliner." 
+    }
 ];
 
 const myHerbs = [
