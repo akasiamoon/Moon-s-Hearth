@@ -117,7 +117,12 @@ h2, .gold-text {
 ::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
 
 .portal-scroll-container {
-    margin-top: 15px; max-height: 50vh; overflow-y: auto; padding-right: 10px; text-align: left;
+    margin-top: 15px; 
+    max-height: 70vh; /* Increased from 50vh to give you more room */
+    overflow-y: auto; 
+    padding-right: 10px; 
+    text-align: left;
+    -webkit-overflow-scrolling: touch; /* Ensures smooth scrolling on mobile/tablets */
 }
 
 /* --- 9. AUDIO GRIMOIRE --- */
