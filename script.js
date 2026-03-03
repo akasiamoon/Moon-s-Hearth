@@ -255,7 +255,98 @@ const myApothecary = [
 ];
 
 const myHerbs = [
-    { title: "Lavender", icon: "🪻", properties: "Restoration & Calm", description: "Hang near the window to sweeten the breeze. Excellent for sleep pillows and soothing teas." }
+    // --- FOCUS & DEVELOPMENT (For Unity, CSS, & Python) ---
+    { 
+        title: "Rosemary", 
+        icon: "🌿", 
+        properties: "Memory & Mental Clarity", 
+        description: "The 'Herb of Remembrance.' Burn as incense or keep fresh at your workstation to stay sharp during complex app development." 
+    },
+    { 
+        title: "Gotu Kola", 
+        icon: "🍀", 
+        properties: "Cognitive Support", 
+        description: "A staple for deep focus. It helps sustain the mental energy required for long coding sessions and game design." 
+    },
+    { 
+        title: "Ginkgo Biloba", 
+        icon: "🍃", 
+        properties: "Circulation & Vision", 
+        description: "Supports blood flow to the brain and eye health—essential for long hours spent looking at screens while homeschooling or dev work." 
+    },
+
+    // --- STAMINA & ENERGY (For Delivery Shifts & Busy Days) ---
+    { 
+        title: "Peppermint", 
+        icon: "🌱", 
+        properties: "Vigilance & Digestion", 
+        description: "A bright, waking herb. Perfect as a mid-shift tea during DoorDash runs to maintain alertness and settle the stomach." 
+    },
+    { 
+        title: "Nettle", 
+        icon: "🌿", 
+        properties: "Nutrient Density & Vitality", 
+        description: "Rich in iron and minerals. Brew as a nourishing infusion to maintain physical stamina through demanding Tennessee winters." 
+    },
+    { 
+        title: "Ginseng", 
+        icon: "🪵", 
+        properties: "Adrenal Support", 
+        description: "A powerful adaptogen that helps the body manage stress and fatigue, keeping your energy steady across multiple tasks." 
+    },
+
+    // --- PEACE & HOUSEHOLD (For Family & Homeschooling) ---
+    { 
+        title: "Lavender", 
+        icon: "🪻", 
+        properties: "Restoration & Calm", 
+        description: "Excellent for sleep pillows and soothing teas to calm the household after a day of outdoor play." 
+    },
+    { 
+        title: "Chamomile", 
+        icon: "🌼", 
+        properties: "Gentle Sleep & Ease", 
+        description: "The ultimate 'quiet time' herb. Use it to transition the apprentices from lessons to rest." 
+    },
+    { 
+        title: "Lemon Balm", 
+        icon: "🍋", 
+        properties: "Bright Mood & Anxiety Relief", 
+        description: "A gentle, sunny herb that lifts the spirit. Great for reducing the stress of a busy schedule or homeschooling challenges." 
+    },
+    { 
+        title: "Catnip", 
+        icon: "🐈", 
+        properties: "Relaxation (For Humans Too!)", 
+        description: "While it makes your Alinor Familiar zoomy, as a tea it is incredibly soothing for humans and helps settle restless energy." 
+    },
+
+    // --- PROTECTION & WELLNESS ---
+    { 
+        title: "Elderberry", 
+        icon: "🫐", 
+        properties: "Immunity & Seasonal Shield", 
+        description: "A powerful ally for the changing seasons. Brew into a syrup to ward off the winter chill." 
+    },
+    { 
+        title: "Echinacea", 
+        icon: "🌸", 
+        properties: "Immune Activation", 
+        description: "Used at the first sign of a 'glitch' in your health to boost the body's natural defenses." 
+    },
+    { 
+        title: "Calendula", 
+        icon: "🧡", 
+        properties: "Skin Healing", 
+        description: "A bright orange bloom used in salves to soothe skin. (Keep this in mind for our future tattoo preservation recipes!)." 
+    },
+    { 
+        title: "Yarrow", 
+        icon: "🦴", 
+        properties: "Boundaries & Stopping Flow", 
+        description: "A traditional 'wound-wort.' Historically used to stop bleeding, it is also used metaphorically for energetic protection." 
+    }
+];
 ];
 
 const mySewing = [
