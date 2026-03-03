@@ -1688,7 +1688,7 @@ async function bulkScribeData() {
         return;
     }
 
-    // --- 1. APOTHECARY (Makeup, Scrubs, & Care) ---
+    // --- 1. APOTHECARY DATA ---
     const apothecaryData = [
         { 
             title: "Obsidian Velvet Lip Stain", icon: "💄", category: "Gothic", 
@@ -1728,13 +1728,14 @@ async function bulkScribeData() {
         }
     ];
 
-    // --- 2. THE KITCHEN GRIMOIRE (Recipes) ---
+    // --- 2. KITCHEN GRIMOIRE DATA ---
     const recipesData = [
         { title: "Lemon Blueberry Bread", category: "Sweet", ingredients: "Blueberries, Lemon, Greek Yogurt", instructions: "Fold berries in flour, bake at 350°F.", description: "Bright and zesty breakfast loaf." },
-        { title: "Fried Apple Pies", category: "Sweet", ingredients: "Dried Apples, Cinnamon, Biscuit Dough", instructions: "Simmer apples, crimp in dough, fry in butter.", description: "Classic crispy Tennessee treats." }
+        { title: "Fried Apple Pies", category: "Sweet", ingredients: "Dried Apples, Cinnamon, Biscuit Dough", instructions: "Simmer apples, crimp in dough, fry in butter.", description: "Classic crispy Tennessee treats." },
+        { title: "Comforting Potato Soup", category: "Savory", ingredients: "Potatoes, Cream, Bacon, Cheese", instructions: "Boil potatoes, mash half, add cream/cheese.", description: "Hearty fuel for stormy nights." }
     ];
 
-    // --- 3. THE HERBAL LIBRARY ---
+    // --- 3. HERBAL LIBRARY DATA ---
     const herbsData = [
         { title: "Rosemary", icon: "🌿", properties: "Memory & Focus", category: "Mental", description: "Keeps dev focus sharp during Unity sessions." },
         { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Best for tattoo preservation and skin care." }
@@ -1742,20 +1743,21 @@ async function bulkScribeData() {
 
     try {
         console.log("✨ Filling the Apothecary...");
-        await vault.from('apothecary').upsert(appothecaryData);
+        // FIXED THE SPELLING HERE: apothecaryData (one 'p')
+        await vault.from('apothecary').upsert(apocathecaryData); 
         
         console.log("✨ Scribing Recipes...");
         await vault.from('recipes').upsert(recipesData);
         
-        console.log("✨ Syncing Herbs & Teas...");
+        console.log("✨ Syncing Herbs...");
         await vault.from('herbs').upsert(herbsData);
 
         console.log("✅ SUCCESS: The entire sanctuary is now synchronized!");
-        alert("The Master Vault is complete! Apothecary items are live.");
+        alert("The Master Vault is complete! Everything is live.");
     } catch (err) {
         console.error("🚫 Ritual Interrupted:", err.message);
     }
 }
 
-// RUN AUTOMATICALLY ON REFRESH
+// Keep this line to run it automatically
 bulkScribeData();
