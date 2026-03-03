@@ -1678,4 +1678,41 @@ async function bulkScribeData() {
         console.error("🚫 Ritual Interrupted:", err.message);
     }
 }
-bulkScribeData();
+async function bulkScribeData() {
+    console.log("📜 Starting the Bulk Scribe ritual...");
+
+    // This part makes sure we use the right connection name (db or supabase)
+    const vault = (typeof db !== 'undefined') ? db : supabase;
+
+    if (!vault.from) {
+        console.error("🚫 The Vault Key is missing! Check if your Supabase connection is named 'db' at the top of the script.");
+        return;
+    }
+
+    const herbsData = [
+        { title: "Rosemary", icon: "🌿", properties: "Memory & Focus", category: "Mental", description: "The 'Herb of Remembrance.' Keeps dev focus sharp." },
+        { title: "Gotu Kola", icon: "🍀", properties: "Cognitive Support", category: "Mental", description: "Sustains mental energy for Unity/Python sessions." },
+        { title: "Ginkgo Biloba", icon: "🍃", properties: "Vision & Circulation", category: "Mental", description: "Essential for long screen hours during homeschooling." },
+        { title: "Peppermint", icon: "🌱", properties: "Vigilance", category: "Energy", description: "Bright, waking herb for mid-shift DoorDash focus." },
+        { title: "Nettle", icon: "🌿", properties: "Vitality", category: "Energy", description: "Mineral-rich infusion for Tennessee winters." },
+        { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Bright orange bloom for tattoo preservation." }
+    ];
+
+    const teasData = [
+        { title: "Road-Warrior's Yerba Mate", icon: "🧉", brew_instructions: "5 mins @ 165°F", category: "High Energy", description: "Steady energy for long delivery shifts." },
+        { title: "Matcha Focus Fuel", icon: "🍵", brew_instructions: "Whisk @ 175°F", category: "High Energy", description: "Calm alertness for tracking orders." }
+    ];
+
+    try {
+        // We use 'vault' here instead of 'supabase' to avoid the error
+        const { error: herbErr } = await vault.from('herbs').upsert(herbsData);
+        const { error: teaErr } = await vault.from('teas').upsert(teasData);
+
+        if (herbErr || teaErr) throw new Error("The scribe's ink ran dry!");
+
+        console.log("✅ The Vaults have been filled!");
+        alert("Success! Your library is now live in Supabase.");
+    } catch (err) {
+        console.error("🚫 Ritual Interrupted:", err.message);
+    }
+}
