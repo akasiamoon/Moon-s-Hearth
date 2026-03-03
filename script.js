@@ -1719,3 +1719,87 @@ async function bulkScribeData() {
 
 // RUN AUTOMATICALLY ON REFRESH
 bulkScribeData();
+// --- THE AUTO-SHRINK RITUAL ---
+async function uploadAsset() {
+    const nameInput = document.getElementById('asset-name').value.trim();
+    const fileInput = document.getElementById('asset-image');
+    const statusDiv = document.getElementById('asset-file-name'); // Ensure this ID exists for feedback
+    const file = fileInput.files[0];
+
+    // Detect your connection (db or supabase)
+    const vault = (typeof db !== 'undefined') ? db : (typeof supabase !== 'undefined' ? supabase : null);
+
+    if (!nameInput || !file || !vault) {
+        statusDiv.innerText = "⚠️ Missing name, file, or vault connection!";
+        return;
+    }
+
+    statusDiv.innerText = "✨ Resizing & compressing...";
+
+    // 1. Resize the image before uploading
+    resizeImage(file, 800, async (resizedBlob) => {
+        try {
+            const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+            
+            statusDiv.innerText = "🚀 Sending to the cloud...";
+
+            // 2. Upload the resized Blob to Supabase Storage
+            const { data, error: uploadError } = await vault.storage
+                .from('assets')
+                .upload(fileName, resizedBlob, { contentType: 'image/png' });
+
+            if (uploadError) throw uploadError;
+
+            // 3. Get the Public URL
+            const { data: urlData } = vault.storage.from('assets').getPublicUrl(fileName);
+            const publicUrl = urlData.publicUrl;
+
+            statusDiv.innerText = "📜 Recording in the stash...";
+
+            // 4. Save the link to your database table
+            const { error: dbError } = await vault.from('housing_assets').insert([
+                { name: nameInput, image_url: publicUrl, category: 'Furniture' }
+            ]);
+
+            if (dbError) throw dbError;
+
+            statusDiv.innerText = "✅ Stashed successfully!";
+            fileInput.value = ""; // Clear the input
+            document.getElementById('asset-name').value = "";
+            
+            // Refresh your inventory display if you have a loader
+            if (typeof loadInventory === "function") loadInventory();
+
+        } catch (err) {
+            console.error("Forge Error:", err);
+            statusDiv.innerText = "🚫 Forge failed: " + err.message;
+        }
+    });
+}
+
+// --- HELPER: THE SHRINKING SPELL ---
+function resizeImage(file, maxWidth, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            
+            // Calculate new height to maintain aspect ratio
+            const scale = maxWidth / img.width;
+            canvas.width = maxWidth;
+            canvas.height = img.height * scale;
+
+            const ctx = canvas.getContext('2d');
+            // Draw image onto the smaller canvas
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas back to a PNG Blob
+            canvas.toBlob((blob) => {
+                callback(blob);
+            }, 'image/png');
+        };
+    };
+}
