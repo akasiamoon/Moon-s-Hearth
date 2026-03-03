@@ -482,20 +482,26 @@ let draftBgUrl = '';
 
 async function buildInventoryHTML() {
     let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
+    
+    // --- Trophy Gallery ---
     html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div><div class="section-panel closed"><div style="margin-top: 10px;">`;
     const rooms = await loadData('trophy_rooms');
-    if (rooms.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">No sanctuaries forged yet.</p>`;
-    rooms.forEach(room => {
-        html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;">
-                    <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
-                    <div>
-                        <button class="portal-btn" style="padding: 4px 8px; font-size: 0.7em; border-color:#8fce00; color:#8fce00;" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button>
-                        <button class="action-btn" style="color: #ff6b6b; margin-left:10px;" onclick="deleteTrophy('${room.id}')">✕</button>
-                    </div>
-                 </div>`;
-    });
+    if (!rooms || rooms.length === 0) {
+        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">No sanctuaries forged yet.</p>`;
+    } else {
+        rooms.forEach(room => {
+            html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;">
+                        <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
+                        <div>
+                            <button class="portal-btn" style="padding: 4px 8px; font-size: 0.7em; border-color:#8fce00; color:#8fce00;" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button>
+                            <button class="action-btn" style="color: #ff6b6b; margin-left:10px;" onclick="deleteTrophy('${room.id}')">✕</button>
+                        </div>
+                     </div>`;
+        });
+    }
     html += `</div></div>`;
 
+    // --- Forge Section ---
     html += `<div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
                 <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; text-align:center;">
                     <p style="color:#d4c8a8; font-size:0.85em; margin-top:0;">Upload a base background to enter the Forge.</p>
@@ -504,6 +510,7 @@ async function buildInventoryHTML() {
                 </div>
              </div>`;
 
+    // --- The Grand Stash ---
     html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div><div class="section-panel closed">
                 <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px;">
                     <input type="text" id="asset-name" placeholder="Asset Name..." class="portal-input" style="margin-bottom: 10px;">
@@ -514,15 +521,21 @@ async function buildInventoryHTML() {
                     </div><div id="asset-file-name" style="font-size: 0.8em; color: #bf953f; margin-top: 5px; font-style: italic;"></div>
                 </div>
                 <h3 style="color:#fcf6ba; font-family:'Cinzel'; font-size:0.9em; margin-top:15px; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:5px;">Current Stash</h3>
-                <div id="stash-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 10px;">`;
+                <div id="stash-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px;">`;
     
     const stash = await loadData('inventory_stash');
-    stash.forEach(item => {
-        html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
-                    <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain; cursor:pointer;" onclick="spawnToForge('${item.image_url}')">
-                    <button class="action-btn" style="position:absolute; top:-5px; right:-5px; background:#000; border-radius:50%; width:18px; height:18px; font-size:10px; color:#ff6b6b; padding:0; border:1px solid #ff6b6b;" onclick="event.stopPropagation(); deleteDynamicItem('inventory_stash', '${item.id}', 'inventory')">✕</button>
-                 </div>`;
-    });
+    
+    if (!stash || stash.length === 0) {
+        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center; grid-column: 1/-1;">Your stash is empty. Upload a PNG above.</p>`;
+    } else {
+        stash.forEach(item => {
+            html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
+                        <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; cursor:pointer;" onclick="spawnToForge('${item.image_url}')">
+                        <div style="font-size:0.6em; color:#bf953f; margin-top:2px;">${item.name}</div>
+                        <button class="action-btn" style="position:absolute; top:-5px; right:-5px; background:#000; border-radius:50%; width:18px; height:18px; font-size:10px; color:#ff6b6b; padding:0; border:1px solid #ff6b6b;" onclick="event.stopPropagation(); deleteDynamicItem('inventory_stash', '${item.id}', 'inventory')">✕</button>
+                     </div>`;
+        });
+    }
     html += `</div></div>`;
 
     return html + `</div>`;
