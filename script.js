@@ -1679,85 +1679,43 @@ async function bulkScribeData() {
     }
 }
 async function bulkScribeData() {
-    console.log("📜 Filling the High-Level Vaults (Herbs, Teas, Recipes, & Apothecary)...");
+    console.log("📜 Starting the Total Sanctuary Sync...");
 
+    // Detecting your connection (usually 'db' in your project)
     const vault = (typeof db !== 'undefined') ? db : (typeof supabase !== 'undefined' ? supabase : null);
 
     if (!vault || !vault.from) {
-        console.error("🚫 Connection Error: Vault key not found.");
+        console.error("🚫 Connection Error: Could not find your 'db' variable.");
         return;
     }
 
-    // --- 1. APOTHECARY DATA ---
     const apothecaryData = [
-        { 
-            title: "Obsidian Velvet Lip Stain", icon: "💄", category: "Gothic", 
-            ingredients: "Beeswax, Jojoba Oil, Activated Charcoal", 
-            instructions: "Melt wax and oil. Whisk in charcoal until midnight black. Pour into a pot.",
-            description: "A deep, matte gothic finish for a bold look."
-        },
-        { 
-            title: "Electric Prism Highlighter", icon: "🌈", category: "Lisa Frank", 
-            ingredients: "Mica Powder, Magnesium Stearate, Coconut Oil", 
-            instructions: "Press mica into powder. Add oil drop by drop until creamy.",
-            description: "A multi-tonal rainbow glow for high-energy days."
-        },
-        { 
-            title: "Cyber-Frost Eye Glaze", icon: "❄️", category: "Y2K", 
-            ingredients: "Aloe Vera Gel, Silver Mica, Glycerin", 
-            instructions: "Whisk silver mica into aloe gel. Cooling and holographic.",
-            description: "A frosty, shimmering white-silver glaze for the lids."
-        },
-        { 
-            title: "Graveyard Dirt Scrub", icon: "⚰️", category: "Gothic", 
-            ingredients: "Coffee Grounds, Brown Sugar, Charcoal, Coconut Oil", 
-            instructions: "Mix dry ingredients until they look like soil. Fold in oil.",
-            description: "A gritty, caffeine-heavy morning wake-up call."
-        },
-        { 
-            title: "Neon Glow Shimmer Lotion", icon: "✨", category: "Lisa Frank", 
-            ingredients: "Aloe Gel, Almond Oil, Pink/Blue Eco-Glitter", 
-            instructions: "Emulsify aloe and oil. Stir in glitter for a neon glow.",
-            description: "Vibrant shimmer perfect for poolside afternoons."
-        },
-        { 
-            title: "Dasher’s Heel & Pedal Shield", icon: "👣", category: "Utility", 
-            ingredients: "Beeswax, Neem Oil, Peppermint, Arnica", 
-            instructions: "Melt wax and arnica oil. Add neem and peppermint.",
-            description: "Heavy-duty protection for tired feet after long delivery shifts."
-        }
+        { title: "Obsidian Velvet Lip Stain", icon: "💄", category: "Gothic", ingredients: "Beeswax, Jojoba Oil, Activated Charcoal", instructions: "Melt wax and oil. Whisk in charcoal. Pour into a pot.", description: "A deep, matte gothic finish." },
+        { title: "Electric Prism Highlighter", icon: "🌈", category: "Lisa Frank", ingredients: "Mica Powder, Coconut Oil", instructions: "Press mica into powder. Add oil drop by drop.", description: "A multi-tonal rainbow glow." },
+        { title: "Dasher’s Heel & Pedal Shield", icon: "👣", category: "Utility", ingredients: "Beeswax, Neem Oil, Peppermint, Arnica", instructions: "Melt wax and arnica oil. Add neem and peppermint.", description: "Protection for tired delivery feet." }
     ];
 
-    // --- 2. KITCHEN GRIMOIRE DATA ---
     const recipesData = [
-        { title: "Lemon Blueberry Bread", category: "Sweet", ingredients: "Blueberries, Lemon, Greek Yogurt", instructions: "Fold berries in flour, bake at 350°F.", description: "Bright and zesty breakfast loaf." },
-        { title: "Fried Apple Pies", category: "Sweet", ingredients: "Dried Apples, Cinnamon, Biscuit Dough", instructions: "Simmer apples, crimp in dough, fry in butter.", description: "Classic crispy Tennessee treats." },
-        { title: "Comforting Potato Soup", category: "Savory", ingredients: "Potatoes, Cream, Bacon, Cheese", instructions: "Boil potatoes, mash half, add cream/cheese.", description: "Hearty fuel for stormy nights." }
-    ];
-
-    // --- 3. HERBAL LIBRARY DATA ---
-    const herbsData = [
-        { title: "Rosemary", icon: "🌿", properties: "Memory & Focus", category: "Mental", description: "Keeps dev focus sharp during Unity sessions." },
-        { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Best for tattoo preservation and skin care." }
+        { title: "Lemon Blueberry Bread", category: "Sweet", ingredients: "Blueberries, Lemon, Greek Yogurt", instructions: "Fold berries in flour, bake at 350°F.", description: "Bright breakfast loaf." },
+        { title: "Fried Apple Pies", category: "Sweet", ingredients: "Dried Apples, Cinnamon, Biscuit Dough", instructions: "Simmer apples, crimp in dough, fry in butter.", description: "Classic Tennessee treats." },
+        { title: "Easy Chocolate Cobbler", category: "Sweet", ingredients: "Cocoa, Boiling Water, Butter, Sugar", instructions: "Pour boiling water over batter—do not stir! Bake at 350°F.", description: "Magical self-saucing dessert." }
     ];
 
     try {
-        console.log("✨ Filling the Apothecary...");
-        // FIXED THE SPELLING HERE: apothecaryData (one 'p')
-        await vault.from('apothecary').upsert(apocathecaryData); 
-        
-        console.log("✨ Scribing Recipes...");
-        await vault.from('recipes').upsert(recipesData);
-        
-        console.log("✨ Syncing Herbs...");
-        await vault.from('herbs').upsert(herbsData);
+        console.log("✨ Scribing Apothecary...");
+        const { error: apoErr } = await vault.from('apothecary').upsert(apothecaryData);
+        if (apoErr) throw apoErr;
 
-        console.log("✅ SUCCESS: The entire sanctuary is now synchronized!");
-        alert("The Master Vault is complete! Everything is live.");
+        console.log("✨ Scribing Recipes...");
+        const { error: recErr } = await vault.from('recipes').upsert(recipesData);
+        if (recErr) throw recErr;
+
+        console.log("✅ SUCCESS: The Sanctuary is now fully populated!");
+        alert("The Master Vault is live! Check your Supabase tables.");
     } catch (err) {
-        console.error("🚫 Ritual Interrupted:", err.message);
+        console.error("🚫 Ritual Failed:", err.message);
     }
 }
 
-// Keep this line to run it automatically
+// RUN AUTOMATICALLY ON REFRESH
 bulkScribeData();
