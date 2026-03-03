@@ -548,8 +548,11 @@ async function uploadAsset() {
     const statusDiv = document.getElementById('asset-file-name'); 
     const file = fileInput.files[0];
 
-    if (!nameInput || !file || !db) {
-        statusDiv.innerText = "⚠️ Missing info or connection!";
+    // Check for db connection
+    const vault = (typeof db !== 'undefined' && db !== null) ? db : supabase;
+
+    if (!nameInput || !file || !vault) {
+        statusDiv.innerText = "⚠️ Missing name, file, or connection!";
         return;
     }
 
@@ -558,18 +561,37 @@ async function uploadAsset() {
     resizeImage(file, 800, async (resizedBlob) => {
         try {
             const fileName = `stash_${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+            
             statusDiv.innerText = "🚀 Sending to cloud...";
-            const { data, error } = await db.storage.from('assets').upload(fileName, resizedBlob, { contentType: 'image/png' });
-            if (error) throw error;
+            const { data, error: uploadError } = await vault.storage
+                .from('assets')
+                .upload(fileName, resizedBlob, { contentType: 'image/png' });
 
-            const { data: urlData } = db.storage.from('assets').getPublicUrl(fileName);
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = vault.storage.from('assets').getPublicUrl(fileName);
             const publicUrl = urlData.publicUrl;
 
-            await insertData('inventory_stash', { name: nameInput, image_url: publicUrl });
+            statusDiv.innerText = "📜 Recording...";
 
-            statusDiv.innerText = "✅ Stashed!";
-            openPortal('inventory'); 
-        } catch (err) { statusDiv.innerText = "🚫 Failed: " + err.message; }
+            // CRITICAL FIX: Ensure this is 'inventory_stash'
+            const { error: dbError } = await vault.from('inventory_stash').insert([
+                { name: nameInput, image_url: publicUrl, category: 'Furniture' }
+            ]);
+
+            if (dbError) throw dbError;
+
+            statusDiv.innerText = "✅ Stashed successfully!";
+            fileInput.value = ""; 
+            document.getElementById('asset-name').value = "";
+            
+            // Re-open the portal to refresh the list
+            openPortal('inventory');
+
+        } catch (err) {
+            console.error("Forge Error:", err);
+            statusDiv.innerText = "🚫 Forge failed: " + err.message;
+        }
     });
 }
 
