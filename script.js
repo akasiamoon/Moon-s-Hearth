@@ -1630,3 +1630,51 @@ function applySeasonalDecor() {
 
 applySeasonalDecor();
 setTimeout(loadActiveTrophy, 500);
+async function bulkScribeData() {
+    console.log("📜 Starting the Bulk Scribe ritual...");
+
+    // 1. THE HERBAL LIBRARY
+    const herbsData = [
+        { title: "Rosemary", icon: "🌿", properties: "Memory & Focus", category: "Mental", description: "The 'Herb of Remembrance.' Keeps dev focus sharp." },
+        { title: "Gotu Kola", icon: "🍀", properties: "Cognitive Support", category: "Mental", description: "Sustains mental energy for Unity/Python sessions." },
+        { title: "Ginkgo Biloba", icon: "🍃", properties: "Vision & Circulation", category: "Mental", description: "Essential for long screen hours during homeschooling." },
+        { title: "Peppermint", icon: "🌱", properties: "Vigilance", category: "Energy", description: "Bright, waking herb for mid-shift DoorDash focus." },
+        { title: "Nettle", icon: "🌿", properties: "Vitality", category: "Energy", description: "Mineral-rich infusion for Tennessee winters." },
+        { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Bright orange bloom for tattoo preservation." },
+        { title: "Valerian Root", icon: "🪵", properties: "Deep Stillness", category: "Resilience", description: "Grounds energy for restorative sleep." },
+        { title: "Ashwagandha", icon: "🪴", properties: "Stress Adaptation", category: "Strength", description: "Keeps your 'Stamina Bar' full during busy days." }
+        // Add more here following this pattern
+    ];
+
+    // 2. THE MASTER TEA COLLECTION
+    const teasData = [
+        { title: "Road-Warrior's Yerba Mate", icon: "🧉", brew_instructions: "5 mins @ 165°F", category: "High Energy", description: "Steady energy for long delivery shifts." },
+        { title: "Matcha Focus Fuel", icon: "🍵", brew_instructions: "Whisk @ 175°F", category: "High Energy", description: "Calm alertness for tracking orders." },
+        { title: "Iron Goddess Oolong", icon: "🐉", brew_instructions: "3 mins @ 190°F", category: "Architect", description: "Sharpens the mind for troubleshooting code." },
+        { title: "Crimson Berry Spark", icon: "🍓", brew_instructions: "5 mins @ 212°F", category: "Apprentice", description: "Vibrant, caffeine-free blend for the kids." },
+        { title: "Midnight Lapsang Souchong", icon: "🖤", brew_instructions: "4 mins @ 212°F", category: "Gothic", description: "Smoky, campfire scent for rainy TN evenings." }
+    ];
+
+    // 3. THE APOTHECARY (Aesthetics & Care)
+    const apothecaryData = [
+        { title: "Vibrant Ink Salve", icon: "🏺", category: "Tattoo", ingredients: "Beeswax, Shea, Calendula", instructions: "Melt, stir, and pour into tins.", description: "Preserves skin artwork." },
+        { title: "Dasher's Focus Balm", icon: "🧠", category: "Courier", ingredients: "Coconut oil, Peppermint, Rosemary", instructions: "Blend and apply to temples.", description: "Combats road fatigue." },
+        { title: "Obsidian Velvet Lip Stain", icon: "💄", category: "Gothic Makeup", ingredients: "Beeswax, Jojoba, Activated Charcoal", instructions: "Melt and whisk until midnight black.", description: "Classic matte gothic finish." },
+        { title: "Electric Prism Highlighter", icon: "🌈", category: "Lisa Frank", ingredients: "Mica, Coconut Oil", instructions: "Press and cream.", description: "Multi-tonal rainbow glow." },
+        { title: "Storm-Soothe Rub", icon: "🌬️", category: "Seasonal", ingredients: "Beeswax, Eucalyptus", instructions: "Apply to chest.", description: "Shields against the damp winter chill." }
+    ];
+
+    // --- THE SCRIBING ACTIONS ---
+    try {
+        const { error: herbErr } = await supabase.from('herbs').upsert(herbsData);
+        const { error: teaErr } = await supabase.from('teas').upsert(teasData);
+        const { error: apoErr } = await supabase.from('apothecary').upsert(apothecaryData);
+
+        if (herbErr || teaErr || apoErr) throw new Error("The scribe's ink ran dry!");
+
+        console.log("✅ The Vaults have been filled! Data is now synced.");
+        alert("Success! Your library is now live in Supabase.");
+    } catch (err) {
+        console.error("🚫 Ritual Interrupted:", err.message);
+    }
+}
