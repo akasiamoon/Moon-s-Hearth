@@ -1679,49 +1679,83 @@ async function bulkScribeData() {
     }
 }
 async function bulkScribeData() {
-    console.log("📜 Attempting to fill the vaults...");
+    console.log("📜 Filling the High-Level Vaults (Herbs, Teas, Recipes, & Apothecary)...");
 
-    // This detects if your connection is named 'db' or 'supabase'
     const vault = (typeof db !== 'undefined') ? db : (typeof supabase !== 'undefined' ? supabase : null);
 
     if (!vault || !vault.from) {
-        console.error("🚫 Connection Error: I can't find your Supabase 'db' variable.");
+        console.error("🚫 Connection Error: Vault key not found.");
         return;
     }
 
-    const herbsData = [
-        { title: "Rosemary", icon: "🌿", properties: "Memory & Focus", category: "Mental", description: "The 'Herb of Remembrance.' Keeps dev focus sharp." },
-        { title: "Gotu Kola", icon: "🍀", properties: "Cognitive Support", category: "Mental", description: "Sustains mental energy for Unity sessions." },
-        { title: "Ginkgo Biloba", icon: "🍃", properties: "Vision & Circulation", category: "Mental", description: "Essential for screen time during homeschooling." },
-        { title: "Peppermint", icon: "🌱", properties: "Vigilance", category: "Energy", description: "Bright focus for mid-shift DoorDash runs." },
-        { title: "Nettle", icon: "🌿", properties: "Vitality", category: "Energy", description: "Mineral-rich infusion for TN winters." },
-        { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Bright orange bloom for tattoo preservation." },
-        { title: "Valerian Root", icon: "🪵", properties: "Deep Stillness", category: "Resilience", description: "Grounds energy for restorative sleep." }
+    // --- 1. APOTHECARY (Makeup, Scrubs, & Care) ---
+    const apothecaryData = [
+        { 
+            title: "Obsidian Velvet Lip Stain", icon: "💄", category: "Gothic", 
+            ingredients: "Beeswax, Jojoba Oil, Activated Charcoal", 
+            instructions: "Melt wax and oil. Whisk in charcoal until midnight black. Pour into a pot.",
+            description: "A deep, matte gothic finish for a bold look."
+        },
+        { 
+            title: "Electric Prism Highlighter", icon: "🌈", category: "Lisa Frank", 
+            ingredients: "Mica Powder, Magnesium Stearate, Coconut Oil", 
+            instructions: "Press mica into powder. Add oil drop by drop until creamy.",
+            description: "A multi-tonal rainbow glow for high-energy days."
+        },
+        { 
+            title: "Cyber-Frost Eye Glaze", icon: "❄️", category: "Y2K", 
+            ingredients: "Aloe Vera Gel, Silver Mica, Glycerin", 
+            instructions: "Whisk silver mica into aloe gel. Cooling and holographic.",
+            description: "A frosty, shimmering white-silver glaze for the lids."
+        },
+        { 
+            title: "Graveyard Dirt Scrub", icon: "⚰️", category: "Gothic", 
+            ingredients: "Coffee Grounds, Brown Sugar, Charcoal, Coconut Oil", 
+            instructions: "Mix dry ingredients until they look like soil. Fold in oil.",
+            description: "A gritty, caffeine-heavy morning wake-up call."
+        },
+        { 
+            title: "Neon Glow Shimmer Lotion", icon: "✨", category: "Lisa Frank", 
+            ingredients: "Aloe Gel, Almond Oil, Pink/Blue Eco-Glitter", 
+            instructions: "Emulsify aloe and oil. Stir in glitter for a neon glow.",
+            description: "Vibrant shimmer perfect for poolside afternoons."
+        },
+        { 
+            title: "Dasher’s Heel & Pedal Shield", icon: "👣", category: "Utility", 
+            ingredients: "Beeswax, Neem Oil, Peppermint, Arnica", 
+            instructions: "Melt wax and arnica oil. Add neem and peppermint.",
+            description: "Heavy-duty protection for tired feet after long delivery shifts."
+        }
     ];
 
-    const teasData = [
-        { title: "Road-Warrior Mate", icon: "🧉", brew_instructions: "5 mins @ 165°F", category: "High Energy", description: "Steady energy for delivery shifts." },
-        { title: "Matcha Fuel", icon: "🍵", brew_instructions: "Whisk @ 175°F", category: "High Energy", description: "Calm alertness for tracking orders." },
-        { title: "Iron Goddess Oolong", icon: "🐉", brew_instructions: "3 mins @ 190°F", category: "Architect", description: "Sharpens the mind for coding." },
-        { title: "Crimson Spark", icon: "🍓", brew_instructions: "5 mins @ 212°F", category: "Apprentice", description: "Caffeine-free blend for the kids." }
+    // --- 2. THE KITCHEN GRIMOIRE (Recipes) ---
+    const recipesData = [
+        { title: "Lemon Blueberry Bread", category: "Sweet", ingredients: "Blueberries, Lemon, Greek Yogurt", instructions: "Fold berries in flour, bake at 350°F.", description: "Bright and zesty breakfast loaf." },
+        { title: "Fried Apple Pies", category: "Sweet", ingredients: "Dried Apples, Cinnamon, Biscuit Dough", instructions: "Simmer apples, crimp in dough, fry in butter.", description: "Classic crispy Tennessee treats." }
+    ];
+
+    // --- 3. THE HERBAL LIBRARY ---
+    const herbsData = [
+        { title: "Rosemary", icon: "🌿", properties: "Memory & Focus", category: "Mental", description: "Keeps dev focus sharp during Unity sessions." },
+        { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Best for tattoo preservation and skin care." }
     ];
 
     try {
-        const { error: herbErr } = await vault.from('herbs').upsert(herbsData);
-        const { error: teaErr } = await vault.from('teas').upsert(teasData);
+        console.log("✨ Filling the Apothecary...");
+        await vault.from('apothecary').upsert(appothecaryData);
+        
+        console.log("✨ Scribing Recipes...");
+        await vault.from('recipes').upsert(recipesData);
+        
+        console.log("✨ Syncing Herbs & Teas...");
+        await vault.from('herbs').upsert(herbsData);
 
-        if (herbErr || teaErr) {
-            console.error("Herb Error:", herbErr);
-            console.error("Tea Error:", teaErr);
-            throw new Error("The scribe's ink ran dry!");
-        }
-
-        console.log("✅ SUCCESS: The Vaults have been filled!");
-        alert("Success! Your library is now live in Supabase.");
+        console.log("✅ SUCCESS: The entire sanctuary is now synchronized!");
+        alert("The Master Vault is complete! Apothecary items are live.");
     } catch (err) {
         console.error("🚫 Ritual Interrupted:", err.message);
     }
 }
 
-// THIS LINE RUNS THE RITUAL AUTOMATICALLY ON REFRESH
-
+// RUN AUTOMATICALLY ON REFRESH
+bulkScribeData();
