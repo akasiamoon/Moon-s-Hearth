@@ -1678,3 +1678,4 @@ async function bulkScribeData() {
         console.error("🚫 Ritual Interrupted:", err.message);
     }
 }
+bulkScribeData();
