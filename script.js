@@ -281,7 +281,8 @@ const myTeas = [
         icon: "🏔️", 
         brew: "Steep 6 mins at 200°F", 
         description: "A wild-crafted blend of peppermint and red clover to bolster physical stamina through the Tennessee frost." 
-    }const myTeas = [
+    },
+    
     // --- THE COURIER'S CUPS (High Energy for Delivery Shifts) ---
     { 
         title: "Road-Warrior's Yerba Mate", 
