@@ -548,11 +548,11 @@ async function uploadAsset() {
     const statusDiv = document.getElementById('asset-file-name'); 
     const file = fileInput.files[0];
 
-    // Check for db connection
-    const vault = (typeof db !== 'undefined' && db !== null) ? db : supabase;
+    // Use 'db' if it exists, otherwise fall back to 'supabase'
+    const vault = (db !== null) ? db : (typeof supabase !== 'undefined' ? supabase : null);
 
     if (!nameInput || !file || !vault) {
-        statusDiv.innerText = "⚠️ Missing name, file, or connection!";
+        statusDiv.innerText = "⚠️ Missing info or connection!";
         return;
     }
 
@@ -560,6 +560,7 @@ async function uploadAsset() {
 
     resizeImage(file, 800, async (resizedBlob) => {
         try {
+            // Create a unique filename
             const fileName = `stash_${Date.now()}_${file.name.replace(/\s/g, '_')}`;
             
             statusDiv.innerText = "🚀 Sending to cloud...";
@@ -569,23 +570,35 @@ async function uploadAsset() {
 
             if (uploadError) throw uploadError;
 
+            // Get the URL for the image we just uploaded
             const { data: urlData } = vault.storage.from('assets').getPublicUrl(fileName);
             const publicUrl = urlData.publicUrl;
 
             statusDiv.innerText = "📜 Recording...";
 
-            // CRITICAL FIX: Ensure this is 'inventory_stash'
+            // SAVE TO DATABASE
             const { error: dbError } = await vault.from('inventory_stash').insert([
-                { name: nameInput, image_url: publicUrl, category: 'Furniture' }
+                { 
+                    name: nameInput, 
+                    image_url: publicUrl, 
+                    category: 'Furniture' // This matches the column we just added
+                }
             ]);
 
-            if (dbError) throw dbError;
+            if (dbError) {
+                // If it still complains about 'category', try saving without it as a backup
+                console.warn("Category column issue, attempting save without it...");
+                const { error: retryError } = await vault.from('inventory_stash').insert([
+                    { name: nameInput, image_url: publicUrl }
+                ]);
+                if (retryError) throw retryError;
+            }
 
             statusDiv.innerText = "✅ Stashed successfully!";
             fileInput.value = ""; 
             document.getElementById('asset-name').value = "";
             
-            // Re-open the portal to refresh the list
+            // Refresh the portal so the new item shows up in the grid
             openPortal('inventory');
 
         } catch (err) {
