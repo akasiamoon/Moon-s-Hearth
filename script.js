@@ -246,8 +246,111 @@ const myRecipes = [
 ];
 
 const myTeas = [
-    { title: "Lady Grey's Respite", icon: "☕", brew: "Steep 3 mins at 212°F", description: "A classic, elegant blend brightened with citrus and a touch of honey." },
-    { title: "Lavender Chamomile Nightcap", icon: "🍵", brew: "Steep 5 mins at 200°F", description: "A deeply soothing floral blend meant to quiet a racing mind." }
+    { 
+        title: "Lady Grey's Respite", 
+        icon: "☕", 
+        brew: "Steep 3 mins at 212°F", 
+        description: "A classic, elegant blend brightened with citrus and a touch of honey." 
+    },
+    { 
+        title: "Lavender Chamomile Nightcap", 
+        icon: "🍵", 
+        brew: "Steep 5 mins at 200°F", 
+        description: "A deeply soothing floral blend meant to quiet a racing mind after a busy day." 
+    },
+    { 
+        title: "Argonian 'Hist-Sap' Herbal", 
+        icon: "🧪", 
+        brew: "Steep 7 mins at 212°F", 
+        description: "A thick, earthy brew of Rooibos and vanilla that provides grounding energy for deep focus sessions." 
+    },
+    { 
+        title: "Khajiit 'Moon-Sugar' Chai", 
+        icon: "🐯", 
+        brew: "Steep 5 mins at 212°F", 
+        description: "A spicy, invigorating black tea with ginger and cinnamon. Perfect for staying alert on the road during delivery runs." 
+    },
+    { 
+        title: "Altmer 'Crystal Tower' White Tea", 
+        icon: "💎", 
+        brew: "Steep 2 mins at 175°F", 
+        description: "A delicate, high-caffeine silver needle tea for mental clarity and precision during Unity or Python coding." 
+    },
+    { 
+        title: "Nord 'Meadow-Sweet' Infusion", 
+        icon: "🏔️", 
+        brew: "Steep 6 mins at 200°F", 
+        description: "A wild-crafted blend of peppermint and red clover to bolster physical stamina through the Tennessee frost." 
+    }const myTeas = [
+    // --- THE COURIER'S CUPS (High Energy for Delivery Shifts) ---
+    { 
+        title: "Road-Warrior's Yerba Mate", 
+        icon: "🧉", 
+        brew: "Steep 5 mins at 165°F", 
+        description: "A potent, earthy stimulant. Provides a steady, jitter-free energy kick for long days behind the wheel." 
+    },
+    { 
+        title: "Matcha Focus Fuel", 
+        icon: "🍵", 
+        brew: "Whisk in 175°F water", 
+        description: "Pure powdered green tea. High in L-theanine for calm alertness while navigating traffic or tracking orders." 
+    },
+
+    // --- THE ARCHITECT'S BREWS (Clarity for Unity & Python Dev) ---
+    { 
+        title: "Iron Goddess Oolong", 
+        icon: "🐉", 
+        brew: "Steep 3 mins at 190°F", 
+        description: "Ti Kuan Yin Oolong. Known for sharpening the mind—perfect for troubleshooting complex CSS or Python logic." 
+    },
+    { 
+        title: "Ginkgo & Gotu Kola Infusion", 
+        icon: "🌿", 
+        brew: "Steep 10 mins at 212°F", 
+        description: "A non-caffeinated herbal blend specifically designed to support memory and cognitive endurance during long dev sessions." 
+    },
+
+    // --- THE APPRENTICE'S ELIXIRS (Caffeine-Free for the Kids) ---
+    { 
+        title: "Crimson Berry Spark", 
+        icon: "🍓", 
+        brew: "Steep 5 mins at 212°F", 
+        description: "A vibrant blend of hibiscus, rosehips, and dried berries. High in Vitamin C and naturally sweet for the kids." 
+    },
+    { 
+        title: "Rooibos 'Lion's Mane' Vanilla", 
+        icon: "🦁", 
+        brew: "Steep 7 mins at 212°F", 
+        description: "Smooth, red bush tea that tastes like a treat. Great for staying hydrated during homeschooling without any caffeine jitters." 
+    },
+
+    // --- THE INK-PRESERVER (Antioxidants for Skin & Tattoos) ---
+    { 
+        title: "White Peony Skin Shield", 
+        icon: "🌸", 
+        brew: "Steep 3 mins at 175°F", 
+        description: "A minimally processed white tea packed with antioxidants that help protect skin cells and maintain vibrant ink." 
+    },
+    { 
+        title: "Nettle & Oatstraw Tonic", 
+        icon: "🌾", 
+        brew: "Steep 15 mins at 212°F", 
+        description: "A mineral-rich infusion that supports overall skin health and resilience from the inside out." 
+    },
+
+    // --- THE HEARTH-WARMERS (Cozy & Gothic Aesthetic) ---
+    { 
+        title: "Midnight Lapsang Souchong", 
+        icon: "🖤", 
+        brew: "Steep 4 mins at 212°F", 
+        description: "A 'gothic' tea. Pine-smoked black tea leaves create a campfire-scented brew that matches a rainy Tennessee evening." 
+    },
+    { 
+        title: "Velvet Cacao Pu-erh", 
+        icon: "🍫", 
+        brew: "Steep 5 mins at 212°F", 
+        description: "A deep, fermented dark tea with a rich chocolate aroma. Indulgent, grounding, and perfect for the late-night stillness." 
+    }
 ];
 
 const myApothecary = [
