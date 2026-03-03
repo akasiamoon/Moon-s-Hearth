@@ -63,8 +63,186 @@ async function removeData(tableName, id) {
 
 // === 1. LOCAL DATA ===
 const myRecipes = [
-    { title: "🌿 Highland Potato Stew", description: "A hearty, warming broth perfect for cold evenings.", ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], instructions: "Simmer over a low hearth fire until the potatoes yield." },
-    { title: "🍌 Mistral Banana Bread", description: "Sweet, dense, and perfect for traveling or a morning study session.", ingredients: ["3 overripe bananas, mashed", "Brown sugar, melted butter, and a dash of vanilla", "Flour and a pinch of cinnamon"], instructions: "Bake until the crust is a deep golden brown. Serve warm with butter." }
+    { 
+        title: "🌿 Highland Potato Stew", 
+        description: "A hearty, warming broth perfect for cold evenings.", 
+        ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], 
+        instructions: "Simmer over a low hearth fire until the potatoes yield." 
+    },
+    { 
+        title: "🍌 Mistral Banana Bread", 
+        description: "Sweet, dense, and perfect for traveling or a morning study session.", 
+        ingredients: ["3 overripe bananas, mashed", "Brown sugar, melted butter, and a dash of vanilla", "Flour and a pinch of cinnamon"], 
+        instructions: "Bake until the crust is a deep golden brown. Serve warm with butter." 
+    },
+    {
+        title: "🍋 Summerset Lemon Blueberry Loaf",
+        description: "A bright, citrus-infused sweet bread studded with bursts of fresh wild berries.",
+        ingredients: ["2 cups flour, sifted", "1 cup sugar and a generous squeeze of fresh lemon juice", "1 cup fresh blueberries, dusted in flour", "Butter, eggs, and a splash of milk"],
+        instructions: "Fold the berries in gently so they don't burst. Bake in a hearth oven until a wooden skewer comes out clean, then drizzle with lemon glaze."
+    },
+    {
+        title: "🍎 Hearthfire Fried Apple Pies",
+        description: "Warm, hand-held pastries filled with spiced fruit, perfect for a quick snack on a long journey.",
+        ingredients: ["Handmade pie dough, rolled thin", "Dried apples reconstituted with cinnamon, nutmeg, and brown sugar", "A deep pan of hot oil or butter for frying"],
+        instructions: "Spoon the spiced fruit onto the dough, fold over, and crimp the edges tightly. Fry until golden and blistered, then drain on parchment."
+    },
+    {
+        title: "🍫 Midnight Chocolate Cobbler",
+        description: "A rich, self-saucing dessert where a molten chocolate river hides beneath a cakey crust.",
+        ingredients: ["Flour, sugar, cocoa powder, and milk for the batter", "A dry mix of sugar and cocoa sprinkled on top", "1.5 cups boiling water poured over the entire dish"],
+        instructions: "Do not stir the water into the batter! Let the oven do the magic. Bake until the top is set but the bottom bubbles with thick, dark chocolate."
+    },
+    {
+        title: "🍲 Wayrest Rustic Bean Stew",
+        description: "A humble, deeply satisfying soup made from the staples of the pantry.",
+        ingredients: ["Robust beans (navy, pinto, or great northern)", "A rich stock, simmered with root vegetables", "Smoked meat or thick bacon for flavor", "Crusty bread for dipping"],
+        instructions: "Simmer everything together in an iron pot until the beans are tender and the broth has thickened. Best served on a rainy evening."
+    },
+    {
+        title: "🧁 Legendary Sweetrolls",
+        description: "A beloved, pillowy pastry topped with a thick, sweet icing. Guard it closely so it isn't stolen by passing adventurers.",
+        ingredients: ["Soft yeast dough, enriched with butter and honey", "A thick glaze made from powdered sugar, milk, and vanilla extract"],
+        instructions: "Bake in specialized fluted tins until golden. Let cool slightly before drowning the tops in the sweet white glaze."
+    },
+    {
+        title: "🍏 Skyrim Apple Cabbage Stew",
+        description: "A staple of the frozen north, balancing the savory depth of broth with the tart sweetness of orchard fruit.",
+        ingredients: ["1 head of green cabbage, roughly chopped", "2 tart apples, cored and diced", "Chicken or vegetable broth, with a splash of apple cider", "Salt, pepper, and caraway seeds"],
+        instructions: "Sauté the cabbage until wilted, add the apples and liquids, and simmer until everything is tender and deeply flavorful."
+    },
+    {
+        title: "🍠 Ashlander Spiced 'Ash Yams'",
+        description: "A fiery and sweet preparation of robust root vegetables, inspired by the harsh, volcanic beauty of Morrowind.",
+        ingredients: ["Large sweet potatoes (ash yams), cubed", "Olive oil, smoked paprika, cumin, and a pinch of cayenne", "A drizzle of dark honey"],
+        instructions: "Toss the yams in the oil and spices. Roast in a hot hearth oven until the edges are caramelized and crispy, then finish with honey."
+    },
+    {
+        title: "🍖 Valenwood Honey-Roasted Ribs",
+        description: "A succulent, slow-cooked meat dish honoring the Wood Elves' strict meat-based Green Pact.",
+        ingredients: ["A rack of pork ribs", "A glaze of wild honey, minced garlic, and crushed rosemary", "Coarse sea salt"],
+        instructions: "Rub the ribs with salt and herbs, then roast low and slow. Baste generously with honey in the final moments to create a sticky, caramelized crust."
+    },
+    {
+        title: "🍈 Elsweyr Melon-Jelly",
+        description: "A shimmering, translucent dessert favored by Khajiiti travelers for its cooling properties in the desert heat.",
+        ingredients: ["2 cups honeydew or cantaloupe juice, strained", "Honey to sweeten", "Unflavored gelatin or agar-agar", "Mint leaves for garnish"],
+        instructions: "Dissolve the honey and thickener into the warmed juice. Pour into shallow glass bowls and let set in a cool cellar until firm. Garnish with mint before serving."
+    },
+    {
+        title: "🧀 Colovian Goat Cheese & Apples",
+        description: "A simple, rustic pairing found on the tables of Imperial estates and humble farmsteads alike.",
+        ingredients: ["A wheel of sharp, aged goat cheese", "2 crisp red apples, sliced thin", "A handful of walnuts", "A drizzle of wildflower honey"],
+        instructions: "Arrange the cheese and fruit on a wooden board. Drizzle with honey and serve with nuts for a perfectly balanced provision."
+    },
+    {
+        title: "🦀 Jagga-Drenched 'Mudcrab' Cakes",
+        description: "A Bosmer delicacy (Green Pact friendly!) that uses fermented pig's milk (Jagga) for a unique, tangy kick.",
+        ingredients: ["1 lb crab meat (or white fish), flaked", "1/2 cup buttermilk (our Jagga substitute)", "Breadcrumbs, egg, and old bay seasoning", "Minced green onions"],
+        instructions: "Mix the meat with seasoning, egg, and buttermilk. Form into small cakes and sear in a hot iron skillet until the exterior is golden and crisp."
+    },
+    {
+        title: "🥣 Orsinium Venison Haunch",
+        description: "A dense, powerful meal designed to sustain an Orc through the freezing winters of the Wrothgarian Mountains.",
+        ingredients: ["Venison roast (or beef chuck)", "Juniper berries, crushed", "Root vegetables (carrots, parsnips, onions)", "Dark ale or heavy stout"],
+        instructions: "Rub the meat with crushed berries and salt. Sear well, then braise in the dark ale with root vegetables for 4-6 hours until it falls apart with a fork."
+    },
+    {
+        title: "🥣 Kwama Egg Quiche",
+        description: "A staple of the Dunmer diet in Morrowind, this savory pie is rich, earthy, and provides lasting energy for trekking through ash storms.",
+        ingredients: ["4 large 'Kwama' eggs (chicken eggs)", "1/2 cup heavy cream", "Handful of 'Scrib Jelly' (mushrooms or soft cheese)", "1 cup chopped spinach", "Salt and crushed peppercorns"],
+        instructions: "Whisk eggs and cream until frothy. Fold in the mushrooms and greens. Pour into a flaky crust and bake in a steady hearth until the center is set and the top is a pale gold."
+    },
+    {
+        title: "🍮 Argonian 'Mud-Ball' Truffles",
+        description: "A surprisingly sweet treat from the Black Marsh. These dense, dark chocolate morsels are rolled in cocoa 'mud' for a decadent finish.",
+        ingredients: ["1 cup dark chocolate, melted", "1/4 cup heavy cream", "A pinch of sea salt", "1 teaspoon espresso powder (for that swampy depth)", "Cocoa powder for rolling"],
+        instructions: "Heat the cream and pour over the chocolate and espresso powder. Let sit, then stir until smooth. Chill until firm, roll into small balls, and coat heavily in cocoa powder."
+    },
+    {
+        title: "🍞 Breton 'Sun's Height' Biscuits",
+        description: "Light, airy, and golden—these High Rock biscuits are served warm with plenty of butter during the midsummer festivals.",
+        ingredients: ["2 cups self-rising flour", "1 cup buttermilk", "1/2 cup cold butter, grated", "1 tablespoon honey"],
+        instructions: "Cut the cold butter into the flour until crumbly. Stir in buttermilk and honey just until combined. Pat into circles, bake at a high heat until they rise like the summer sun, and brush with extra honey-butter."
+    },
+    {
+        title: "🥗 Bosmer 'Rite of Passage' Salad",
+        description: "For the Wood Elf who adheres to the Green Pact but craves texture, this salad uses only animal-based fats and proteins.",
+        ingredients: ["Smoked turkey or chicken strips", "Hard-boiled egg slices", "Crispy bacon crumbles", "Dressing: Sour cream mixed with chives and lemon zest"],
+        instructions: "Layer the smoked meats and eggs. Top with a mountain of crispy bacon. Drizzle with the herb-cream dressing for a meal that honors the forest without harming a single leaf."
+    },
+    {
+        title: "🍷 Altmer 'Firsthold' Fruit Wine Sauce",
+        description: "An elegant, sophisticated reduction used to glaze poultry or desserts, embodying the refined tastes of the High Elves.",
+        ingredients: ["1 cup red grape juice or non-alcoholic wine", "1/4 cup blackberries", "1 star anise", "2 tablespoons honey"],
+        instructions: "Simmer all ingredients in a small copper pot over low heat until the liquid reduces by half and coats the back of a spoon. Strain and drizzle over roasted bird or vanilla sponge cake."
+    },
+    {
+        title: "🥣 Nord 'Hrothgar' Venison Chili",
+        description: "A thick, spicy, and incredibly filling bowl designed to warm the bones after a climb up the 7,000 steps.",
+        ingredients: ["1 lb ground venison (or lean beef)", "1 onion, diced", "2 cloves garlic, smashed", "1 can kidney beans", "Chili powder, cumin, and a splash of strong coffee"],
+        instructions: "Brown the meat with onions and garlic. Stir in the beans, spices, and coffee. Let it low-simmer on the hearth for at least an hour until the flavors are as bold as a Dragonborn's shout."
+    },
+    {
+        title: "🍪 Khajiit 'Sweet-Sabbath' Mooncakes",
+        description: "This one has no skooma, but plenty of sugar! A dense, spice-filled cookie that Khajiiti caravans trade across the borders.",
+        ingredients: ["2 cups flour", "1/2 cup butter, softened", "1/4 cup sugar and 1/4 cup molasses", "1 tsp ginger and 1 tsp cinnamon", "A pinch of cloves"],
+        instructions: "Cream the butter and sugars. Mix in the dry spices and flour until a stiff dough forms. Roll into balls, flatten slightly with a fork, and bake until the edges are crisp but the centers remain chewy."
+    },
+    {
+        title: "🥧 Redguard 'Sentinel' Savory Pastries",
+        description: "Flaky, golden triangles filled with spiced meat and vegetables, durable enough for desert travel across the Alik'r.",
+        ingredients: ["Puff pastry sheets", "1/2 lb ground lamb or beef", "1/2 cup peas", "Curry powder, turmeric, and coriander"],
+        instructions: "Sauté the meat with the desert spices and peas. Cut pastry into squares, place a spoonful of filling in the center, and fold into triangles. Bake until the pastry rises into golden, buttery layers."
+    },
+    {
+        title: "🍵 Imperial 'Gold Coast' Spiced Tea",
+        description: "A warming, aromatic brew favored by merchants and nobility in Anvil and Kvatch to shake off the coastal chill.",
+        ingredients: ["2 cups black tea, brewed strong", "2 cinnamon sticks", "4 whole cloves", "A generous dollop of honey", "A slice of orange"],
+        instructions: "Simmer the spices in the tea for ten minutes. Stir in the honey until dissolved and garnish with the orange slice. Serve in your finest ceramic mug."
+    },
+    {
+        title: "🥘 Wood Orc 'Wrothgar' Succotash",
+        description: "A hearty, rustic side dish that combines the last of the season's corn and beans with savory smoked fats.",
+        ingredients: ["2 cups corn kernels", "1 cup lima beans or edamame", "4 strips of thick-cut bacon, diced", "1 red bell pepper, chopped", "A pinch of dried thyme"],
+        instructions: "Fry the bacon until crisp. Sauté the vegetables in the rendered fat until tender. Season with thyme, salt, and pepper for a dish that tastes of the mountain foothills."
+    },
+    {
+        title: "🥧 Hammerfell 'Stros M'kai' Fish Pie",
+        description: "A coastal staple featuring fresh white fish and a golden, buttery crust—perfect for a weary sailor returning to port.",
+        ingredients: ["1 lb white fish (cod or tilapia), cubed", "1 cup frozen peas", "1 cup leeks, sliced", "2 cups mashed potatoes for the 'crust'", "A splash of heavy cream"],
+        instructions: "Simmer the fish, leeks, and peas in the cream until the fish is flaky. Pour into a baking dish, spread the mashed potatoes over the top, and bake until the peaks are toasted golden brown."
+    },
+    {
+        title: "🥣 Dunmer 'Vivec City' Ash-Roasted Roots",
+        description: "A smoky, savory preparation of root vegetables that mimics the traditional cooking method of burying food in hot volcanic ash.",
+        ingredients: ["3 large carrots, halved", "2 parsnips, quartered", "Olive oil and smoked sea salt", "1 tsp dried rosemary"],
+        instructions: "Toss the roots in oil, rosemary, and smoked salt. Roast at a high heat until the edges are slightly charred and the insides are tender, providing that authentic 'ash-grown' flavor."
+    }.
+    {
+        title: "🍵 Khajiit 'Senche-Tiger' Chai",
+        description: "A bold, heavily spiced tea that provides a sharp kick of energy, favored by the nomadic Baandari Pedlars.",
+        ingredients: ["2 cups strong black tea", "1/4 cup heavy cream", "3 cardamom pods, crushed", "2 slices of fresh ginger", "A pinch of saffron (if the vault allows)"],
+        instructions: "Boil the tea with the ginger and cardamom. Stir in the cream and honey to taste. Let the saffron steep at the very end to release its golden color and royal aroma."
+    },
+    {
+        title: "🥧 Bosmer 'Falinesti' Meat Pie",
+        description: "A dense, savory pie made entirely without grain or vegetable, strictly adhering to the Green Pact of Valenwood.",
+        ingredients: ["1 lb ground venison or beef", "1/2 lb suet or animal fat, chilled", "2 egg yolks", "Coarse salt and crushed juniper berries"],
+        instructions: "Press a 'crust' of seasoned ground meat into a small tin. Fill with a mixture of meat and suet. Seal the top with more meat, brush with egg yolk, and bake until the juices run clear."
+    },
+    {
+        title: "🍲 Nord 'Windhelm' Venison Stew",
+        description: "A thick, iron-rich stew designed to keep a warrior's blood warm during a blizzard in the Eastmarch.",
+        ingredients: ["1 lb venison or beef chuck, cubed", "2 large potatoes, peeled", "1 cup hardy kale", "Beef bone broth", "A splash of dark, peppery ale"],
+        instructions: "Sear the meat in a hot pot. Add the broth, ale, and potatoes. Low-simmer for hours until the meat is tender enough to eat with a spoon, then toss in the kale at the very end."
+    },
+    {
+        title: "🍮 Altmer 'Alinor' Honey Mousse",
+        description: "A light, ethereal dessert served in the high spires of the Summerset Isles, delicate and perfectly balanced.",
+        ingredients: ["1 cup heavy whipping cream", "3 tablespoons wildflower honey", "1 teaspoon orange flower water", "Fresh raspberries for the top"],
+        instructions: "Whip the cream until soft peaks form. Slowly fold in the honey and orange flower water. Chill in crystal glasses for two hours and serve topped with a single, perfect berry."
+    }
 ];
 
 const myTeas = [
