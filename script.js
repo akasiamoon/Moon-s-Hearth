@@ -1679,40 +1679,49 @@ async function bulkScribeData() {
     }
 }
 async function bulkScribeData() {
-    console.log("📜 Starting the Bulk Scribe ritual...");
+    console.log("📜 Attempting to fill the vaults...");
 
-    // This part makes sure we use the right connection name (db or supabase)
-    const vault = (typeof db !== 'undefined') ? db : supabase;
+    // This detects if your connection is named 'db' or 'supabase'
+    const vault = (typeof db !== 'undefined') ? db : (typeof supabase !== 'undefined' ? supabase : null);
 
-    if (!vault.from) {
-        console.error("🚫 The Vault Key is missing! Check if your Supabase connection is named 'db' at the top of the script.");
+    if (!vault || !vault.from) {
+        console.error("🚫 Connection Error: I can't find your Supabase 'db' variable.");
         return;
     }
 
     const herbsData = [
         { title: "Rosemary", icon: "🌿", properties: "Memory & Focus", category: "Mental", description: "The 'Herb of Remembrance.' Keeps dev focus sharp." },
-        { title: "Gotu Kola", icon: "🍀", properties: "Cognitive Support", category: "Mental", description: "Sustains mental energy for Unity/Python sessions." },
-        { title: "Ginkgo Biloba", icon: "🍃", properties: "Vision & Circulation", category: "Mental", description: "Essential for long screen hours during homeschooling." },
-        { title: "Peppermint", icon: "🌱", properties: "Vigilance", category: "Energy", description: "Bright, waking herb for mid-shift DoorDash focus." },
-        { title: "Nettle", icon: "🌿", properties: "Vitality", category: "Energy", description: "Mineral-rich infusion for Tennessee winters." },
-        { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Bright orange bloom for tattoo preservation." }
+        { title: "Gotu Kola", icon: "🍀", properties: "Cognitive Support", category: "Mental", description: "Sustains mental energy for Unity sessions." },
+        { title: "Ginkgo Biloba", icon: "🍃", properties: "Vision & Circulation", category: "Mental", description: "Essential for screen time during homeschooling." },
+        { title: "Peppermint", icon: "🌱", properties: "Vigilance", category: "Energy", description: "Bright focus for mid-shift DoorDash runs." },
+        { title: "Nettle", icon: "🌿", properties: "Vitality", category: "Energy", description: "Mineral-rich infusion for TN winters." },
+        { title: "Calendula", icon: "🧡", properties: "Skin Healing", category: "Protection", description: "Bright orange bloom for tattoo preservation." },
+        { title: "Valerian Root", icon: "🪵", properties: "Deep Stillness", category: "Resilience", description: "Grounds energy for restorative sleep." }
     ];
 
     const teasData = [
-        { title: "Road-Warrior's Yerba Mate", icon: "🧉", brew_instructions: "5 mins @ 165°F", category: "High Energy", description: "Steady energy for long delivery shifts." },
-        { title: "Matcha Focus Fuel", icon: "🍵", brew_instructions: "Whisk @ 175°F", category: "High Energy", description: "Calm alertness for tracking orders." }
+        { title: "Road-Warrior Mate", icon: "🧉", brew_instructions: "5 mins @ 165°F", category: "High Energy", description: "Steady energy for delivery shifts." },
+        { title: "Matcha Fuel", icon: "🍵", brew_instructions: "Whisk @ 175°F", category: "High Energy", description: "Calm alertness for tracking orders." },
+        { title: "Iron Goddess Oolong", icon: "🐉", brew_instructions: "3 mins @ 190°F", category: "Architect", description: "Sharpens the mind for coding." },
+        { title: "Crimson Spark", icon: "🍓", brew_instructions: "5 mins @ 212°F", category: "Apprentice", description: "Caffeine-free blend for the kids." }
     ];
 
     try {
-        // We use 'vault' here instead of 'supabase' to avoid the error
         const { error: herbErr } = await vault.from('herbs').upsert(herbsData);
         const { error: teaErr } = await vault.from('teas').upsert(teasData);
 
-        if (herbErr || teaErr) throw new Error("The scribe's ink ran dry!");
+        if (herbErr || teaErr) {
+            console.error("Herb Error:", herbErr);
+            console.error("Tea Error:", teaErr);
+            throw new Error("The scribe's ink ran dry!");
+        }
 
-        console.log("✅ The Vaults have been filled!");
+        console.log("✅ SUCCESS: The Vaults have been filled!");
         alert("Success! Your library is now live in Supabase.");
     } catch (err) {
         console.error("🚫 Ritual Interrupted:", err.message);
     }
 }
+
+// THIS LINE RUNS THE RITUAL AUTOMATICALLY ON REFRESH
+bulkScribeData();
