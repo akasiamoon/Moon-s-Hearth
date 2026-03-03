@@ -274,6 +274,18 @@ const myHerbs = [
         properties: "Circulation & Vision", 
         description: "Supports blood flow to the brain and eye health—essential for long hours spent looking at screens while homeschooling or dev work." 
     },
+    { 
+        title: "Sage", 
+        icon: "🍂", 
+        properties: "Wisdom & Clearing", 
+        description: "Used to clear mental fog and 'stale' energy from a workspace. Perfect for starting a new project or lesson." 
+    },
+    { 
+        title: "Holy Basil (Tulsi)", 
+        icon: "🌿", 
+        properties: "Stress Resilience", 
+        description: "An adaptogen that helps the mind stay calm and centered during a chaotic schedule." 
+    },
 
     // --- STAMINA & ENERGY (For Delivery Shifts & Busy Days) ---
     { 
@@ -293,6 +305,18 @@ const myHerbs = [
         icon: "🪵", 
         properties: "Adrenal Support", 
         description: "A powerful adaptogen that helps the body manage stress and fatigue, keeping your energy steady across multiple tasks." 
+    },
+    { 
+        title: "Oatstraw", 
+        icon: "🌾", 
+        properties: "Nervous System Support", 
+        description: "Gently restorative. Drink after a long day of driving to soothe 'road frazzle' and replenish energy." 
+    },
+    { 
+        title: "Ginger", 
+        icon: "🫚", 
+        properties: "Warmth & Circulation", 
+        description: "Excellent for cold weather shifts. Keeps the inner fire burning and settles the stomach on the go." 
     },
 
     // --- PEACE & HOUSEHOLD (For Family & Homeschooling) ---
@@ -320,6 +344,12 @@ const myHerbs = [
         properties: "Relaxation (For Humans Too!)", 
         description: "While it makes your Alinor Familiar zoomy, as a tea it is incredibly soothing for humans and helps settle restless energy." 
     },
+    { 
+        title: "Passionflower", 
+        icon: "🟣", 
+        properties: "Deep Quietude", 
+        description: "A stronger ally for those nights when the mind won't stop racing after a busy day." 
+    },
 
     // --- PROTECTION & WELLNESS ---
     { 
@@ -345,6 +375,12 @@ const myHerbs = [
         icon: "🦴", 
         properties: "Boundaries & Stopping Flow", 
         description: "A traditional 'wound-wort.' Historically used to stop bleeding, it is also used metaphorically for energetic protection." 
+    },
+    { 
+        title: "Mullein", 
+        icon: "🕯️", 
+        properties: "Breath & Air", 
+        description: "Soothing for the lungs. Excellent for clearing the chest during those damp Tennessee months." 
     }
 ];
 ];
