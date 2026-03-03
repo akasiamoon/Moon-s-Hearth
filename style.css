@@ -118,11 +118,11 @@ h2, .gold-text {
 
 .portal-scroll-container {
     margin-top: 15px; 
-    max-height: 70vh; /* Increased from 50vh to give you more room */
+    max-height: 75vh; /* Increased to 75% of your screen height */
     overflow-y: auto; 
     padding-right: 10px; 
     text-align: left;
-    -webkit-overflow-scrolling: touch; /* Ensures smooth scrolling on mobile/tablets */
+    scrollbar-width: thin; /* Makes scrollbar less bulky in Firefox */
 }
 
 /* --- 9. AUDIO GRIMOIRE --- */
