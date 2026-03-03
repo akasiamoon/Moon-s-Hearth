@@ -148,7 +148,11 @@ h2, .gold-text {
 .section-header:hover { background: rgba(191, 149, 63, 0.2); }
 .section-header::after { content: '▼'; font-size: 0.8em; transition: transform 0.3s ease; color: #bf953f; }
 .section-header.closed::after { transform: rotate(-90deg); }
-.section-panel { max-height: 2000px; overflow: hidden; transition: max-height 0.5s ease-in-out; }
+.section-panel { 
+    max-height: 10000px; /* Increased from 2000px to fit your full collection */
+    overflow: hidden; 
+    transition: max-height 0.5s ease-in-out; 
+}
 .section-panel.closed { max-height: 0; }
 
 /* --- 11. GRIMOIRE ACCORDIONS --- */
