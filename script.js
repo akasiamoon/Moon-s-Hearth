@@ -381,6 +381,32 @@ const myHerbs = [
         icon: "🕯️", 
         properties: "Breath & Air", 
         description: "Soothing for the lungs. Excellent for clearing the chest during those damp Tennessee months." 
+    },
+    
+    // --- STRENGTH & ADAPTATION ---
+    { 
+        title: "Ashwagandha", 
+        icon: "🪴", 
+        properties: "Stress Adaptation & Strength", 
+        description: "A premier adaptogen. It helps your body manage the physical and mental stress of a busy schedule, keeping your 'Stamina Bar' full." 
+    },
+    { 
+        title: "Dandelion Root", 
+        icon: "🌼", 
+        properties: "Detoxification & Digestion", 
+        description: "A resilient 'weed' found in every Tennessee yard. The root is a powerful ally for clearing the system and supporting steady energy." 
+    },
+    { 
+        title: "Hawthorn Berry", 
+        icon: "🍒", 
+        properties: "Heart Health & Emotional Courage", 
+        description: "Supports the physical heart and provides a steadying energy when facing daunting tasks—like a complex piece of Python code." 
+    },
+    { 
+        title: "Astragalus", 
+        icon: "🎋", 
+        properties: "Deep Immunity & Vitality", 
+        description: "A slow-acting but powerful tonic for the immune system. Perfect to start using as you transition into the frostfall months." 
     }
 ];
 
