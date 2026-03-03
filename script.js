@@ -866,15 +866,38 @@ function applySeasonalDecor() {
     else if (month >= 2 && month <= 4) body.classList.add('season-spring');
 }
 
-// === 10. BULK SYNC ===
 async function bulkScribeData() {
     if (!db) return;
+    console.log("📜 Starting the Total Sanctuary Sync...");
+
     try {
-        const vault = db;
-        await vault.from('apothecary').upsert(myApothecary.map(a => ({title: a.title, description: a.description})));
-        await vault.from('recipes').upsert(myRecipes.map(r => ({title: r.title, description: r.description})));
-        console.log("✅ Sync Complete.");
-    } catch (err) { console.error("Sync Failed:", err); }
+        // 1. Sync Apothecary with all fields
+        const { error: apoErr } = await db.from('apothecary').upsert(
+            myApothecary.map(a => ({
+                title: a.title, 
+                description: a.description, 
+                ingredients: a.ingredients, 
+                instructions: a.instructions,
+                icon: a.icon 
+            }))
+        );
+        if (apoErr) throw apoErr;
+
+        // 2. Sync Recipes with all fields
+        const { error: recErr } = await db.from('recipes').upsert(
+            myRecipes.map(r => ({
+                title: r.title, 
+                description: r.description, 
+                ingredients: Array.isArray(r.ingredients) ? r.ingredients.join(', ') : r.ingredients, 
+                instructions: r.instructions 
+            }))
+        );
+        if (recErr) throw recErr;
+
+        console.log("✅ SUCCESS: The Sanctuary is now fully populated!");
+    } catch (err) {
+        console.error("🚫 Ritual Failed:", err.message);
+    }
 }
 
 // === INITIALIZATION ===
