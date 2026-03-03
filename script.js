@@ -1724,4 +1724,4 @@ async function bulkScribeData() {
 }
 
 // THIS LINE RUNS THE RITUAL AUTOMATICALLY ON REFRESH
-bulkScribeData();
+
