@@ -725,10 +725,21 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     font-style: italic; 
 }
 
-/* === THE RIGHT PAGE FIX === */
+/* === THE LEFT PAGE NUDGE === */
+#grimoire-left-page {
+    position: relative;
+    /* DIAL 1: Increase this number to push the left page further RIGHT */
+    left: 25px; 
+}
+
+/* === THE RIGHT PAGE NUDGE === */
 #grimoire-right-page {
-    padding-left: 0px;   /* Pulls text left towards the center spine */
-    padding-right: 40px; /* Pushes text away from the right edge */
+    position: relative;
+    /* DIAL 2: Increase this number to push the right page further LEFT */
+    right: 25px; 
+    
+    padding-left: 0px;   
+    padding-right: 40px; 
 }
 
 /* === THE SCALED-DOWN TEXT === */
