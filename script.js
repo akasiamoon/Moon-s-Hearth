@@ -287,14 +287,12 @@ function prefillDate(dateStr) {
 
 // === 4. HTML BUILDERS ===
 // === THE KITCHEN GRIMOIRE (OPEN TOME) ===
-let currentGrimoireData = []; // Store it globally for the search bar to access
+let currentGrimoireData = [];
 
 async function buildGrimoireHTML() {
     let html = `<h2 class="gold-text">The Kitchen Grimoire</h2>`;
     
     const dbRecipes = await loadData('grimoire', 'created_at', true);
-    
-    // Combine local hardcoded recipes with cloud data
     const dbMappedRecipes = dbRecipes ? dbRecipes.map(r => ({
         title: r.title, description: r.description,
         ingredients: r.ingredients, instructions: r.instructions,
@@ -311,9 +309,7 @@ async function buildGrimoireHTML() {
                 <input type="text" id="grimoire-search" class="grimoire-search-bar" placeholder="Search the archives..." onkeyup="filterGrimoire()">
                 <div id="grimoire-index-list">`;
                 
-    // Populate initial list
     currentGrimoireData.forEach((recipe, i) => {
-        const safeTitle = recipe.title.replace(/'/g, "\\'");
         html += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
     });
     
@@ -327,7 +323,7 @@ async function buildGrimoireHTML() {
               
     html += `</div>`; // Close Tome Container
 
-    // Quick Add Form (Safe beneath the book)
+    // Quick Add Form
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description / Category..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
 
     return html;
