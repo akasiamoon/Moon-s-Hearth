@@ -286,35 +286,93 @@ function prefillDate(dateStr) {
 }
 
 // === 4. HTML BUILDERS ===
+// === THE KITCHEN GRIMOIRE (OPEN TOME) ===
+let currentGrimoireData = []; // Store it globally for the search bar to access
+
 async function buildGrimoireHTML() {
-    let html = `<h2 class="gold-text">Kitchen Grimoire</h2><div class="portal-scroll-container">`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Sacred Recipes</div><div class="section-panel closed">`;
-    [...myRecipes, ...myTeas].forEach(item => {
-        let ingList = item.ingredients ? (Array.isArray(item.ingredients) ? item.ingredients.map(ing => `<li><span>${ing}</span></li>`).join('') : `<li><span>${item.ingredients}</span></li>`) : '';
-        html += `<div class="grimoire-item"><button class="grimoire-header" onclick="toggleAccordion(this)">${item.icon || ''} ${item.title}</button><div class="grimoire-panel"><p><em>${item.description}</em></p>${item.brew ? `<div style="color:#bf953f; font-style:italic; margin-bottom:10px;">${item.brew}</div>` : ''}${ingList ? `<ul>${ingList}</ul>` : ''}${item.instructions ? `<p>${item.instructions}</p>` : ''}</div></div>`;
+    let html = `<h2 class="gold-text">The Kitchen Grimoire</h2>`;
+    
+    const dbRecipes = await loadData('grimoire', 'created_at', true);
+    
+    // Combine local hardcoded recipes with cloud data
+    const dbMappedRecipes = dbRecipes ? dbRecipes.map(r => ({
+        title: r.title, description: r.description,
+        ingredients: r.ingredients, instructions: r.instructions,
+        isDbItem: true, id: r.id 
+    })) : [];
+    
+    let localGrimoire = typeof myGrimoire !== 'undefined' ? myGrimoire : [];
+    currentGrimoireData = [...localGrimoire, ...dbMappedRecipes];
+
+    html += `<div class="grimoire-tome-container">`;
+    
+    // --- LEFT PAGE: Search & Index ---
+    html += `<div class="grimoire-page" id="grimoire-left-page">
+                <input type="text" id="grimoire-search" class="grimoire-search-bar" placeholder="Search the archives..." onkeyup="filterGrimoire()">
+                <div id="grimoire-index-list">`;
+                
+    // Populate initial list
+    currentGrimoireData.forEach((recipe, i) => {
+        const safeTitle = recipe.title.replace(/'/g, "\\'");
+        html += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
     });
-    const dbRecipes = await loadData('recipes');
-    dbRecipes.forEach(item => {
-        html += `<div class="grimoire-item"><button class="grimoire-header" onclick="toggleAccordion(this)">📜 ${item.title}</button><div class="grimoire-panel"><p style="white-space: pre-wrap;">${item.description}</p><div style="text-align: right; margin-top: 10px;"><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('recipes', '${item.id}', 'grimoire')">Purge Entry</button></div></div></div>`;
-    });
-    html += `</div>`; 
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Quick Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="recipe-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="recipe-desc" placeholder="Ingredients & Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('recipes', 'recipe-title', 'recipe-desc', 'grimoire')" class="portal-btn" style="width: 100%;">Add to Grimoire</button></div></div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Weekly Provisions</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-meal-item" placeholder="e.g. Moonday: Stew..." class="portal-input"><button onclick="addDynamicItem('meal_plans', 'new-meal-item', 'grimoire')" class="portal-btn">Add</button></div>`;
-    const meals = await loadData('meal_plans', 'created_at', true);
-    meals.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('meal_plans', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('meal_plans', '${item.id}', 'grimoire')">✕</div></div>`; 
-    });
-    html += `</div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Market List</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-market-item" placeholder="Add an item..." class="portal-input"><button onclick="addDynamicItem('market_items', 'new-market-item', 'grimoire')" class="portal-btn">Add</button></div>`;
-    const marketItems = await loadData('market_items');
-    marketItems.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('market_items', '${item.id}', ${item.is_completed}, 'grimoire')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('market_items', '${item.id}', 'grimoire')">✕</div></div>`; 
-    });
-    html += `</div></div>`; 
+    
+    html += `   </div>
+              </div>`;
+
+    // --- RIGHT PAGE: Recipe Details ---
+    html += `<div class="grimoire-page" id="grimoire-right-page">
+                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe from the index to read its contents.</p>
+              </div>`;
+              
+    html += `</div>`; // Close Tome Container
+
+    // Quick Add Form (Safe beneath the book)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description / Category..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
+
     return html;
 }
+
+// --- NEW SEARCH BAR LOGIC ---
+window.filterGrimoire = function() {
+    const query = document.getElementById('grimoire-search').value.toLowerCase();
+    const listContainer = document.getElementById('grimoire-index-list');
+    
+    let filteredHTML = '';
+    currentGrimoireData.forEach((recipe, i) => {
+        if (recipe.title.toLowerCase().includes(query) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(query))) {
+            filteredHTML += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
+        }
+    });
+    
+    if (filteredHTML === '') {
+        filteredHTML = `<div style="font-style:italic; text-align:center; margin-top:20px; color:rgba(43,29,20,0.6);">No lore matches your query.</div>`;
+    }
+    listContainer.innerHTML = filteredHTML;
+};
+
+// --- NEW READ PAGE LOGIC ---
+window.readGrimoirePage = function(index) {
+    const recipe = currentGrimoireData[index];
+    const rightPage = document.getElementById('grimoire-right-page');
+    
+    let html = `
+        <h3 class="page-title">${recipe.title}</h3>
+        <p class="page-text" style="font-style:italic;">${recipe.description || ''}</p>
+        
+        <h4 class="page-header">Ingredients</h4>
+        <p class="page-text">${recipe.ingredients || 'None recorded.'}</p>
+        
+        <h4 class="page-header">Instructions</h4>
+        <p class="page-text">${recipe.instructions || 'None recorded.'}</p>
+    `;
+    
+    if (recipe.isDbItem) {
+        html += `<br><button class="action-btn" style="color:#ff6b6b; border: 1px solid #ff6b6b; padding: 4px 8px; border-radius: 4px; margin-top: 20px; font-size: 0.7em;" onclick="deleteDetailedItem('grimoire', '${recipe.id}', 'grimoire')">Burn Page (Delete)</button>`;
+    }
+    
+    rightPage.innerHTML = html;
+};
 
 async function buildBountyBoardHTML() {
     let html = `<h2 class="gold-text">The Bounty Board</h2><div class="portal-scroll-container">`;
