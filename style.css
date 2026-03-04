@@ -504,7 +504,7 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     width: 100%;
     max-width: 600px;
     height: 450px; /* INCREASED: Gives the shelves more breathing room */
-    background: url('apothecary_cabinet.jpg') center/cover no-repeat;
+    background: url('apothecary_cabinet_v2.jpg') center/cover no-repeat;
     background-color: #0c0c0e;
     border: 5px solid;
     border-image: linear-gradient(45deg, #3e2723, #1a1412, #3e2723) 1;
