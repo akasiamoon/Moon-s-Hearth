@@ -286,64 +286,55 @@ function prefillDate(dateStr) {
 }
 
 // === 4. HTML BUILDERS ===
-// === THE KITCHEN GRIMOIRE (RESTORATION VERSION) ===
+// === THE KITCHEN GRIMOIRE (DATABASE: recipes) ===
 let currentGrimoireData = [];
 
 async function buildGrimoireHTML() {
-    console.log("📜 Grimoire: Opening the Tome...");
     let html = `<h2 class="gold-text">The Kitchen Grimoire</h2>`;
     
-    // 1. LOAD LOCAL DATA (The recipes you haven't lost!)
-    let localG = (typeof myGrimoire !== 'undefined') ? myGrimoire : [];
-    console.log("📜 Grimoire: Found " + localG.length + " local recipes.");
-
-    // 2. LOAD DATABASE DATA (Try-Catch prevents the 404 from killing the page)
+    // 1. GET YOUR 27+ LOCAL RECIPES (Check if it's 'myGrimoire' or 'myRecipes')
+    let localG = (typeof myGrimoire !== 'undefined') ? myGrimoire : 
+                 (typeof myRecipes !== 'undefined') ? myRecipes : [];
+    
+    // 2. GET THE 3 CLOUD RECIPES (Targeting the 'recipes' table)
     let dbMapped = [];
     try {
-        const dbRecipes = await loadData('grimoire');
+        const dbRecipes = await loadData('recipes'); // FIX: Changed from 'grimoire' to 'recipes'
         if (dbRecipes && dbRecipes.length > 0) {
             dbMapped = dbRecipes.map(r => ({
                 title: r.title, description: r.description,
                 ingredients: r.ingredients, instructions: r.instructions,
                 isDbItem: true, id: r.id 
             }));
-            console.log("📜 Grimoire: Successfully pulled " + dbMapped.length + " recipes from the cloud.");
         }
-    } catch (e) {
-        console.warn("📜 Grimoire: Cloud archive unreachable. Using local scrolls only.");
-    }
+    } catch (e) { console.warn("Cloud shelf 'recipes' not responding."); }
     
     // 3. MERGE & SORT
     currentGrimoireData = [...localG, ...dbMapped];
     currentGrimoireData.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
 
-    // 4. BUILD THE TOME UI
+    // 4. THE BOOK UI
     html += `
     <div class="grimoire-tome-container">
         <div class="grimoire-page-wrapper">
-            
             <div class="grimoire-page" id="grimoire-left-page">
                 <datalist id="recipe-predictions">
                     ${currentGrimoireData.map(r => `<option value="${r.title}">`).join('')}
                 </datalist>
-    
                 <input type="text" id="grimoire-search" class="grimoire-search-bar" 
                        list="recipe-predictions" autocomplete="off" 
-                       placeholder="Search the archives..." oninput="filterGrimoire()">
-                
+                       placeholder="Search the index..." oninput="filterGrimoire()">
                 <div id="grimoire-index-list">
                     ${renderGrimoireIndex('')} 
                 </div>
             </div>
-
             <div class="grimoire-page" id="grimoire-right-page">
                 <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe to reveal its secrets.</p>
             </div>
-
         </div>
     </div>`;
 
-    // 5. THE QUICK ADD FORM
+    // 5. QUICK ADD FORM
     html += `
     <div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div>
     <div class="section-panel closed">
@@ -352,23 +343,21 @@ async function buildGrimoireHTML() {
             <textarea id="grim-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea>
             <textarea id="grim-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
             <textarea id="grim-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
-            <button onclick="saveNewRecipe()" class="portal-btn" style="width: 100%;">Bind to Grimoire</button>
+            <button onclick="saveNewRecipe()" class="portal-btn" style="width: 100%;">Bind to Recipes Table</button>
         </div>
     </div>`;
 
     return html;
 }
 
-// --- THE INDEX RENDERER (A-Z HEADERS) ---
+// --- INDEX & SEARCH ENGINE ---
 window.renderGrimoireIndex = function(query) {
     let listHTML = '';
     let currentLetter = '';
     const q = (query || "").toLowerCase();
 
     currentGrimoireData.forEach((recipe, i) => {
-        const isMatch = q === '' || (recipe.title && recipe.title.toLowerCase().includes(q));
-
-        if (isMatch) {
+        if (q === '' || (recipe.title && recipe.title.toLowerCase().includes(q))) {
             if (q === '') {
                 const firstLetter = (recipe.title ? recipe.title.charAt(0).toUpperCase() : '?');
                 if (firstLetter !== currentLetter) {
@@ -379,10 +368,9 @@ window.renderGrimoireIndex = function(query) {
             listHTML += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
         }
     });
-    return listHTML || `<div style="text-align:center; margin-top:20px; opacity:0.5;">Archives are currently empty.</div>`;
+    return listHTML || `<div style="text-align:center; margin-top:20px; opacity:0.5;">Archives empty.</div>`;
 };
 
-// --- SEARCH & READ FUNCTIONS ---
 window.filterGrimoire = function() {
     const query = document.getElementById('grimoire-search').value;
     document.getElementById('grimoire-index-list').innerHTML = renderGrimoireIndex(query);
@@ -395,35 +383,16 @@ window.readGrimoirePage = function(index) {
         <h3 class="page-title">${recipe.title}</h3>
         <p class="page-text" style="font-style:italic;">${recipe.description || ''}</p>
         <h4 class="page-header">Ingredients</h4>
-        <p class="page-text">${recipe.ingredients || 'None recorded.'}</p>
+        <p class="page-text">${recipe.ingredients || 'None.'}</p>
         <h4 class="page-header">Instructions</h4>
-        <p class="page-text">${recipe.instructions || 'None recorded.'}</p>
+        <p class="page-text">${recipe.instructions || 'None.'}</p>
     `;
 };
 
-// --- SAVE FUNCTION ---
-async function saveNewRecipe() {
-    const title = document.getElementById('grim-title').value;
-    if (!title) return alert("The recipe needs a title!");
-    
-    const { error } = await supabase.from('grimoire').insert([{
-        title: title,
-        description: document.getElementById('grim-desc').value,
-        ingredients: document.getElementById('grim-ingredients').value,
-        instructions: document.getElementById('grim-instructions').value
-    }]);
-
-    if (!error) {
-        // Refresh the portal so the new recipe appears instantly
-        openPortal('grimoire');
-    } else {
-        alert("Scribe Error: " + error.message);
-    }
-}
 async function saveNewRecipe() {
     const title = document.getElementById('grim-title').value;
     if (!title) return alert("Missing Title");
-    const { error } = await supabase.from('grimoire').insert([{ 
+    const { error } = await supabase.from('recipes').insert([{ 
         title: title, 
         description: document.getElementById('grim-desc').value, 
         ingredients: document.getElementById('grim-ingredients').value, 
