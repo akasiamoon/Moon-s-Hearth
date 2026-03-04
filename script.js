@@ -484,7 +484,6 @@ function toggleHerbDetail(id) {
     document.querySelectorAll('.herb-bundle').forEach(b => b.classList.remove('show-details'));
     if (!isOpen) bundle.classList.add('show-details');
 }
-}
 
 async function buildSewingHTML() {
     let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
