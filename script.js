@@ -513,7 +513,6 @@ async function buildApothecaryHTML() {
         
         html += `</div>`; // Close slot
     }
-    }
     
     html += `</div>`; // Close cabinet container
     
