@@ -702,16 +702,17 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 
 /* === THE SEARCH BOX FIX === */
 .grimoire-search-bar {
-    width: 90%;
-    background: transparent; /* Banishes the ugly white box! */
+    width: 85%; /* Slightly narrower so it doesn't bleed off the right edge when moved */
+    margin-left: 20px; /* PUSHES IT TO THE RIGHT */
+    background: transparent; 
     border: none;
-    border-bottom: 2px solid rgba(43, 29, 20, 0.6); /* Scribe's underline */
+    border-bottom: 2px solid rgba(43, 29, 20, 0.6); 
     border-radius: 0;
-    padding: 10px 5px;
+    padding: 8px 5px;
     font-family: 'Cinzel', serif;
     color: #2b1d14; 
     font-weight: bold;
-    font-size: 1.1em;
+    font-size: 0.95em; /* SCALED DOWN THE TEXT */
     margin-bottom: 20px;
     outline: none;
     transition: border-color 0.3s;
