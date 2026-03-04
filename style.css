@@ -497,3 +497,118 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     visibility: visible;
     top: 70px; 
 }
+/* === THE APOTHECARY (CRAFTER'S CABINET) === */
+
+.apothecary-cabinet-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 350px; /* Adjust if needed to fit image aspect ratio */
+    background: url('apothecary_cabinet.jpg') top center/100% auto no-repeat;
+    background-color: #0c0c0e;
+    border: 5px solid;
+    border-image: linear-gradient(45deg, #3e2723, #1a1412, #3e2723) 1;
+    border-radius: 4px;
+    margin: 20px auto 40px auto;
+    display: grid;
+    /* Create an invisible grid over the shelves in the image */
+    grid-template-columns: repeat(6, 1fr); /* 6 wide */
+    grid-template-rows: repeat(4, 1fr);    /* 4 shelves */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1);
+    padding: 15px;
+    overflow: visible;
+}
+
+/* Individual shelf slot */
+.alchemy-slot {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Sit on the shelf */
+    padding-bottom: 5px;   /* Adjust to align with image shelf lines */
+}
+
+/* The pot/jar container */
+.alchemy-pot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transform-origin: bottom center; 
+    transition: transform 0.3s ease, filter 0.3s ease;
+    z-index: 1001;
+}
+
+.alchemy-pot:hover {
+    transform: scale(1.1) translateY(-3px); /* Pop out and float slightly on hover */
+    filter: drop-shadow(0 0 15px #fcf6ba); /* Brighter gold hover glow */
+}
+
+/* Base style for all items */
+.alchemy-icon {
+    font-size: 2.5em; /* Large pots and vials */
+    filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.8));
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/* DYNAMIC CONTAINER STYLES */
+
+/* Category: Healing (Cure, Recovery, Muscle soak) */
+/* Vibe: Traditional, corked apothecary vials */
+.alchemy-pot.healing .alchemy-icon {
+    filter: drop-shadow(0 0 5px #8fce00); /* Emerald green healing glow */
+}
+.alchemy-pot.healing:hover .alchemy-icon {
+    filter: drop-shadow(0 0 15px #8fce00); /* Brighter on hover */
+}
+
+/* Category: Combat (Battle, Burn, Shield) */
+/* Vibe: Geometric, dark pots or deep red geometrically shaped bottles */
+.alchemy-pot.combat .alchemy-icon {
+    filter: drop-shadow(0 0 5px #ff6b6b); /* Deep red battle glow */
+    transform: rotate(5deg); /* Pushed slightly off-axis for visual contrast */
+}
+.alchemy-pot.combat:hover .alchemy-icon {
+    filter: drop-shadow(0 0 15px #ff6b6b);
+}
+
+/* Category: Cosmetics (Lip Stain, Highlighters) */
+/* This is where we handle BOTH Gothic (dark) and Lisa Frank (neon)! */
+.alchemy-pot.cosmetics .alchemy-icon {
+    font-size: 2.2em; /* Slightly smaller, delicate jars */
+}
+
+/* Specific item handling for GOTHIC items (e.g., 'Obsidian Lip Stain', 'Raven Eye Coal') */
+/* Vibe: Matte black or geometric, non-glowing pots */
+.alchemy-pot.cosmetics[data-title*="Obsidian"],
+.alchemy-pot.cosmetics[data-title*="Raven"] {
+    filter: contrast(0.5) brightness(0.7); /* Mutes the emoji colors to feel dark */
+}
+.alchemy-pot.cosmetics[data-title*="Obsidian"]:hover,
+.alchemy-pot.cosmetics[data-title*="Raven"]:hover {
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); /* Deep shadow hover glow, NOT light */
+}
+
+/* Specific item handling for LISA FRANK / Y2K items (e.g., 'Neon highlighter', 'Iridescent') */
+/* Vibe: Iridescent, multi-colored, round pots, strong colorful glow */
+.alchemy-pot.cosmetics[data-title*="Neon"],
+.alchemy-pot.cosmetics[data-title*="Iridescent"] {
+    animation: neonJarPulse 3s infinite alternate; /* Iridescent pulse animation */
+}
+
+@keyframes neonJarPulse {
+    0% { filter: drop-shadow(0 0 3px #4facfe); } /* Cool Blue */
+    50% { filter: drop-shadow(0 0 8px #fcf6ba); } /* Warm Gold */
+    100% { filter: drop-shadow(0 0 3px #bf953f); } /* Rich Gold */
+}
+
+.alchemy-pot.cosmetics[data-title*="Neon"]:hover,
+.alchemy-pot.cosmetics[data-title*="Iridescent"]:hover {
+    filter: drop-shadow(0 0 20px #fcf6ba); /* Brighter gold focus glare */
+    animation: none; /* Stop pulsing and hold the bright glare */
+}
+
+/* THE POPUP PANEL FIXES */
+.herb-detail-tag { /* Borrowed from the Drying Rack, but applied here too */
+    z-index: 10000; /* Force it over everything */
+}
