@@ -762,3 +762,14 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     color: #8fce00; 
     padding-left: 10px; 
 }
+/* === TABLE OF CONTENTS HEADERS === */
+.toc-header {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #5c4033; /* Dark, rich ink */
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(43, 29, 20, 0.3);
+}
