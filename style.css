@@ -700,8 +700,53 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 .grimoire-page::-webkit-scrollbar-track { background: transparent; }
 .grimoire-page::-webkit-scrollbar-thumb { background: rgba(43, 29, 20, 0.3); border-radius: 3px; }
 
-/* Readability bumps */
-.page-title { font-size: 1.8em; margin-bottom: 10px; border-bottom: 2px solid rgba(43,29,20,0.5); }
-.page-header { font-size: 1.3em; margin-top: 20px; }
-.page-text { font-size: 1.1em; line-height: 1.6; }
-.grimoire-index-item { font-size: 1.1em; padding: 10px 5px; }
+/* === THE SEARCH BOX FIX === */
+.grimoire-search-bar {
+    width: 90%;
+    background: transparent; /* Banishes the ugly white box! */
+    border: none;
+    border-bottom: 2px solid rgba(43, 29, 20, 0.6); /* Scribe's underline */
+    border-radius: 0;
+    padding: 10px 5px;
+    font-family: 'Cinzel', serif;
+    color: #2b1d14; 
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+.grimoire-search-bar:focus {
+    border-bottom: 2px solid #8fce00; 
+}
+.grimoire-search-bar::placeholder { 
+    color: rgba(43, 29, 20, 0.5); 
+    font-style: italic; 
+}
+
+/* === THE RIGHT PAGE FIX === */
+#grimoire-right-page {
+    padding-left: 0px;   /* Pulls text left towards the center spine */
+    padding-right: 40px; /* Pushes text away from the right edge */
+}
+
+/* === THE SCALED-DOWN TEXT === */
+.page-title { font-size: 1.5em; margin-bottom: 8px; border-bottom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; }
+.page-header { font-size: 1.1em; margin-top: 15px; margin-bottom: 5px; }
+.page-text { font-size: 0.95em; line-height: 1.5; margin: 0; white-space: pre-wrap; }
+
+/* The Index List Links */
+.grimoire-index-item {
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    font-size: 0.95em;
+    padding: 8px 5px;
+    border-bottom: 1px dashed rgba(43, 29, 20, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.grimoire-index-item:hover {
+    background: rgba(43, 29, 20, 0.05);
+    color: #8fce00; 
+    padding-left: 10px; 
+}
