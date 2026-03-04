@@ -615,3 +615,18 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 .herb-detail-tag { /* Borrowed from the Drying Rack, but applied here too */
     z-index: 10000; /* Force it over everything */
 }
+/* --- APOTHECARY CLICK & COLOR FIXES --- */
+
+/* This actually reveals the popup when clicked! */
+.alchemy-pot.show-details .herb-detail-tag {
+    opacity: 1;
+    visibility: visible;
+    top: 50px; /* Adjust this to slide the popup up or down */
+}
+
+/* Coloring for our new glass SVGs */
+.alchemy-pot.healing { color: #8fce00; }
+.alchemy-pot.combat { color: #ff6b6b; }
+.alchemy-pot.cosmetics { color: #bf953f; }
+.alchemy-pot[data-title*="Obsidian"], 
+.alchemy-pot[data-title*="Raven"] { color: #444; } /* Dark glass for gothic items */
