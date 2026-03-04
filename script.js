@@ -957,28 +957,63 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // === THE LIVING BEDS LOGIC ===
+let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
+
 async function buildGardenHTML() {
     let html = `<h2 class="gold-text">The Living Beds</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic;">Click a patch of soil to plant or tend.</p>`;
     
-    // Build the container
+    // --- 1. BED SELECTOR & BUILDER ---
+    let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
+    if (!allBeds.includes(currentBedName)) currentBedName = allBeds[0];
+
+    let bedOptions = allBeds.map(b => `<option value="${b}" ${b === currentBedName ? 'selected' : ''}>${b}</option>`).join('');
+    
+    html += `
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+            <select id="bed-select" class="portal-input" style="width:60%; cursor:pointer;" onchange="switchBed(this.value)">
+                ${bedOptions}
+            </select>
+            <button class="portal-btn" onclick="buildNewBed()" style="width:35%; color:#8fce00; border-color:#8fce00;">+ Build Bed</button>
+        </div>
+        <p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Tending to: ${currentBedName}</p>
+    `;
+
+    // --- 2. BUILD THE GARDEN BOX ---
     html += `<div class="garden-bed-container">`;
     
-    // Load the planted data
+    // Load the planted data and filter ONLY for the current bed
     const plots = await loadData('garden_plots');
+    const activePlots = plots.filter(p => (p.bed_name || 'Main Bed') === currentBedName);
     
     // Generate 8 squares (4x2 grid)
     for (let i = 1; i <= 8; i++) {
         const gridId = `cell-${i}`;
-        const plotData = plots.find(p => p.grid_id === gridId);
+        const plotData = activePlots.find(p => p.grid_id === gridId);
         
         if (plotData) {
-            // Something is planted here!
+            // --- TIME-WEAVER GROWTH MATH ---
+            const plantedDate = new Date(plotData.created_at);
+            const now = new Date();
+            const daysOld = Math.floor((now - plantedDate) / (1000 * 60 * 60 * 24)); // Calculates full days passed
+            
+            let displayIcon = '🌱'; // Stage 1: Seedling (Day 0)
+            let stageText = 'Sprouting';
+            
+            if (daysOld >= 1) { 
+                displayIcon = '🌿'; // Stage 2: Vegetative (Day 1-2)
+                stageText = 'Growing'; 
+            }
+            if (daysOld >= 3) { 
+                displayIcon = plotData.plant_icon; // Stage 3: Blooming / Mature (Day 3+)
+                stageText = 'Mature'; 
+            }
+
             const fertDate = plotData.last_fertilized ? new Date(plotData.last_fertilized).toLocaleDateString([], {month:'short', day:'numeric'}) : 'Needs Food';
+            
             html += `
                 <div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name.replace(/'/g, "\\'")}')">
-                    <div class="plant-icon">${plotData.plant_icon}</div>
-                    <div class="plant-name">${plotData.plant_name}</div>
+                    <div class="plant-icon">${displayIcon}</div>
+                    <div class="plant-name">${plotData.plant_name} <span style="font-weight:normal; opacity:0.7;">(${stageText})</span></div>
                     <div class="fert-status">💧 ${fertDate}</div>
                 </div>`;
         } else {
@@ -992,16 +1027,32 @@ async function buildGardenHTML() {
     }
     html += `</div>`;
     
-    // --- THIS IS THE NEW ACTION PANEL ---
+    // --- 3. ACTION PANEL ---
     html += `<div id="garden-action-panel" style="margin-top: 15px; min-height: 120px;"></div>`;
-    
-    html += `</div>`; // Close scroll container
+    html += `</div>`; 
     return html;
 }
 
-// --- NEW BEAUTIFUL ACTIONS ---
+// --- BED MANAGEMENT ---
+function switchBed(name) {
+    currentBedName = name;
+    localStorage.setItem('active_garden_bed', name);
+    openPortal('garden');
+}
 
-// Action: Click an empty square
+function buildNewBed() {
+    const newName = prompt("Name your new raised bed (e.g., North Box, Herb Garden):");
+    if (newName && newName.trim() !== '') {
+        let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
+        if (!allBeds.includes(newName.trim())) {
+            allBeds.push(newName.trim());
+            localStorage.setItem('garden_bed_names', JSON.stringify(allBeds));
+        }
+        switchBed(newName.trim());
+    }
+}
+
+// --- NEW BEAUTIFUL ACTIONS ---
 function plantSeed(gridId) {
     const panel = document.getElementById('garden-action-panel');
     panel.innerHTML = `
@@ -1014,11 +1065,9 @@ function plantSeed(gridId) {
             </div>
         </div>
     `;
-    // Auto-focus the input box so you can just start typing!
     document.getElementById('seed-name-input').focus();
 }
 
-// Confirm the planting
 async function confirmPlantSeed(gridId) {
     const plantName = document.getElementById('seed-name-input').value.trim();
     if (!plantName) return;
@@ -1028,16 +1077,16 @@ async function confirmPlantSeed(gridId) {
     const nameLower = plantName.toLowerCase();
     if(nameLower.includes('tomato')) icon = '🍅';
     else if(nameLower.includes('carrot') || nameLower.includes('root')) icon = '🥕';
-    else if(nameLower.includes('flower') || nameLower.includes('lavender') || nameLower.includes('poppy')) icon = '🪻';
+    else if(nameLower.includes('flower') || nameLower.includes('lavender') || nameLower.includes('poppy') || nameLower.includes('chamomile')) icon = '🪻';
     else if(nameLower.includes('herb') || nameLower.includes('rosemary') || nameLower.includes('thyme') || nameLower.includes('mint')) icon = '🌿';
     else if(nameLower.includes('berry')) icon = '🫐';
     else if(nameLower.includes('moon')) icon = '🌙';
 
-    await insertData('garden_plots', { grid_id: gridId, plant_name: plantName, plant_icon: icon });
-    openPortal('garden'); // Refresh the garden to show the new plant
+    // Note the addition of bed_name here so it saves to the right box!
+    await insertData('garden_plots', { bed_name: currentBedName, grid_id: gridId, plant_name: plantName, plant_icon: icon });
+    openPortal('garden'); 
 }
 
-// Action: Click an existing plant
 function tendPlot(plotId, plantName) {
     const panel = document.getElementById('garden-action-panel');
     panel.innerHTML = `
@@ -1045,7 +1094,7 @@ function tendPlot(plotId, plantName) {
             <h3 class="alchemy-title">Tending: ${plantName}</h3>
             <p style="color: #d4c8a8; font-size: 0.9em; margin-top: 0; margin-bottom: 15px;">What does this plot need?</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="confirmFeed('${plotId}')" class="portal-btn" style="color: #4facfe; border-color: #4facfe; flex: 1;">💧 Fertilize</button>
+                <button onclick="confirmFeed('${plotId}')" class="portal-btn" style="color: #4facfe; border-color: #4facfe; flex: 1;">💧 Water / Feed</button>
                 <button onclick="confirmUproot('${plotId}')" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">⛏️ Uproot</button>
                 <button onclick="cancelGardenAction()" class="portal-btn" style="flex: 1;">Cancel</button>
             </div>
@@ -1053,20 +1102,17 @@ function tendPlot(plotId, plantName) {
     `;
 }
 
-// Confirm Fertilizing
 async function confirmFeed(plotId) {
     await updateData('garden_plots', plotId, { last_fertilized: new Date().toISOString() });
-    feedFamiliar(); // Bonus XP for taking care of your plants!
+    feedFamiliar(); 
     openPortal('garden');
 }
 
-// Confirm Uprooting
 async function confirmUproot(plotId) {
     await removeData('garden_plots', plotId);
     openPortal('garden');
 }
 
-// Close the panel without doing anything
 function cancelGardenAction() {
     document.getElementById('garden-action-panel').innerHTML = '';
 }
