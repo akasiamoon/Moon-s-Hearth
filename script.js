@@ -302,7 +302,10 @@ async function buildGrimoireHTML() {
     let localGrimoire = typeof myGrimoire !== 'undefined' ? myGrimoire : [];
     currentGrimoireData = [...localGrimoire, ...dbMappedRecipes];
 
-    html += `<div class="grimoire-tome-container">`;
+  html += `<div class="grimoire-tome-container">`;
+    
+    // === THE NEW INVISIBLE WRAPPER ===
+    html += `<div class="grimoire-page-wrapper">`;
     
     // --- LEFT PAGE: Search & Index ---
     html += `<div class="grimoire-page" id="grimoire-left-page">
@@ -310,6 +313,7 @@ async function buildGrimoireHTML() {
                 <div id="grimoire-index-list">`;
                 
     currentGrimoireData.forEach((recipe, i) => {
+        const safeTitle = recipe.title.replace(/'/g, "\\'");
         html += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
     });
     
@@ -321,8 +325,9 @@ async function buildGrimoireHTML() {
                 <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe from the index to read its contents.</p>
               </div>`;
               
+    html += `</div>`; // === CLOSE THE WRAPPER ===
+              
     html += `</div>`; // Close Tome Container
-
     // Quick Add Form
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description / Category..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
 
