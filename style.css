@@ -660,34 +660,41 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 /* === THE OPEN GRIMOIRE TOME === */
 .grimoire-tome-container {
     position: relative;
-    width: 100%;
-    max-width: 900px;
     
-    /* THE FIX: Locks the box to the exact shape of the image so it NEVER stretches */
+    /* THE BREAKOUT TRICK: Forces the book to be 85% of your total screen width */
+    width: 85vw; 
+    max-width: 1200px; 
+    min-width: 800px; /* Prevents it from ever getting too small */
+    
+    /* Centers it perfectly on the screen regardless of the parent container */
+    left: 50%;
+    transform: translateX(-50%); 
+    
     aspect-ratio: 16 / 9; 
-    height: auto; 
-    
     background: url('open_grimoire.jpg') center/cover no-repeat;
-    margin: 20px auto;
+    margin: 40px 0; 
     display: flex;
     justify-content: space-between;
     
-    /* THE FIX: Percentage-based padding scales automatically with the book */
-    /* Top: 8%, Right: 12%, Bottom: 10%, Left: 12% */
-    padding: 8% 12% 10% 12%; 
-    
+    padding: 8% 11% 10% 11%; 
     box-sizing: border-box;
-    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.9));
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
 }
 
 .grimoire-page {
-    /* Keeps text away from the thick center spine */
-    width: 40%; 
+    width: 42%; 
     height: 100%;
     overflow-y: auto;
     padding-right: 15px;
-    color: #2b1d14; /* Dark ink */
+    color: #2b1d14; 
+    font-size: 1.1em; /* Bumps up the base ink size */
 }
+
+/* Make the specific text elements larger and more legible */
+.page-title { font-size: 1.8em; margin-bottom: 10px; }
+.page-header { font-size: 1.3em; margin-top: 20px; }
+.page-text { font-size: 1.1em; }
+.grimoire-index-item { font-size: 1.1em; padding: 10px 5px; }
 
 .grimoire-page::-webkit-scrollbar { width: 4px; }
 .grimoire-page::-webkit-scrollbar-track { background: transparent; }
