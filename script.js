@@ -313,7 +313,6 @@ async function buildGrimoireHTML() {
         <div class="grimoire-page-wrapper">
             
             <div class="grimoire-page" id="grimoire-left-page">
-                
                 <datalist id="recipe-predictions">
                     ${currentGrimoireData.map(r => `<option value="${r.title}">`).join('')}
                 </datalist>
@@ -321,7 +320,7 @@ async function buildGrimoireHTML() {
                 <input type="text" id="grimoire-search" class="grimoire-search-bar" list="recipe-predictions" placeholder="Search the archives..." oninput="filterGrimoire()">
                 
                 <div id="grimoire-index-list">
-                    ${renderGrimoireIndex('')} 
+                    ${generateTableOfContents('')} 
                 </div>
             </div>
 
@@ -332,23 +331,22 @@ async function buildGrimoireHTML() {
         </div>
     </div>`;
 
-    // 5. Quick Add Form (Safe beneath the book)
+    // 5. Quick Add Form
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
 
     return html;
 }
 
-// --- THE ENGINE: TABLE OF CONTENTS GENERATOR ---
-window.renderGrimoireIndex = function(query) {
+// --- THE ENGINE: TABLE OF CONTENTS & SEARCH ---
+window.generateTableOfContents = function(query) {
     let listHTML = '';
     let currentLetter = '';
     const q = query.toLowerCase();
 
     currentGrimoireData.forEach((recipe, i) => {
-        const matchesSearch = q === '' || recipe.title.toLowerCase().includes(q) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(q));
-        
-        if (matchesSearch) {
-            // Add A-Z Headers only when not searching
+        if (q === '' || recipe.title.toLowerCase().includes(q) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(q))) {
+            
+            // Only draw alphabetical headers when NOT searching
             if (q === '') {
                 const firstLetter = recipe.title.charAt(0).toUpperCase();
                 if (firstLetter !== currentLetter) {
@@ -366,7 +364,7 @@ window.renderGrimoireIndex = function(query) {
 // --- SEARCH TRIGGER ---
 window.filterGrimoire = function() {
     const query = document.getElementById('grimoire-search').value;
-    document.getElementById('grimoire-index-list').innerHTML = renderGrimoireIndex(query);
+    document.getElementById('grimoire-index-list').innerHTML = generateTableOfContents(query);
 };
 
 // --- READ PAGE ---
@@ -378,57 +376,12 @@ window.readGrimoirePage = function(index) {
         <h3 class="page-title">${recipe.title}</h3>
         <p class="page-text" style="font-style:italic;">${recipe.description || ''}</p>
         <h4 class="page-header">Ingredients</h4>
-        <p class="page-text">${recipe.ingredients || 'None recorded.'}</p>
+        <p class="page-text">${recipe.ingredients || 'Properties recorded.'}</p>
         <h4 class="page-header">Instructions</h4>
-        <p class="page-text">${recipe.instructions || 'None recorded.'}</p>
+        <p class="page-text">${recipe.instructions || 'Lore recorded.'}</p>
         ${recipe.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; border: 1px solid #ff6b6b; padding: 4px 8px; border-radius: 4px; margin-top: 20px; font-size: 0.7em;" onclick="deleteDetailedItem('grimoire', '${recipe.id}', 'grimoire')">Burn Page</button>` : ''}
     `;
 };
-
-async function buildBountyBoardHTML() {
-    let html = `<h2 class="gold-text">The Bounty Board</h2><div class="portal-scroll-container">`;
-    const events = await loadData('calendar_events', 'start_date', true);
-    html += await generateCalendarHTML(events);
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Alignments Ledger</div><div class="section-panel closed">`;
-    if (events.length > 0) {
-        events.forEach(ev => {
-            const isDone = ev.text === 'completed' ? 'completed' : ''; 
-            const dateStr = ev.start_date ? new Date(ev.start_date).toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'}) : '';
-            html += `<div class="quest-item ${isDone}" onclick="toggleEvent('${ev.id}', '${ev.text}')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${ev.title}</h3><div style="font-size: 0.8em; color: rgba(191, 149, 63, 0.8);">${dateStr}</div></div><div class="delete-icon" onclick="event.stopPropagation(); deleteEvent('${ev.id}')">✕</div></div>`;
-        });
-    } else { html += `<p style="color: rgba(191,149,63,0.5); font-style: italic;">No current alignments recorded.</p>`; }
-    html += `</div>`; 
-    html += `<div id="scribe-section" class="section-header closed" onclick="toggleSection(this)">Scribe Alignment</div><div id="scribe-panel" class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="ev-title" placeholder="Alignment Title..." class="portal-input" style="margin-bottom: 10px;"><input type="datetime-local" id="ev-date" class="portal-input" style="margin-bottom: 10px;"><button onclick="addEvent()" class="portal-btn" style="width: 100%;">Seal in the Stars</button><div id="ev-status" style="font-size: 0.8em; margin-top:5px; color:#bf953f; text-align:center;"></div></div></div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Daily Endeavors</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-quest-item" placeholder="Scribe a quick chore..." class="portal-input"><button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button></div>`;
-    const quests = await loadData('daily_quests');
-    quests.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div></div>`; 
-    });
-    html += `</div></div>`; 
-    return html;
-}
-
-async function buildTeacupHTML() {
-    let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
-    html += `<div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;"><textarea id="journal-text" placeholder="Record your thoughts or visions..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea><div style="display: flex; justify-content: space-between; align-items: center;"><label for="journal-image" class="custom-file-label">Attach Image</label><input type="file" id="journal-image" accept="image/*" onchange="document.getElementById('file-name').innerText = this.files[0].name"><button onclick="submitJournalEntry()" id="journal-submit-btn" class="portal-btn">Seal Memory</button></div><div id="file-name" style="font-size: 0.8em; color: rgba(191,149,63,0.7); margin-top: 5px; font-style: italic;"></div><div id="journal-status" style="font-size: 0.8em; color: #a89f91; margin-top: 5px;"></div></div>`;
-    const notes = await loadData('family_notes');
-    notes.forEach(note => {
-        let imageHtml = '';
-        if (note.image_url) {
-            let pubUrl = note.image_url;
-            if (db && !note.image_url.startsWith('http') && !note.image_url.startsWith('data:')) {
-                const { data } = db.storage.from('note-images').getPublicUrl(note.image_url);
-                pubUrl = data.publicUrl;
-            }
-            imageHtml = `<img src="${pubUrl}" style="max-width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid rgba(191, 149, 63, 0.3);" alt="Memory"/>`;
-        }
-        const dateStr = new Date(note.timestamp || note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
-        html += `<div class="tea-card"><div style="font-size: 0.85em; color: rgba(191,149,63,0.8); margin-bottom: 8px; border-bottom: 1px dashed rgba(191, 149, 63, 0.3); padding-bottom: 5px; display: flex; justify-content: space-between;"><span>${dateStr}</span><button class="action-btn" style="color: #ff6b6b;" onclick="deleteJournalEntry('${note.id}')">Delete</button></div><p style="margin: 0; white-space: pre-wrap; font-size: 1.05em;">${note.note}</p>${imageHtml}</div>`;
-    });
-    return html + `</div>`;
-}
-
 async function buildLedgerHTML() {
     let html = `<h2 class="gold-text">Merchant's Ledger</h2><div class="portal-scroll-container">`;
     const transactions = await loadData('ledger_transactions', 'created_at', false);
