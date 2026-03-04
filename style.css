@@ -361,7 +361,7 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     width: 100%;
     max-width: 600px;
     height: 300px;
-    background: url('YOUR_IMAGE_URL_HERE') center/cover no-repeat;
+    background: url('raisedbed1.jpg') center/cover no-repeat;
     background-color: #271915; /* Dark dirt fallback color */
     border: 8px solid #3e2723; /* Dark wood border */
     border-radius: 8px;
