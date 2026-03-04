@@ -415,104 +415,62 @@ async function buildWorkshopHTML() {
     return html;
 }
 
-// === THE APOTHECARY (CRAFTER'S CABINET) LOGIC ===
+// === THE APOTHECARY (CRAFTER'S CABINET) === //
 async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">The Apothecary</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Click a concoction to open the recipe.</p>`;
+    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
     
     let dbMappedRecipes = [];
-    
-    // 1. Try to load from Supabase
     try {
         const dbRecipes = await loadData('apothecary');
-        if (dbRecipes && dbRecipes.length > 0) {
+        if (dbRecipes) {
             dbMappedRecipes = dbRecipes.map(r => ({
-                title: r.title, 
-                icon: r.icon || '🏺',
-                category: r.category || 'General',
-                description: r.description,
-                ingredients: r.ingredients,
-                instructions: r.instructions,
-                isDbItem: true, 
-                id: r.id 
+                title: r.title, category: r.category || 'General', description: r.description,
+                ingredients: r.ingredients, instructions: r.instructions, isDbItem: true, id: r.id 
             }));
         }
-    } catch (error) {
-        console.log("Archive note: No cloud recipes found or connection issue.");
-    }
+    } catch (e) { console.log("Archive note: No cloud recipes."); }
     
-    // 2. Combine with hardcoded recipes (if you have them)
-    let localApothecary = [];
-    if (typeof myApothecary !== 'undefined') {
-        localApothecary = myApothecary;
-    }
-    
+    let localApothecary = typeof myApothecary !== 'undefined' ? myApothecary : [];
     const allRecipes = [...localApothecary, ...dbMappedRecipes];
     
-    // 3. Build the cabinet container
     html += `<div class="apothecary-cabinet-container">`;
         
-    // Generate 24 slots (6 columns x 4 shelves)
-    const totalSlots = 24;
-    
-  for (let i = 0; i < totalSlots; i++) {
-        html += `<div class="alchemy-slot" id="alchemy-slot-${i}">`;
+    for (let i = 0; i < 24; i++) {
+        html += `<div class="alchemy-slot">`;
         
         if (allRecipes[i]) {
             const recipe = allRecipes[i];
+            let visualClass = 'cosmetics'; // Default Gold
             
-            let visualClass = 'general';
-            const catLower = (recipe.category || "").toLowerCase();
-            const titleLower = (recipe.title || "").toLowerCase();
+            const cat = (recipe.category || "").toLowerCase();
+            const title = (recipe.title || "").toLowerCase();
 
-            // Elegant SVG Shapes instead of Emojis
-            let glassShape = `<svg viewBox="0 0 24 24" width="35" height="40" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="12" rx="3"/><path d="M8 10V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v5"/><path d="M4 10h16"/></svg>`; // Default Square Jar
+            if(cat.includes('heal') || title.includes('cure') || title.includes('recovery')) visualClass = 'healing';
+            else if(cat.includes('combat') || title.includes('battle') || title.includes('burn')) visualClass = 'combat';
+            if(title.includes('obsidian') || title.includes('raven') || title.includes('dark')) visualClass = 'gothic';
 
-            if(catLower.includes('heal') || titleLower.includes('cure') || titleLower.includes('recovery')) {
-                visualClass = 'healing';
-                glassShape = `<svg viewBox="0 0 24 24" width="35" height="45" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="2"><path d="M10 2v6.5l-6 9C3 20 4 22 12 22s9-2 8-4.5l-6-9V2z"/><path d="M8 2h8"/></svg>`; // Round Flask
-            }
-            else if(catLower.includes('combat') || titleLower.includes('battle') || titleLower.includes('burn')) {
-                visualClass = 'combat';
-                glassShape = `<svg viewBox="0 0 24 24" width="30" height="45" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="2"><path d="M7 2h10M9 2v20a2 2 0 002 2h2a2 2 0 002-2V2"/></svg>`; // Tall Thin Vial
-            }
-            else if(catLower.includes('cosmetic') || titleLower.includes('stain') || titleLower.includes('highlighter')) {
-                visualClass = 'cosmetics';
-                glassShape = `<svg viewBox="0 0 24 24" width="38" height="30" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.5"><path d="M4 8v12a2 2 0 002 2h12a2 2 0 002-2V8M2 8h20M6 8V4a2 2 0 012-2h8a2 2 0 012 2v4"/></svg>`; // Flat Cosmetic Jar
-            }
+            // Clean data for the click function (escape quotes)
+            const safeTitle = recipe.title.replace(/'/g, "\\'");
+            const safeDesc = (recipe.description || '').replace(/'/g, "\\'");
+            const safeIng = (recipe.ingredients || '').replace(/'/g, "\\'");
+            const safeInst = (recipe.instructions || '').replace(/'/g, "\\'");
 
             html += `
-                <div class="alchemy-pot ${visualClass}" data-title="${recipe.title.replace(/'/g, "")}" id="recipe-${i}" onclick="toggleRecipeDetail('${i}')">
-                    <div class="alchemy-icon">${glassShape}</div>
-                    
-                    <div class="herb-detail-tag" id="recipe-popup-${i}">
-                        <h4 class="gold-text" style="font-size: 1.1em; margin: 0 0 10px 0; border:none; text-align: left; padding-bottom: 5px;">${recipe.title}</h4>
-                        <p style="color:#d4c8a8; margin: 0; font-size: 0.95em;">${recipe.description}</p>
-                        
-                        <div style="background:rgba(0,0,0,0.5); padding: 12px; margin-top: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
-                            <p style="color:#fcf6ba; font-style:italic; margin-top:0; margin-bottom: 5px;">Ingredients:</p>
-                            <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.ingredients || 'Properties recorded.'}</p>
-                            <p style="color:#fcf6ba; font-style:italic; margin-top:12px; margin-bottom: 5px;">Instructions:</p>
-                            <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.instructions || 'Lore recorded.'}</p>
-                        </div>
-                        
-                        ${recipe.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; font-size: 0.8em; border: 1px solid #ff6b6b; padding: 4px 10px; border-radius: 4px; margin-top: 12px; width:100%;" onclick="event.stopPropagation(); deleteDetailedItem('apothecary', '${recipe.id}', 'alchemy')">Shatter Vial (Purge)</button>` : ''}
-                    </div>
+                <div class="alchemy-pot ${visualClass}" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${recipe.id || ''}', ${recipe.isDbItem || false})">
+                    <div class="css-phial"></div>
                 </div>`;
         } else {
-            // Empty faint glass outline
-            html += `
-                <div class="alchemy-pot" style="cursor: default; transform: none; color: rgba(255,255,255,0.15);">
-                    <div class="alchemy-icon">
-                        <svg viewBox="0 0 24 24" width="35" height="40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="10" width="14" height="12" rx="3"/><path d="M8 10V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v5"/><path d="M4 10h16"/></svg>
-                    </div>
-                </div>`;
+            // Empty Phial
+            html += `<div class="alchemy-pot empty"><div class="css-phial" style="opacity: 0.3;"></div></div>`;
         }
         
-        html += `</div>`; // Close slot
+        html += `</div>`; 
     }
+    html += `</div>`; 
     
-    html += `</div>`; // Close cabinet container
+    // --- THE NEW READING DESK ---
+    html += `<div id="apothecary-reading-desk" style="margin-bottom: 20px;"></div>`;
     
     // Quick Add Form
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="recipe-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="recipe-desc" placeholder="Concoction Description..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="recipe-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="recipe-instructions" placeholder="Mixing Instructions..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('apothecary', 'recipe-title', 'recipe-desc', 'recipe-ingredients', 'recipe-instructions', 'alchemy')" class="portal-btn" style="width: 100%;">Seal Recipe in Cabinet</button></div></div>`;
@@ -520,13 +478,34 @@ async function buildApothecaryHTML() {
     return html + `</div>`; 
 }
 
-// Ensure this is here too!
-function toggleRecipeDetail(id) {
-    const popup = document.getElementById(`recipe-popup-${id}`);
-    const isOpen = popup ? popup.classList.contains('show-details') : false;
-    document.querySelectorAll('.alchemy-pot .herb-detail-tag').forEach(b => b.classList.remove('show-details'));
-    if (!isOpen && popup) popup.classList.add('show-details');
-}
+// --- THE NEW CLICK FUNCTION ---
+window.openReadingDesk = function(title, desc, ing, inst, id, isDb) {
+    const desk = document.getElementById('apothecary-reading-desk');
+    
+    let html = `
+        <div class="alchemy-card" style="border-color: #bf953f; box-shadow: 0 0 20px rgba(191,149,63,0.2);">
+            <h3 class="alchemy-title" style="color: #fcf6ba; font-size: 1.3em; margin-bottom: 5px;">${title}</h3>
+            <p style="color:#d4c8a8; font-style: italic; margin-top: 0; margin-bottom: 15px;">${desc}</p>
+            
+            <div style="background:rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
+                <p style="color:#bf953f; margin:0 0 5px 0; font-family:'Cinzel', serif;">Ingredients</p>
+                <p style="color:#d4c8a8; margin:0 0 15px 0; line-height: 1.5;">${ing}</p>
+                
+                <p style="color:#bf953f; margin:0 0 5px 0; font-family:'Cinzel', serif;">Instructions</p>
+                <p style="color:#d4c8a8; margin:0; line-height: 1.5;">${inst}</p>
+            </div>
+    `;
+    
+    if (isDb && id) {
+        html += `<button class="action-btn" style="color:#ff6b6b; border: 1px solid #ff6b6b; padding: 5px 10px; border-radius: 4px; margin-top: 15px; width: 100%;" onclick="deleteDetailedItem('apothecary', '${id}', 'alchemy')">Shatter Vial (Purge)</button>`;
+    }
+    
+    html += `</div>`;
+    desk.innerHTML = html;
+    
+    // Smoothly scroll down so you can read it!
+    desk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
 
 // === THE HANGING DRYING RACK LOGIC ===
 async function buildHerbsHTML() {
