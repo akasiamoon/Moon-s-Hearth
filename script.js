@@ -109,7 +109,7 @@ const myRecipes = [
     { title: "🍖 Valenwood Honey-Roasted Ribs", description: "A succulent, slow-cooked meat dish honoring the Wood Elves' strict meat-based Green Pact.", ingredients: ["A rack of pork ribs", "A glaze of wild honey, minced garlic, and crushed rosemary", "Coarse sea salt"], instructions: "Rub the ribs with salt and herbs, then roast low and slow. Baste generously with honey in the final moments to create a sticky, caramelized crust." },
     { title: "🍈 Elsweyr Melon-Jelly", description: "A shimmering, translucent dessert favored by Khajiiti travelers for its cooling properties in the desert heat.", ingredients: ["2 cups honeydew or cantaloupe juice, strained", "Honey to sweeten", "Unflavored gelatin or agar-agar", "Mint leaves for garnish"], instructions: "Dissive the honey and thickener into the warmed juice. Pour into shallow glass bowls and let set in a cool cellar until firm. Garnish with mint before serving." },
     { title: "🧀 Colovian Goat Cheese & Apples", description: "A simple, rustic pairing found on the tables of Imperial estates and humble farmsteads alike.", ingredients: ["A wheel of sharp, aged goat cheese", "2 crisp red apples, sliced thin", "A handful of walnuts", "A drizzle of wildflower honey"], instructions: "Arrange the cheese and fruit on a wooden board. Drizzle with honey and serve with nuts for a perfectly balanced provision." },
-    { title: "🦀 Jagga-Drenched 'Mudcrab' Cakes", description: "A Bosmer delicacy (Green Pact friendly!) that uses fermented pig's milk (Jagga) for a unique, tangy kick.", ingredients: ["1 lb crab meat (or white fish), flaked", "1/2 cup buttermilk (our Jagga substitute)", "Breadcrumbs, egg, and old bay seasoning", "Minced green onions"], instructions: "Mix the meat with seasoning, egg, and buttermilk. Form into small cakes and sear in a hot iron skillet until the exterior is golden and crisp." },
+    { title: "🦀 Jagga-Drenched 'Mudcrab' Cakes", description: "A Bosmer delicacy (Green Pact friendly!) that uses fermented pig's milk (Jagga) for a unique, tangy kick.", ingredients: ["1 lb crab meat (or white fish), flaked", "1/2 cup buttermilk (our Jagga substitute)", "Breadcrumbs, egg, and old bay seasoning", "Minced green onions"], instructions: "Mix the meat with seasoning, egg, and buttermilk. Form into small cakes and sear in a hot iron skillet until the exterior is golden and cursor and crisp." },
     { title: "🥣 Orsinium Venison Haunch", description: "A dense, powerful meal designed to sustain an Orc through the freezing winters of the Wrothgarian Mountains.", ingredients: ["Venison roast (or beef chuck)", "Juniper berries, crushed", "Root vegetables (carrots, parsnips, onions)", "Dark ale or heavy stout"], instructions: "Rub the meat with crushed berries and salt. Sear well, then braise in the dark ale with root vegetables for 4-6 hours until it falls apart with a fork." },
     { title: "🥣 Kwama Egg Quiche", description: "A staple of the Dunmer diet in Morrowind, this savory pie is rich, earthy, and provides lasting energy for trekking through ash storms.", ingredients: ["4 large 'Kwama' eggs (chicken eggs)", "1/2 cup heavy cream", "Handful of 'Scrib Jelly' (mushrooms or soft cheese)", "1 cup chopped spinach", "Salt and crushed peppercorns"], instructions: "Whisk eggs and cream until frothy. Fold in the mushrooms and greens. Pour into a flaky crust and bake in a steady hearth until the center is set and the top is a pale gold." },
     { title: "🍮 Argonian 'Mud-Ball' Truffles", description: "A surprisingly sweet treat from the Black Marsh. These dense, dark chocolate morsels are rolled in cocoa 'mud' for a decadent finish.", ingredients: ["1 cup dark chocolate, melted", "1/4 cup heavy cream", "A pinch of sea salt", "1 teaspoon espresso powder (for that swampy depth)", "Cocoa powder for rolling"], instructions: "Heat the cream and pour over the chocolate and espresso powder. Let sit, then stir until smooth. Chill until firm, roll into small balls, and coat heavily in cocoa powder." },
@@ -118,13 +118,13 @@ const myRecipes = [
     { title: "🍷 Altmer 'Firsthold' Fruit Wine Sauce", description: "An elegant, sophisticated reduction used to glaze poultry or desserts, embodying the refined tastes of the High Elves.", ingredients: ["1 cup red grape juice or non-alcoholic wine", "1/4 cup blackberries", "1 star anise", "2 tablespoons honey"], instructions: "Simmer all ingredients in a small copper pot over low heat until the liquid reduces by half and coats the back of a spoon. Strain and drizzle over roasted bird or vanilla sponge cake." },
     { title: "🥣 Nord 'Hrothgar' Venison Chili", description: "A thick, spicy, and incredibly filling bowl designed to warm the bones after a climb up the 7,000 steps.", ingredients: ["1 lb ground venison (or lean beef)", "1 onion, diced", "2 cloves garlic, smashed", "1 can kidney beans", "Chili powder, cumin, and a splash of strong coffee"], instructions: "Brown the meat with onions and garlic. Stir in the beans, spices, and coffee. Let it low-simmer on the hearth for at least an hour until the flavors are as bold as a Dragonborn's shout." },
     { title: "🍪 Khajiit 'Sweet-Sabbath' Mooncakes", description: "This one has no skooma, but plenty of sugar! A dense, spice-filled cookie that Khajiiti caravans trade across the borders.", ingredients: ["2 cups flour", "1/2 cup butter, softened", "1/4 cup sugar and 1/4 cup molasses", "1 tsp ginger and 1 tsp cinnamon", "A pinch of cloves"], instructions: "Cream the butter and sugars. Mix in the dry spices and flour until a stiff dough forms. Roll into balls, flatten slightly with a fork, and bake until the edges are crisp but the centers remain chewy." },
-    { title: "Pie Redguard Sentinel Savory Pastries", description: "Flaky, golden triangles filled with spiced meat and vegetables, durable enough for desert travel across the Alik'r.", ingredients: ["Puff pastry sheets", "1/2 lb ground lamb or beef", "1/2 cup peas", "Curry powder, turmeric, and coriander"], instructions: "Sauté the meat with the desert spices and peas. Cut pastry into squares, place a spoonful of filling in the center, and fold into triangles. Bake until the pastry rises into golden, buttery layers." },
+    { title: "🥧 Redguard 'Sentinel' Savory Pastries", description: "Flaky, golden triangles filled with spiced meat and vegetables, durable enough for desert travel across the Alik'r.", ingredients: ["Puff pastry sheets", "1/2 lb ground lamb or beef", "1/2 cup peas", "Curry powder, turmeric, and coriander"], instructions: "Sauté the meat with the desert spices and peas. Cut pastry into squares, place a spoonful of filling in the center, and fold into triangles. Bake until the pastry rises into golden, buttery layers." },
     { title: "🍵 Imperial 'Gold Coast' Spiced Tea", description: "A warming, aromatic brew favored by merchants and nobility in Anvil and Kvatch to shake off the coastal chill.", ingredients: ["2 cups black tea, brewed strong", "2 cinnamon sticks", "4 whole cloves", "A generous dollop of honey", "A slice of orange"], instructions: "Simmer the spices in the tea for ten minutes. Stir in the honey until dissolved and garnish with the orange slice. Serve in your finest ceramic mug." },
     { title: "🥘 Wood Orc 'Wrothgar' Succotash", description: "A hearty, rustic side dish that combines the last of the season's corn and beans with savory smoked fats.", ingredients: ["2 cups corn kernels", "1 cup lima beans or edamame", "4 strips of thick-cut bacon, diced", "1 red bell pepper, chopped", "A pinch of dried thyme"], instructions: "Fry the bacon until crisp. Sauté the vegetables in the rendered fat until tender. Season with thyme, salt, and pepper for a dish that tastes of the mountain foothills." },
-    { title: "Pie Hammerfell 'Stros M'kai' Fish Pie", description: "A coastal staple featuring fresh white fish and a golden, buttery crust—perfect for a weary sailor returning to port.", ingredients: ["1 lb white fish (cod or tilapia), cubed", "1 cup frozen peas", "1 cup leeks, sliced", "2 cups mashed potatoes for the 'crust'", "A splash of heavy cream"], instructions: "Simmer the fish, leeks, and peas in the cream until the fish is flaky. Pour into a baking dish, spread the mashed potatoes over the top, and bake until the peaks are toasted golden brown." },
+    { title: "🥧 Hammerfell 'Stros M'kai' Fish Pie", description: "A coastal staple featuring fresh white fish and a golden, buttery crust—perfect for a weary sailor returning to port.", ingredients: ["1 lb white fish (cod or tilapia), cubed", "1 cup frozen peas", "1 cup leeks, sliced", "2 cups mashed potatoes for the 'crust'", "A splash of heavy cream"], instructions: "Simmer the fish, leeks, and peas in the cream until the fish is flaky. Pour into a baking dish, spread the mashed potatoes over the top, and bake until the peaks are toasted golden brown." },
     { title: "🥣 Dunmer 'Vivec City' Ash-Roasted Roots", description: "A smoky, savory preparation of root vegetables that mimics the traditional cooking method of burying food in hot volcanic ash.", ingredients: ["3 large carrots, halved", "2 parsnips, quartered", "Olive oil and smoked sea salt", "1 tsp dried rosemary"], instructions: "Toss the roots in oil, rosemary, and smoked salt. Roast at a high heat until the edges are slightly charred and the insides are tender, providing that authentic 'ash-grown' flavor." },
     { title: "🍵 Khajiit 'Senche-Tiger' Chai", description: "A bold, heavily spiced tea that provides a sharp kick of energy, favored by the nomadic Baandari Pedlars.", ingredients: ["2 cups strong black tea", "1/4 cup heavy cream", "3 cardamom pods, crushed", "2 slices of fresh ginger", "A pinch of saffron (if the vault allows)"], instructions: "Boil the tea with the ginger and cardamom. Stir in the cream and honey to taste. Let the saffron steep at the very end to release its golden color and royal aroma." },
-    { title: "Pie Bosmer 'Falinesti' Meat Pie", description: "A dense, savory pie made entirely without grain or vegetable, strictly adhering to the Green Pact of Valenwood.", ingredients: ["1 lb ground venison or beef", "1/2 lb suet or animal fat, chilled", "2 egg yolks", "Coarse salt and crushed juniper berries"], instructions: "Press a 'crust' of seasoned ground meat into a small tin. Fill with a mixture of meat and suet. Seal the top with more meat, brush with egg yolk, and bake until the juices run clear." },
+    { title: "🥧 Bosmer 'Falinesti' Meat Pie", description: "A dense, savory pie made entirely without grain or vegetable, strictly adhering to the Green Pact of Valenwood.", ingredients: ["1 lb ground venison or beef", "1/2 lb suet or animal fat, chilled", "2 egg yolks", "Coarse salt and crushed juniper berries"], instructions: "Press a 'crust' of seasoned ground meat into a small tin. Fill with a mixture of meat and suet. Seal the top with more meat, brush with egg yolk, and bake until the juices run clear." },
     { title: "🍲 Nord 'Windhelm' Venison Stew", description: "A thick, iron-rich stew designed to keep a warrior's blood warm during a blizzard in the Eastmarch.", ingredients: ["1 lb venison or beef chuck, cubed", "2 large potatoes, peeled", "1 cup hardy kale", "Beef bone broth", "A splash of dark, peppery ale"], instructions: "Sear the meat in a hot pot. Add the broth, ale, and potatoes. Low-simmer for hours until the meat is tender enough to eat with a spoon, then toss in the kale at the very end." },
     { title: "🍮 Altmer 'Alinor' Honey Mousse", description: "A light, ethereal dessert served in the high spires of the Summerset Isles, delicate and perfectly balanced.", ingredients: ["1 cup heavy whipping cream", "3 tablespoons wildflower honey", "1 teaspoon orange flower water", "Fresh raspberries for the top"], instructions: "Whip the cream until soft peaks form. Slowly fold in the honey and orange flower water. Chill in crystal glasses for two hours and serve topped with a single, perfect berry." }
 ];
@@ -329,7 +329,7 @@ async function buildGrimoireHTML() {
     const dbRecipes = await loadData('recipes');
     let localG = (typeof myRecipes !== 'undefined') ? myRecipes : [];
     
-    currentGrimoireData = [...localG, ...dbRecipes];
+    currentGrimoireData = [...localG, ...myTeas, ...(dbRecipes || [])];
     currentGrimoireData.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
 
     html += `
@@ -429,7 +429,7 @@ async function buildBountyBoardHTML() {
     } else { html += `<p style="color: rgba(191,149,63,0.5); font-style: italic;">No current alignments recorded.</p>`; }
     html += `</div>`; 
     html += `<div id="scribe-section" class="section-header closed" onclick="toggleSection(this)">Scribe Alignment</div><div id="scribe-panel" class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="ev-title" placeholder="Alignment Title..." class="portal-input" style="margin-bottom: 10px;"><input type="datetime-local" id="ev-date" class="portal-input" style="margin-bottom: 10px;"><button onclick="addEvent()" class="portal-btn" style="width: 100%;">Seal in the Stars</button></div></div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Daily Endeavors</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-quest-item" placeholder="Scribe a chore..." class="portal-input"><button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button></div>`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Daily Endeavors</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-quest-item" placeholder="Scribe a quick chore..." class="portal-input"><button onclick="addDynamicItem('daily_quests', 'new-quest-item', 'cat')" class="portal-btn">Add</button></div>`;
     const quests = await loadData('daily_quests');
     quests.forEach(item => { 
         const isDone = item.is_completed ? 'completed' : ''; 
@@ -441,7 +441,7 @@ async function buildBountyBoardHTML() {
 
 async function buildTeacupHTML() {
     let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
-    html += `<div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;"><textarea id="journal-text" placeholder="Record your thoughts..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea><div style="display: flex; justify-content: space-between; align-items: center;"><label for="journal-image" class="custom-file-label">Attach Image</label><input type="file" id="journal-image" accept="image/*" onchange="document.getElementById('file-name').innerText = this.files[0].name"><button onclick="submitJournalEntry()" class="portal-btn">Seal Memory</button></div><div id="file-name" style="font-size: 0.8em; color: rgba(191,149,63,0.7); margin-top: 5px; font-style: italic;"></div></div>`;
+    html += `<div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;"><textarea id="journal-text" placeholder="Record your thoughts or visions..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea><button onclick="submitJournalEntry()" class="portal-btn">Seal Memory</button></div>`;
     const notes = await loadData('family_notes');
     notes.forEach(note => {
         const dateStr = new Date(note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
@@ -541,18 +541,25 @@ function toggleHerbDetail(id) {
 
 async function buildSewingHTML() {
     let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
+    const sewing = await loadData('sewing_projects');
     mySewing.forEach(project => { html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div style="color:#bf953f; font-size:0.9em;"><strong>Fabric:</strong> ${project.fabric}</div><div style="color:#d4c8a8; font-size:0.9em;">${project.notes}</div></div>`; });
+    sewing.forEach(p => { html += `<div class="sewing-card"><h3>✂️ ${p.title}</h3><p>${p.description}</p></div>`; });
     return html + `</div>`;
 }
 
 async function buildApprenticeHTML() {
     let html = `<h2 class="gold-text">Apprentices' Ledger</h2><div class="portal-scroll-container">`;
+    const dateDay = new Date().getDate(); 
+    const indoorActivities = ["Fort building.", "Baking.", "Shadow puppets.", "Floor is Lava!"];
+    const dailyPrompt = indoorActivities[dateDay % indoorActivities.length]; 
+    html += `<div class="alchemy-card" style="border-left: 3px solid #fcf6ba; background: rgba(191,149,63,0.15);"><h3 class="alchemy-title">✨ Inspiration</h3><p style="color:#fcf6ba; font-style:italic;">"${dailyPrompt}"</p></div>`;
     const lessons = await loadData('apprentice_lessons');
     lessons.forEach(item => { 
         const isDone = item.is_completed ? 'completed' : ''; 
         html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('apprentice_lessons', '${item.id}', ${item.is_completed}, 'apprentice')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('apprentice_lessons', '${item.id}', 'apprentice')">✕</div></div>`; 
     });
-    return html + `</div>`;
+    html += `<div class="section-panel" id="form-apprentice"><input type="text" id="inp-text" placeholder="Assign task..." class="portal-input"><button onclick="scribeToArchive('apprentice_lessons', 'form-apprentice', 'apprentice')" class="portal-btn">Assign</button></div></div>`;
+    return html;
 }
 
 function buildAlmanacHTML() {
@@ -586,13 +593,11 @@ async function startForging(input) {
     const reader = new FileReader();
     reader.onload = async (e) => {
         draftBgUrl = e.target.result;
-        const bgArt = document.getElementById('bg-art');
-        if(bgArt) bgArt.src = draftBgUrl; 
+        document.getElementById('bg-art').src = draftBgUrl; 
         document.body.classList.add('building-mode'); 
-        const layer = document.getElementById('furnishing-layer');
-        if(layer) layer.innerHTML = ''; closePortal();
-        const toolbox = document.getElementById('toolbox-stash');
-        if(toolbox) toolbox.style.display = 'block'; isForging = true;
+        document.getElementById('furnishing-layer').innerHTML = ''; closePortal();
+        document.getElementById('architect-toolbox').style.display = 'block';
+        isForging = true;
     };
     reader.readAsDataURL(input.files[0]);
 }
@@ -603,17 +608,13 @@ function spawnToForge(imageUrl) {
     const img = document.createElement('img');
     img.src = imageUrl; img.className = 'furnishing-item';
     img.style.left = '50%'; img.style.top = '50%';
-    img.onmousedown = selectItemForEdit;
+    img.onmousedown = (e) => {
+        if (!isForging) return; e.preventDefault(); editingItem = e.target;
+        document.onmousemove = (me) => { editingItem.style.left = me.clientX + 'px'; editingItem.style.top = me.clientY + 'px'; };
+        document.onmouseup = () => document.onmousemove = null;
+    };
     layer.appendChild(img);
 }
-
-function selectItemForEdit(e) {
-    if (!isForging) return; e.preventDefault(); editingItem = e.target;
-    document.onmousemove = dragItem; document.onmouseup = stopDrag;
-}
-
-function dragItem(e) { if (editingItem) { editingItem.style.left = e.clientX + 'px'; editingItem.style.top = e.clientY + 'px'; } }
-function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
 
 // === THE LIVING BEDS LOGIC ===
 let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
@@ -631,15 +632,14 @@ async function buildGardenHTML() {
             const daysOld = Math.floor((new Date() - new Date(plotData.created_at)) / (1000 * 60 * 60 * 24));
             let icon = daysOld >= 3 ? plotData.plant_icon : (daysOld >= 1 ? '🌿' : '🌱');
             html += `<div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name}')"><div class="plant-icon">${icon}</div><div class="plant-name">${plotData.plant_name}</div></div>`;
-        } else { html += `<div class="garden-cell" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="opacity:0.2;">🌱</div><div class="plant-name" style="color:rgba(191,149,63,0.5);">Empty Soil</div></div>`; }
+        } else { html += `<div class="garden-cell" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="opacity:0.2;">🌱</div></div>`; }
     }
     html += `</div><div id="garden-action-panel" style="margin-top: 15px; min-height: 120px;"></div></div>`;
     return html;
 }
 
 function plantSeed(gridId) {
-    const panel = document.getElementById('garden-action-panel');
-    panel.innerHTML = `<div class="alchemy-card" id="form-garden"><h3 class="alchemy-title">Sow Seed</h3><input type="text" id="inp-plant_name" placeholder="Plant Name..." class="portal-input"><input type="hidden" id="inp-grid_id" value="${gridId}"><input type="hidden" id="inp-bed_name" value="${currentBedName}"><button onclick="scribeToArchive('garden_plots', 'form-garden', 'garden')" class="portal-btn">Plant</button></div>`;
+    document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card" id="form-garden"><h3 class="alchemy-title">Sow Seed</h3><input type="text" id="inp-plant_name" placeholder="Plant Name..." class="portal-input"><input type="hidden" id="inp-grid_id" value="${gridId}"><input type="hidden" id="inp-bed_name" value="${currentBedName}"><button onclick="scribeToArchive('garden_plots', 'form-garden', 'garden')" class="portal-btn">Plant</button></div>`;
 }
 
 function switchBed(name) { currentBedName = name; localStorage.setItem('active_garden_bed', name); openPortal('garden'); }
