@@ -671,116 +671,68 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
 }
 
-/* THE INVISIBLE FRAME - This forces the text to stay on the parchment */
 .grimoire-page-wrapper {
     position: absolute;
-    /* ADJUST THESE 4 PERCENTAGES to fit the text onto your specific image's paper */
-    top: 10%;    /* Distance from top leather edge */
-    bottom: 12%; /* Distance from bottom leather edge */
-    left: 12%;   /* Distance from left leather edge */
-    right: 12%;  /* Distance from right leather edge */
-    
+    top: 10%; bottom: 12%; left: 12%; right: 12%;
     display: flex;
     justify-content: space-between;
 }
 
 .grimoire-page {
-    /* 43% width for each page leaves a perfect 14% gap in the middle for the spine */
     width: 43%; 
     height: 100%;
     overflow-y: auto;
     color: #2b1d14; 
-    font-size: 1.1em;
-    padding: 0 15px; /* Keeps text slightly off the invisible edges */
     box-sizing: border-box;
 }
 
-/* Ensure the scrollbar doesn't look ugly against the parchment */
-.grimoire-page::-webkit-scrollbar { width: 6px; }
-.grimoire-page::-webkit-scrollbar-track { background: transparent; }
-.grimoire-page::-webkit-scrollbar-thumb { background: rgba(43, 29, 20, 0.3); border-radius: 3px; }
-
-/* === THE SEARCH BOX FIX === */
-.grimoire-search-bar {
-    width: 85%; /* Slightly narrower so it doesn't bleed off the right edge when moved */
-    margin-left: 20px; /* PUSHES IT TO THE RIGHT */
-    background: transparent; 
-    border: none;
-    border-bottom: 2px solid rgba(43, 29, 20, 0.6); 
-    border-radius: 0;
-    padding: 8px 5px;
-    font-family: 'Cinzel', serif;
-    color: #2b1d14; 
-    font-weight: bold;
-    font-size: 0.95em; /* SCALED DOWN THE TEXT */
-    margin-bottom: 20px;
-    outline: none;
-    transition: border-color 0.3s;
-}
-.grimoire-search-bar:focus {
-    border-bottom: 2px solid #8fce00; 
-}
-.grimoire-search-bar::placeholder { 
-    color: rgba(43, 29, 20, 0.5); 
-    font-style: italic; 
-}
-
+/* LEFT PAGE: Nudge Right */
 #grimoire-left-page {
     position: relative;
-    /* Pushes the index RIGHT towards the center spine */
-    left: 45px; 
+    left: 35px; 
 }
 
+/* RIGHT PAGE: Slide Left & Fit Text */
 #grimoire-right-page {
     position: relative;
-    /* Pushes the recipe LEFT towards the center spine */
-    right: 45px; 
-    padding-left: 0px;   
-    padding-right: 20px; 
+    right: 35px; 
+    padding-right: 30px; 
 }
 
-/* Ensure the search bar matches the index alignment */
+/* SEARCH BAR: Smaller & Pushed Right */
 .grimoire-search-bar {
     width: 80%;
-    margin-left: 10px; /* Aligns with the index headers */
+    margin-left: 30px; 
     background: transparent;
     border: none;
     border-bottom: 2px solid rgba(43, 29, 20, 0.6);
     color: #2b1d14;
     font-family: 'Cinzel', serif;
-    font-size: 0.9em;
+    font-size: 0.9em; 
     padding: 8px 5px;
     outline: none;
+    margin-bottom: 15px;
 }
 
-/* === THE SCALED-DOWN TEXT === */
-.page-title { font-size: 1.5em; margin-bottom: 8px; border-bottom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; }
-.page-header { font-size: 1.1em; margin-top: 15px; margin-bottom: 5px; }
-.page-text { font-size: 0.95em; line-height: 1.5; margin: 0; white-space: pre-wrap; }
+/* A-Z HEADERS */
+.toc-header {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #5c4033;
+    text-align: center;
+    margin: 20px 0 5px 0;
+    border-bottom: 1px solid rgba(43, 29, 20, 0.2);
+}
 
-/* The Index List Links */
 .grimoire-index-item {
     font-family: 'Cinzel', serif;
     font-weight: bold;
-    font-size: 0.95em;
-    padding: 8px 5px;
-    border-bottom: 1px dashed rgba(43, 29, 20, 0.2);
+    font-size: 0.9em;
+    padding: 6px 5px;
     cursor: pointer;
-    transition: all 0.2s;
 }
-.grimoire-index-item:hover {
-    background: rgba(43, 29, 20, 0.05);
-    color: #8fce00; 
-    padding-left: 10px; 
-}
-/* === TABLE OF CONTENTS HEADERS === */
-.toc-header {
-    font-family: 'Cinzel', serif;
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #5c4033; /* Dark, rich ink */
-    text-align: center;
-    margin-top: 20px;
-    margin-bottom: 5px;
-    border-bottom: 1px solid rgba(43, 29, 20, 0.3);
-}
+
+.page-title { font-size: 1.4em; border-bottom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; }
+.page-header { font-size: 1.1em; margin-top: 15px; }
+.page-text { font-size: 0.9em; line-height: 1.5; }
