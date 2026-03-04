@@ -34,41 +34,58 @@ async function loadData(tableName, orderBy = 'created_at', asc = false) {
     return results;
 }
 
-// === THE MASTER SCRIBE (Painless Unified Input) ===
+async function insertData(tableName, itemObj) {
+    itemObj.id = Date.now().toString();
+    itemObj.created_at = new Date().toISOString();
+    if (db) {
+        const { data, error } = await db.from(tableName).insert([itemObj]).select();
+        if (!error && data && data.length > 0) itemObj.id = data[0].id;
+    }
+    const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+    localData.push(itemObj);
+    localStorage.setItem(tableName, JSON.stringify(localData));
+}
+
+async function updateData(tableName, id, updates) {
+    if (db) await db.from(tableName).update(updates).eq('id', id);
+    const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+    const index = localData.findIndex(item => item.id == id);
+    if (index > -1) {
+        localData[index] = { ...localData[index], ...updates };
+        localStorage.setItem(tableName, JSON.stringify(localData));
+    }
+}
+
+async function removeData(tableName, id) {
+    if (db) await db.from(tableName).delete().eq('id', id);
+    let localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+    localData = localData.filter(item => item.id != id);
+    localStorage.setItem(tableName, JSON.stringify(localData));
+}
+
+// === THE MASTER SCRIBE (Unified Input) ===
 async function scribeToArchive(tableName, formId, portalToReload) {
     const container = document.getElementById(formId);
     if (!container) return;
     const inputs = container.querySelectorAll('input, textarea, select');
     const entry = {};
-
-    inputs.forEach(input => {
-        const fieldName = input.id.replace('inp-', ''); 
-        entry[fieldName] = input.value;
-    });
+    inputs.forEach(input => { entry[input.id.replace('inp-', '')] = input.value; });
 
     if (!entry.title && !entry.item_name && !entry.plant_name && !entry.note && !entry.text) {
-        return alert("The scroll requires a name or content!");
+        return alert("The scroll requires content!");
     }
 
-    let error = null;
-    if (db) {
-        const { error: dbErr } = await db.from(tableName).insert([entry]);
-        error = dbErr;
-    } else {
+    if (db) { await db.from(tableName).insert([entry]); } 
+    else {
         const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
         localData.push({ ...entry, id: Date.now().toString(), created_at: new Date().toISOString() });
         localStorage.setItem(tableName, JSON.stringify(localData));
     }
-
-    if (error) {
-        alert("The ink didn't take: " + error.message);
-    } else {
-        feedFamiliar();
-        openPortal(portalToReload); 
-    }
+    feedFamiliar();
+    openPortal(portalToReload); 
 }
 
-// === 1. LOCAL DATA (ALL 30 RECIPES RESTORED UNABRIDGED) ===
+// === 1. LOCAL DATA (WORD-FOR-WORD RESTORATION) ===
 const myRecipes = [
     { title: "🌿 Highland Potato Stew", description: "A hearty, warming broth perfect for cold evenings.", ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], instructions: "Simmer over a low hearth fire until the potatoes yield." },
     { title: "🍌 Mistral Banana Bread", description: "Sweet, dense, and perfect for traveling or a morning study session.", ingredients: ["3 overripe bananas, mashed", "Brown sugar, melted butter, and a dash of vanilla", "Flour and a pinch of cinnamon"], instructions: "Bake until the crust is a deep golden brown. Serve warm with butter." },
@@ -102,7 +119,6 @@ const myRecipes = [
     { title: "🍮 Altmer 'Alinor' Honey Mousse", description: "A light, ethereal dessert served in the high spires of the Summerset Isles, delicate and perfectly balanced.", ingredients: ["1 cup heavy whipping cream", "3 tablespoons wildflower honey", "1 teaspoon orange flower water", "Fresh raspberries for the top"], instructions: "Whip the cream until soft peaks form. Slowly fold in the honey and orange flower water. Chill in crystal glasses for two hours and serve topped with a single, perfect berry." }
 ];
 
-// --- APOTHECARY & TEAS (RESTORING ALL 38+ ITEMS) ---
 const myTeas = [
     { title: "Lady Grey's Respite", icon: "☕", brew: "Steep 3 mins at 212°F", description: "A classic, elegant blend brightened with citrus and a touch of honey." },
     { title: "Lavender Chamomile Nightcap", icon: "🍵", brew: "Steep 5 mins at 200°F", description: "A deeply soothing floral blend meant to quiet a racing mind after a busy day." },
@@ -293,13 +309,13 @@ function prefillDate(dateStr) {
     }
 }
 
-// === 4. HTML BUILDERS (THE CHAMBERS RESTORED UNABRIDGED) ===
+// === 4. HTML BUILDERS (THE CORE CHAMBERS RESTORED UNABRIDGED) ===
 
 // --- KITCHEN GRIMOIRE (CAGED & ALPHABETIZED) ---
 let currentGrimoireData = [];
 
 async function buildGrimoireHTML() {
-    let html = `<h2 class="gold-text">The Kitchen Grimoire</h2>`;
+    let html = `<h2 class="gold-text">Kitchen Grimoire</h2>`;
     const dbRecipes = await loadData('recipes');
     let localG = (typeof myRecipes !== 'undefined') ? myRecipes : [];
     
@@ -389,7 +405,7 @@ window.readGrimoirePage = function(index) {
     `;
 };
 
-// --- BARDIC SOUNDSCAPES (RESTORED ALL 20+ TRACKS) ---
+// --- BARDIC SOUNDSCAPES (RESTORED ALL 20 TRACKS) ---
 let activeSoundscapes = {};
 
 async function buildAudioHTML() {
@@ -419,12 +435,12 @@ async function buildAudioHTML() {
         { id: 'birds', name: 'Morning Chorus', url: 'birds.mp3' }
     ];
 
-    html += `<div id="soundscape-container">`;
+    html += `<div id="soundscape-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 15px;">`;
     tracks.forEach(track => {
         const isActive = activeSoundscapes[track.id] ? 'active' : '';
-        html += `<div class="sound-item">
+        html += `<div class="sound-item" style="background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.2); padding: 10px; border-radius: 2px; text-align: center;">
                     <button class="play-btn ${isActive}" onclick="toggleTrack('${track.id}', '${track.url}')">${track.name}</button>
-                    <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="0.5" onchange="changeVolume('${track.id}', this.value)">
+                    <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="0.5" onchange="changeVolume('${track.id}', this.value)" style="width: 90%; cursor: pointer; accent-color: #bf953f;">
                  </div>`;
     });
     html += `</div></div>`;
@@ -480,7 +496,15 @@ let isForging = false; let editingItem = null; let draftBgUrl = '';
 
 async function buildInventoryHTML() {
     let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div><div class="section-panel closed">`;
+    const rooms = await loadData('trophy_rooms');
+    rooms.forEach(room => {
+        html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;">
+                    <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
+                    <button class="portal-btn" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button>
+                 </div>`;
+    });
+    html += `</div><div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
                 <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; text-align:center;">
                     <p style="color:#d4c8a8; font-size:0.85em; margin-top:0;">Upload a base background to enter the Forge.</p>
                     <label for="room-bg-upload" class="custom-file-label" style="width:100%; box-sizing:border-box;">Select Background Image</label>
@@ -490,14 +514,13 @@ async function buildInventoryHTML() {
     const stash = await loadData('inventory_stash');
     html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div><div class="section-panel closed"><div id="stash-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px;">`;
     stash.forEach(item => {
-        html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191, 149, 63, 0.3); border-radius:4px; position:relative;">
+        html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
                     <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; cursor:pointer;" onclick="spawnToForge('${item.image_url}')">
                     <div style="font-size:0.6em; color:#bf953f; margin-top:2px;">${item.name}</div>
                     <button class="action-btn" style="position:absolute; top:-5px; right:-5px; background:#000; border-radius:50%; width:18px; height:18px; font-size:10px; color:#ff6b6b; padding:0; border:1px solid #ff6b6b;" onclick="event.stopPropagation(); deleteDynamicItem('inventory_stash', '${item.id}', 'inventory')">✕</button>
                  </div>`;
     });
-    html += `</div></div><button class="portal-btn" onclick="cancelForging()" style="width:100%; margin-top:20px;">Exit Forge Mode</button></div>`;
-    return html;
+    return html + `</div></div><button class="portal-btn" onclick="cancelForging()" style="width:100%; margin-top:20px;">Exit Forge Mode</button></div>`;
 }
 
 async function startForging(input) {
@@ -509,17 +532,7 @@ async function startForging(input) {
         if(bgArt) bgArt.src = draftBgUrl; 
         document.body.classList.add('building-mode'); 
         const layer = document.getElementById('furnishing-layer');
-        if(layer) layer.innerHTML = ''; closePortal();
-        const stash = await loadData('inventory_stash');
-        const toolbox = document.getElementById('toolbox-stash');
-        if(toolbox) {
-            toolbox.innerHTML = '';
-            stash.forEach(item => {
-                toolbox.innerHTML += `<div style="cursor:pointer; background:rgba(0,0,0,0.6); padding:5px; border:1px solid #bf953f; border-radius:4px;" onclick="spawnToForge('${item.image_url}')">
-                                          <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain;">
-                                       </div>`;
-            });
-        }
+        if(layer) layer.innerHTML = ''; closePortal(); 
         document.getElementById('architect-toolbox').style.display = 'block';
         isForging = true;
     };
@@ -548,16 +561,16 @@ function selectItemForEdit(e) {
 function dragItem(e) { if (editingItem) { editingItem.style.left = e.clientX + 'px'; editingItem.style.top = e.clientY + 'px'; } }
 function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
 
-// --- APOTHECARY CHAMBER (RESTORED SHELVES & PHIALS) ---
+// --- APOTHECARY CHAMBER (RESTORED BEAUTIFUL SHELVES & PHIALS) ---
 async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
     html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
     const dbRecipes = await loadData('apothecary');
     const allRecipes = [...myApothecary, ...(dbRecipes || [])];
     
-    html += `<div class="apothecary-cabinet-container">`;
+    html += `<div class="apothecary-cabinet-container" style="display: grid; grid-template-columns: repeat(6, 1fr); height: 450px; background: rgba(0,0,0,0.5); padding: 50px 15px 15px 15px; border: 2px solid #bf953f;">`;
     for (let i = 0; i < 24; i++) {
-        html += `<div class="alchemy-slot">`;
+        html += `<div class="alchemy-slot" style="display: flex; justify-content: center; align-items: flex-end; padding-bottom: 10px;">`;
         if (allRecipes[i]) {
             const recipe = allRecipes[i];
             const safeTitle = recipe.title.replace(/'/g, "\\'");
@@ -602,7 +615,7 @@ async function buildLedgerHTML() {
     let html = `<h2 class="gold-text">Merchant's Ledger</h2><div class="portal-scroll-container">`;
     const transactions = await loadData('ledger_transactions', 'created_at', false);
     let balance = 0; transactions.forEach(t => balance += parseFloat(t.amount || 0));
-    html += `<div style="text-align:center; font-size:1.8em; color:#fcf6ba; font-family:'Cinzel', serif; margin-bottom:20px; text-shadow: 0 0 10px rgba(191,149,63,0.5);">Vault: $${balance.toFixed(2)}</div>`;
+    html += `<div style="text-align:center; font-size:1.8em; color:#fcf6ba; font-family:'Cinzel', serif; margin-bottom:20px; text-shadow: 0 0 10px rgba(191,149,63,0.5);">Vault Balance: $${balance.toFixed(2)}</div>`;
     html += `<div class="section-panel" id="form-ledger"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="inp-desc" placeholder="Desc..." class="portal-input" style="flex: 2;"><input type="number" step="0.01" id="inp-amount" placeholder="+/- $" class="portal-input" style="flex: 1;"><button onclick="scribeToArchive('ledger_transactions', 'form-ledger', 'ledger')" class="portal-btn">Log</button></div></div>`;
     transactions.forEach(item => {
         html += `<div class="quest-item"><div class="quest-details" style="display:flex; justify-content:space-between; width:100%; align-items:center;"><h3 class="quest-title" style="font-size:0.95em; margin:0;">${item.desc}</h3><div style="font-weight:bold;">$${parseFloat(item.amount).toFixed(2)}</div></div></div>`;
@@ -617,18 +630,41 @@ async function buildGardenHTML() {
     let html = `<h2 class="gold-text">The Living Beds</h2><div class="portal-scroll-container">`;
     let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
     html += `<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;"><select id="bed-select" class="portal-input" onchange="switchBed(this.value)">${allBeds.map(b => `<option value="${b}" ${b===currentBedName?'selected':''}>${b}</option>`).join('')}</select><button class="portal-btn" onclick="buildNewBed()">+ Build Bed</button></div>`;
-    html += `<div class="garden-bed-container">`;
+    html += `<div class="garden-bed-container" style="display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); height: 300px; background: #271915; border: 8px solid #3e2723; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.8);">`;
     const plots = await loadData('garden_plots');
     const active = plots.filter(p => (p.bed_name || 'Main Bed') === currentBedName);
     for (let i = 1; i <= 8; i++) {
-        const gridId = `cell-${i}`; const plot = active.find(p => p.grid_id === gridId);
-        if (plot) {
-            const days = Math.floor((new Date() - new Date(plot.created_at)) / (1000 * 60 * 60 * 24));
-            let icon = days >= 3 ? plot.plant_icon : (days >= 1 ? '🌿' : '🌱');
-            html += `<div class="garden-cell" onclick="tendPlot('${plot.id}', '${plot.plant_name}')"><div class="plant-icon">${icon}</div><div class="plant-name">${plot.plant_name}</div></div>`;
-        } else { html += `<div class="garden-cell" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="opacity:0.2;">🌱</div></div>`; }
+        const gridId = `cell-${i}`; const plotData = active.find(p => p.grid_id === gridId);
+        if (plotData) {
+            const daysOld = Math.floor((new Date() - new Date(plotData.created_at)) / (1000 * 60 * 60 * 24));
+            let icon = daysOld >= 3 ? plotData.plant_icon : (daysOld >= 1 ? '🌿' : '🌱');
+            html += `<div class="garden-cell" style="border: 1px dashed rgba(143, 206, 0, 0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;" onclick="tendPlot('${plotData.id}', '${plotData.plant_name}')"><div class="plant-icon" style="font-size: 2.5em;">${icon}</div><div class="plant-name" style="font-size: 0.75em; color: #fcf6ba; font-weight: bold;">${plotData.plant_name}</div></div>`;
+        } else { html += `<div class="garden-cell" style="border: 1px dashed rgba(143, 206, 0, 0.2); display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="font-size: 2.5em; opacity:0.2;">🌱</div></div>`; }
     }
     return html + `</div><div id="garden-action-panel"></div></div>`;
+}
+
+function switchBed(name) { currentBedName = name; localStorage.setItem('active_garden_bed', name); openPortal('garden'); }
+function buildNewBed() { const n = prompt("Bed Name:"); if(n) { let b = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]'); if(!b.includes(n)) { b.push(n); localStorage.setItem('garden_bed_names', JSON.stringify(b)); } switchBed(n); } }
+
+// --- THE DRYING RACK (RESTORING SWAYING BUNDLES) ---
+async function buildHerbsHTML() {
+    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div class="herbs-rack-container">`;
+    const dbHerbs = await loadData('herbs');
+    const allHerbs = [...myHerbs, ...(dbHerbs || [])];
+    allHerbs.forEach((herb, i) => {
+        html += `<div class="herb-slot">
+                <div class="herb-bundle" onclick="this.classList.toggle('show-details')">
+                    <div class="herb-icon">${herb.icon || '🌿'}</div>
+                    <div class="herb-tag">${herb.title}</div>
+                    <div class="herb-detail-tag">
+                        <h4 class="gold-text" style="font-size: 1em;">${herb.title}</h4>
+                        <p style="color:#d4c8a8; margin: 0;">${herb.description}</p>
+                    </div>
+                </div>
+            </div>`;
+    });
+    return html + `</div></div>`;
 }
 
 // --- MASTER CORE UI CONTROLLER ---
@@ -655,10 +691,11 @@ async function openPortal(portalName) {
     }
 }
 
-// UI HELPERS (UNABRIDGED)
+// RESTORED UI HELPERS
 function closePortal() { document.getElementById('parchment-overlay').classList.remove('active'); }
-function toggleSection(btn) { btn.classList.toggle('closed'); btn.nextElementSibling.classList.toggle('closed'); }
 function toggleAccordion(btn) { btn.classList.toggle('active'); let p = btn.nextElementSibling; if(p.style.maxHeight) p.style.maxHeight = null; else p.style.maxHeight = p.scrollHeight + 30 + "px"; }
+function toggleSection(headerBtn) { headerBtn.classList.toggle('closed'); headerBtn.nextElementSibling.classList.toggle('closed'); }
+
 let familiarXP = 0; function feedFamiliar() { if(familiarXP < 5) { familiarXP++; updateFamiliarUI(); } }
 function updateFamiliarUI() { let f = document.getElementById('xp-ring-fill'); if(f) f.style.strokeDashoffset = 289 - (289 * (familiarXP / 5)); }
-document.addEventListener('DOMContentLoaded', () => { updateFamiliarUI(); updateNatureLore(); fetchLocalAtmosphere(); console.log("🏰 Sanctuary Fully Reforged."); });
+document.addEventListener('DOMContentLoaded', () => { updateFamiliarUI(); updateNatureLore(); fetchLocalAtmosphere(); });
