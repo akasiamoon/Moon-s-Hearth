@@ -300,11 +300,11 @@ async function buildGrimoireHTML() {
         isDbItem: true, id: r.id 
     })) : [];
     
-    // 2. Combine with your 'myGrimoire' list
+    // 2. Combine with Local Data
     let localG = (typeof myGrimoire !== 'undefined') ? myGrimoire : [];
     currentGrimoireData = [...localG, ...dbMapped];
 
-    // 3. FORCE ALPHABETICAL SORT
+    // 3. Alphabetical Sort
     currentGrimoireData.sort((a, b) => a.title.localeCompare(b.title));
 
     // 4. Build the Tome Structure
@@ -314,13 +314,13 @@ async function buildGrimoireHTML() {
             
             <div class="grimoire-page" id="grimoire-left-page">
                 <datalist id="recipe-predictions">
-                    ${currentGrimoireData.map(r => `<option value="${r.title}">`).join('')}
+                    ${currentGrimoireData.map(r => `<option value="${r.title.replace(/"/g, '&quot;')}">`).join('')}
                 </datalist>
     
                 <input type="text" id="grimoire-search" class="grimoire-search-bar" list="recipe-predictions" placeholder="Search the archives..." oninput="filterGrimoire()">
                 
                 <div id="grimoire-index-list">
-                    ${generateTableOfContents('')} 
+                    ${renderGrimoireIndex('')} 
                 </div>
             </div>
 
@@ -331,22 +331,23 @@ async function buildGrimoireHTML() {
         </div>
     </div>`;
 
-    // 5. Quick Add Form
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
+    // 5. Quick Add Form (Now properly inside the function return)
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
 
     return html;
 }
 
 // --- THE ENGINE: TABLE OF CONTENTS & SEARCH ---
-window.generateTableOfContents = function(query) {
+window.renderGrimoireIndex = function(query) {
     let listHTML = '';
     let currentLetter = '';
-    const q = query.toLowerCase();
+    const q = (query || "").toLowerCase();
 
     currentGrimoireData.forEach((recipe, i) => {
-        if (q === '' || recipe.title.toLowerCase().includes(q) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(q))) {
-            
-            // Only draw alphabetical headers when NOT searching
+        const matchesSearch = q === '' || recipe.title.toLowerCase().includes(q) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(q));
+        
+        if (matchesSearch) {
+            // A-Z Headers only when not searching
             if (q === '') {
                 const firstLetter = recipe.title.charAt(0).toUpperCase();
                 if (firstLetter !== currentLetter) {
@@ -364,7 +365,7 @@ window.generateTableOfContents = function(query) {
 // --- SEARCH TRIGGER ---
 window.filterGrimoire = function() {
     const query = document.getElementById('grimoire-search').value;
-    document.getElementById('grimoire-index-list').innerHTML = generateTableOfContents(query);
+    document.getElementById('grimoire-index-list').innerHTML = renderGrimoireIndex(query);
 };
 
 // --- READ PAGE ---
@@ -382,35 +383,6 @@ window.readGrimoirePage = function(index) {
         ${recipe.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; border: 1px solid #ff6b6b; padding: 4px 8px; border-radius: 4px; margin-top: 20px; font-size: 0.7em;" onclick="deleteDetailedItem('grimoire', '${recipe.id}', 'grimoire')">Burn Page</button>` : ''}
     `;
 };
-async function buildLedgerHTML() {
-    let html = `<h2 class="gold-text">Merchant's Ledger</h2><div class="portal-scroll-container">`;
-    const transactions = await loadData('ledger_transactions', 'created_at', false);
-    let balance = 0;
-    transactions.forEach(t => balance += parseFloat(t.amount || 0));
-    html += `<div style="text-align:center; font-size:1.8em; color:#fcf6ba; font-family:'Cinzel', serif; margin-bottom:20px; text-shadow: 0 0 10px rgba(191,149,63,0.5);">Vault Balance: $${balance.toFixed(2)}</div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Hearth Upkeep</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-bill" placeholder="Add a bill..." class="portal-input"><button onclick="addDynamicItem('hearth_upkeep', 'new-bill', 'ledger')" class="portal-btn">Add</button></div>`;
-    const bills = await loadData('hearth_upkeep');
-    bills.forEach(item => {
-        const isDone = item.is_completed ? 'completed' : '';
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('hearth_upkeep', '${item.id}', ${item.is_completed}, 'ledger')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('hearth_upkeep', '${item.id}', 'ledger')">✕</div></div>`;
-    });
-    html += `</div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Trade & Cashflow</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="ledger-desc" placeholder="Description..." class="portal-input" style="flex: 2;"><input type="number" step="0.01" id="ledger-amt" placeholder="+/- $" class="portal-input" style="flex: 1;"><button onclick="addLedgerEntry('ledger_transactions', 'ledger-desc', 'ledger-amt', 'ledger')" class="portal-btn">Log</button></div>`;
-    transactions.forEach(item => {
-        const amtValue = parseFloat(item.amount);
-        const amtClass = amtValue >= 0 ? 'color: #8fce00;' : 'color: #ff6b6b;';
-        const sign = amtValue >= 0 ? '+' : '';
-        html += `<div class="quest-item" style="cursor: default; padding: 10px 15px;"><div class="quest-details" style="display:flex; justify-content:space-between; width:100%; align-items:center;"><h3 class="quest-title" style="font-size:0.95em; margin:0;">${item.desc}</h3><div style="font-family:'Quicksand', sans-serif; font-weight:bold; font-size:1.1em; ${amtClass}">${sign}$${amtValue.toFixed(2)}</div></div><div class="delete-icon" style="margin-left: 10px;" onclick="deleteLedgerEntry('ledger_transactions', '${item.id}', 'ledger')">✕</div></div>`;
-    });
-    html += `</div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Treasury Goals</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="goal-title" placeholder="Goal..." class="portal-input" style="margin-bottom: 10px;"><input type="text" id="goal-amount" placeholder="Amount..." class="portal-input" style="margin-bottom: 10px;"><button onclick="addDetailedItem('savings_goals', 'goal-title', 'goal-amount', 'ledger')" class="portal-btn" style="width: 100%;">Set Goal</button></div>`;
-    const goals = await loadData('savings_goals');
-    goals.forEach(item => {
-        html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">💰 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('savings_goals', '${item.id}', 'ledger')">✕</button></div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Target:</strong> <span style="color:#e0e0e0;">${item.description}</span></div></div>`;
-    });
-    html += `</div></div>`;
-    return html;
-}
 
 async function buildWorkshopHTML() {
     let html = `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container">`;
