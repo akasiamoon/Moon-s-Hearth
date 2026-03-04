@@ -503,20 +503,21 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     position: relative;
     width: 100%;
     max-width: 600px;
-    height: 350px; /* Adjust if needed to fit image aspect ratio */
-    background: url('apothecary_cabinet.jpg') top center/100% auto no-repeat;
+    height: 450px; /* INCREASED: Gives the shelves more breathing room */
+    background: url('apothecary_cabinet.jpg') center/cover no-repeat;
     background-color: #0c0c0e;
     border: 5px solid;
     border-image: linear-gradient(45deg, #3e2723, #1a1412, #3e2723) 1;
     border-radius: 4px;
     margin: 20px auto 40px auto;
     display: grid;
-    /* Create an invisible grid over the shelves in the image */
-    grid-template-columns: repeat(6, 1fr); /* 6 wide */
-    grid-template-rows: repeat(4, 1fr);    /* 4 shelves */
+    grid-template-columns: repeat(6, 1fr); 
+    grid-template-rows: repeat(4, 1fr);    
     box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1);
-    padding: 15px;
-    overflow: visible;
+    
+    /* ALIGNMENT KNOB 1: Change the '50px' to push the entire grid down from the arches */
+    padding: 50px 15px 15px 15px; 
+    overflow: hidden;
 }
 
 /* Individual shelf slot */
@@ -524,8 +525,9 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     position: relative;
     display: flex;
     justify-content: center;
-    align-items: flex-end; /* Sit on the shelf */
-    padding-bottom: 5px;   /* Adjust to align with image shelf lines */
+    align-items: flex-end; 
+    /* ALIGNMENT KNOB 2: Change '10px' to lift the jars up or down so they sit on the wood */
+    padding-bottom: 10px;   
 }
 
 /* The pot/jar container */
@@ -546,9 +548,10 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 
 /* Base style for all items */
 .alchemy-icon {
-    font-size: 2.5em; /* Large pots and vials */
+    font-size: 3em; /* FORCE them to be huge */
     filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.8));
     transition: transform 0.3s ease, filter 0.3s ease;
+    line-height: 1; /* Stops the box from clipping the icon */
 }
 
 /* DYNAMIC CONTAINER STYLES */
