@@ -16,52 +16,54 @@ try {
 async function loadData(tableName, orderBy = 'created_at', asc = false) {
     let results = null;
     if (db) {
-        const { data, error } = await db.from(tableName).select('*').order(orderBy, { ascending: asc });
-        if (!error && data) results = data;
+        try {
+            const { data, error } = await db.from(tableName).select('*').order(orderBy, { ascending: asc });
+            if (!error && data) results = data;
+        } catch (e) { console.warn(`Table ${tableName} not found in cloud.`); }
     }
     if (!results) {
         results = JSON.parse(localStorage.getItem(tableName) || '[]');
-        results.sort((a, b) => {
-            if (a[orderBy] < b[orderBy]) return asc ? -1 : 1;
-            if (a[orderBy] > b[orderBy]) return asc ? 1 : -1;
-            return 0;
-        });
     } else {
         localStorage.setItem(tableName, JSON.stringify(results));
     }
     return results;
 }
 
-async function insertData(tableName, itemObj) {
-    itemObj.id = Date.now().toString();
-    itemObj.created_at = new Date().toISOString();
-    if (db) {
-        const { data, error } = await db.from(tableName).insert([itemObj]).select();
-        if (!error && data && data.length > 0) itemObj.id = data[0].id;
-    }
-    const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
-    localData.push(itemObj);
-    localStorage.setItem(tableName, JSON.stringify(localData));
-}
+// === THE MASTER SCRIBE (Unified Input Logic) ===
+async function scribeToArchive(tableName, formId, portalToReload) {
+    const container = document.getElementById(formId);
+    if (!container) return;
+    const inputs = container.querySelectorAll('input, textarea, select');
+    const entry = {};
 
-async function updateData(tableName, id, updates) {
-    if (db) await db.from(tableName).update(updates).eq('id', id);
-    const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
-    const index = localData.findIndex(item => item.id == id);
-    if (index > -1) {
-        localData[index] = { ...localData[index], ...updates };
+    inputs.forEach(input => {
+        const fieldName = input.id.replace('inp-', ''); 
+        entry[fieldName] = input.value;
+    });
+
+    if (!entry.title && !entry.item_name && !entry.note && !entry.text) {
+        return alert("The scroll requires a name or content!");
+    }
+
+    let error = null;
+    if (db) {
+        const { error: dbErr } = await db.from(tableName).insert([entry]);
+        error = dbErr;
+    } else {
+        const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+        localData.push({ ...entry, id: Date.now(), created_at: new Date().toISOString() });
         localStorage.setItem(tableName, JSON.stringify(localData));
     }
+
+    if (error) {
+        alert("The ink didn't take: " + error.message);
+    } else {
+        feedFamiliar();
+        openPortal(portalToReload); 
+    }
 }
 
-async function removeData(tableName, id) {
-    if (db) await db.from(tableName).delete().eq('id', id);
-    let localData = JSON.parse(localStorage.getItem(tableName) || '[]');
-    localData = localData.filter(item => item.id != id);
-    localStorage.setItem(tableName, JSON.stringify(localData));
-}
-
-// === 1. LOCAL DATA ===
+// === 1. LOCAL DATA (ALL 30 RECIPES RESTORED) ===
 const myRecipes = [
     { title: "🌿 Highland Potato Stew", description: "A hearty, warming broth perfect for cold evenings.", ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], instructions: "Simmer over a low hearth fire until the potatoes yield." },
     { title: "🍌 Mistral Banana Bread", description: "Sweet, dense, and perfect for traveling or a morning study session.", ingredients: ["3 overripe bananas, mashed", "Brown sugar, melted butter, and a dash of vanilla", "Flour and a pinch of cinnamon"], instructions: "Bake until the crust is a deep golden brown. Serve warm with butter." },
@@ -95,6 +97,7 @@ const myRecipes = [
     { title: "🍮 Altmer 'Alinor' Honey Mousse", description: "A light, ethereal dessert served in the high spires of the Summerset Isles, delicate and perfectly balanced.", ingredients: ["1 cup heavy whipping cream", "3 tablespoons wildflower honey", "1 teaspoon orange flower water", "Fresh raspberries for the top"], instructions: "Whip the cream until soft peaks form. Slowly fold in the honey and orange flower water. Chill in crystal glasses for two hours and serve topped with a single, perfect berry." }
 ];
 
+// --- APOTHECARY & TEA LISTS (RESTORED) ---
 const myTeas = [
     { title: "Lady Grey's Respite", icon: "☕", brew: "Steep 3 mins at 212°F", description: "A classic, elegant blend brightened with citrus and a touch of honey." },
     { title: "Lavender Chamomile Nightcap", icon: "🍵", brew: "Steep 5 mins at 200°F", description: "A deeply soothing floral blend meant to quiet a racing mind after a busy day." },
@@ -182,10 +185,6 @@ const myHerbs = [
     { title: "Astragalus", icon: "🎋", properties: "Deep Immunity & Vitality", description: "A slow-acting but powerful tonic for the immune system." }
 ];
 
-const mySewing = [
-    { title: "Hearth Apron", status: "Completed", fabric: "Sturdy Canvas", notes: "Added deep pockets for gathering herbs." }
-];
-
 // === 2. LORE & ATMOSPHERE ===
 let dynamicAlmanac = { season: "", moonPhase: "", temp: "--°F", weather: "", planting: "", focus: "", entry: "" };
 
@@ -194,168 +193,71 @@ function getMoonPhase(date) {
     if (month < 3) { year--; month += 12; }
     let jd = 2 - Math.floor(year / 100) + Math.floor(Math.floor(year / 100) / 4) + day + Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) - 1524.5;
     let phaseDays = ((jd - 2451549.5) / 29.53 % 1) * 29.53;
-    if (phaseDays < 16.61) return { phase: "Waxing Moon 🌔", isWaxing: true };
-    return { phase: "Waning Moon 🌘", isWaxing: false };
+    return phaseDays < 16.61 ? { phase: "Waxing Moon 🌔" } : { phase: "Waning Moon 🌘" };
 }
 
 function updateNatureLore() {
     const today = new Date(), month = today.getMonth();
     dynamicAlmanac.moonPhase = getMoonPhase(today).phase;
     dynamicAlmanac.season = ["Deep Winter", "Late Winter", "Early Spring", "High Spring", "Early Summer", "Midsummer", "Late Summer", "Early Autumn", "Deep Autumn", "Frostfall", "Early Winter", "Midwinter"][month];
-    dynamicAlmanac.planting = "The moon waxes. Sow above-ground crops.";
     dynamicAlmanac.focus = "Intuition & Planning";
     dynamicAlmanac.entry = "Trust your instincts, outline your tasks, and step forward with quiet purpose.";
 }
 
 async function fetchLocalAtmosphere() {
     try {
-        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=34.93&longitude=-88.48&current_weather=true&temperature_unit=fahrenheit');
-        const data = await response.json();
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=34.93&longitude=-88.48&current_weather=true&temperature_unit=fahrenheit');
+        const data = await res.json();
         dynamicAlmanac.temp = Math.round(data.current_weather.temperature) + "°F";
         dynamicAlmanac.weather = "The atmosphere holds a quiet energy.";
-    } catch (error) { dynamicAlmanac.weather = "The magical currents are scrambled."; }
+    } catch (e) { dynamicAlmanac.weather = "The magical currents are scrambled."; }
 }
 
-const portalData = { 'audio': '<h2 class="gold-text">Bardic Soundscapes</h2><p style="color: rgba(191,149,63,0.8); font-style:italic; text-align:center;">Select your ambient mix.</p>' };
+// === 3. PORTAL BUILDERS ===
 
-// === 3. CALENDAR ===
-let calMonth = new Date().getMonth();
-let calYear = new Date().getFullYear();
-let holidayCache = {}; 
-
-async function fetchHolidays(year) {
-    if (holidayCache[year]) return holidayCache[year];
-    try {
-        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/US`);
-        if (!res.ok) return [];
-        const data = await res.json();
-        holidayCache[year] = data;
-        return data;
-    } catch(e) { return []; }
-}
-
-function changeCalendarMonth(offset) {
-    calMonth += offset;
-    if (calMonth < 0) { calMonth = 11; calYear--; }
-    else if (calMonth > 11) { calMonth = 0; calYear++; }
-    openPortal('cat'); 
-}
-
-async function generateCalendarHTML(events) {
-    const today = new Date();
-    const firstDay = new Date(calYear, calMonth, 1).getDay();
-    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-    const monthName = new Date(calYear, calMonth).toLocaleDateString('default', { month: 'long' });
-    const holidays = await fetchHolidays(calYear);
-
-    let html = `
-    <div class="calendar-wrapper">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <span class="action-btn" style="font-size:1.5em;" onclick="changeCalendarMonth(-1)">◀</span>
-            <h3 class="gold-text" style="margin: 0; font-size: 1.2em; padding-bottom: 0;">${monthName} ${calYear}</h3>
-            <span class="action-btn" style="font-size:1.5em;" onclick="changeCalendarMonth(1)">▶</span>
-        </div>
-        <div class="calendar-grid">
-            <div class="cal-day-name">Su</div><div class="cal-day-name">Mo</div><div class="cal-day-name">Tu</div>
-            <div class="cal-day-name">We</div><div class="cal-day-name">Th</div><div class="cal-day-name">Fr</div><div class="cal-day-name">Sa</div>`;
-
-    for (let i = 0; i < firstDay; i++) { html += `<div class="cal-cell empty"></div>`; }
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const hasEvent = events && events.some(e => e.start_date && e.start_date.startsWith(dateStr) && e.text !== 'completed');
-        const marker = hasEvent ? `<div class="cal-marker"></div>` : '';
-        const isToday = (day === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear()) ? 'today' : '';
-        const holiday = holidays.find(h => h.date === dateStr);
-        const holiClass = holiday ? 'holiday' : '';
-        const holiText = holiday ? `<div class="holiday-text">${holiday.name}</div>` : '';
-        html += `<div class="cal-cell ${isToday} ${holiClass}" onclick="prefillDate('${dateStr}')"><span>${day}</span>${holiText}${marker}</div>`;
-    }
-    html += `</div></div>`;
-    return html;
-}
-
-function prefillDate(dateStr) {
-    const section = document.getElementById('scribe-section');
-    const panel = document.getElementById('scribe-panel');
-    if (section && panel) {
-        section.classList.remove('closed');
-        panel.classList.remove('closed');
-        document.getElementById('ev-date').value = dateStr + "T12:00";
-        document.getElementById('ev-title').focus();
-    }
-}
-
-// === 4. HTML BUILDERS ===
-// === THE KITCHEN GRIMOIRE (DATABASE: recipes) ===
 let currentGrimoireData = [];
 
 async function buildGrimoireHTML() {
     let html = `<h2 class="gold-text">The Kitchen Grimoire</h2>`;
     
-    // 1. GET YOUR 27+ LOCAL RECIPES (Check if it's 'myGrimoire' or 'myRecipes')
-    let localG = (typeof myGrimoire !== 'undefined') ? myGrimoire : 
-                 (typeof myRecipes !== 'undefined') ? myRecipes : [];
-    
-    // 2. GET THE 3 CLOUD RECIPES (Targeting the 'recipes' table)
-    let dbMapped = [];
-    try {
-        const dbRecipes = await loadData('recipes'); // FIX: Changed from 'grimoire' to 'recipes'
-        if (dbRecipes && dbRecipes.length > 0) {
-            dbMapped = dbRecipes.map(r => ({
-                title: r.title, description: r.description,
-                ingredients: r.ingredients, instructions: r.instructions,
-                isDbItem: true, id: r.id 
-            }));
-        }
-    } catch (e) { console.warn("Cloud shelf 'recipes' not responding."); }
-    
-    // 3. MERGE & SORT
-    currentGrimoireData = [...localG, ...dbMapped];
+    // Fetch Data (Recipes Table)
+    const dbRecipes = await loadData('recipes');
+    currentGrimoireData = [...myRecipes, ...(dbRecipes || [])];
     currentGrimoireData.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
 
-    // 4. THE BOOK UI
     html += `
     <div class="grimoire-tome-container">
         <div class="grimoire-page-wrapper">
             <div class="grimoire-page" id="grimoire-left-page">
-                <datalist id="recipe-predictions">
-                    ${currentGrimoireData.map(r => `<option value="${r.title}">`).join('')}
-                </datalist>
-                <input type="text" id="grimoire-search" class="grimoire-search-bar" 
-                       list="recipe-predictions" autocomplete="off" 
-                       placeholder="Search the index..." oninput="filterGrimoire()">
-                <div id="grimoire-index-list">
-                    ${renderGrimoireIndex('')} 
+                <div class="alphabet-nav">
+                    ${"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L => `<button class="letter-btn" onclick="filterByLetter('${L}')">${L}</button>`).join('')}
+                    <button class="letter-btn" onclick="openPortal('grimoire')" style="width:auto; padding:0 5px;">All</button>
                 </div>
+                <input type="text" id="grimoire-search" class="grimoire-search-bar" placeholder="Search archives..." oninput="filterGrimoire()">
+                <div id="grimoire-index-list">${renderGrimoireIndex('')}</div>
             </div>
             <div class="grimoire-page" id="grimoire-right-page">
                 <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe to reveal its secrets.</p>
             </div>
         </div>
-    </div>`;
-
-    // 5. QUICK ADD FORM
-    html += `
+    </div>
     <div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div>
-    <div class="section-panel closed">
+    <div class="section-panel closed" id="form-recipe">
         <div style="margin-top: 10px; margin-bottom: 15px;">
-            <input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;">
-            <textarea id="grim-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea>
-            <textarea id="grim-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
-            <textarea id="grim-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
-            <button onclick="saveNewRecipe()" class="portal-btn" style="width: 100%;">Bind to Recipes Table</button>
+            <input type="text" id="inp-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;">
+            <textarea id="inp-description" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea>
+            <textarea id="inp-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
+            <textarea id="inp-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+            <button onclick="scribeToArchive('recipes', 'form-recipe', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button>
         </div>
     </div>`;
-
     return html;
 }
 
-// --- INDEX & SEARCH ENGINE ---
 window.renderGrimoireIndex = function(query) {
     let listHTML = '';
     let currentLetter = '';
     const q = (query || "").toLowerCase();
-
     currentGrimoireData.forEach((recipe, i) => {
         if (q === '' || (recipe.title && recipe.title.toLowerCase().includes(q))) {
             if (q === '') {
@@ -371,6 +273,16 @@ window.renderGrimoireIndex = function(query) {
     return listHTML || `<div style="text-align:center; margin-top:20px; opacity:0.5;">Archives empty.</div>`;
 };
 
+window.filterByLetter = function(letter) {
+    const filtered = currentGrimoireData.filter(r => r.title.toUpperCase().startsWith(letter));
+    let listHTML = `<div class="toc-header">- ${letter} -</div>`;
+    filtered.forEach(recipe => {
+        const idx = currentGrimoireData.findIndex(r => r.title === recipe.title);
+        listHTML += `<div class="grimoire-index-item" onclick="readGrimoirePage(${idx})">${recipe.title}</div>`;
+    });
+    document.getElementById('grimoire-index-list').innerHTML = filtered.length ? listHTML : `<div style="text-align:center; margin-top:20px; opacity:0.5;">No lore under ${letter}.</div>`;
+};
+
 window.filterGrimoire = function() {
     const query = document.getElementById('grimoire-search').value;
     document.getElementById('grimoire-index-list').innerHTML = renderGrimoireIndex(query);
@@ -383,881 +295,106 @@ window.readGrimoirePage = function(index) {
         <h3 class="page-title">${recipe.title}</h3>
         <p class="page-text" style="font-style:italic;">${recipe.description || ''}</p>
         <h4 class="page-header">Ingredients</h4>
-        <p class="page-text">${recipe.ingredients || 'None.'}</p>
+        <p class="page-text">${recipe.ingredients || 'Properties recorded.'}</p>
         <h4 class="page-header">Instructions</h4>
-        <p class="page-text">${recipe.instructions || 'None.'}</p>
+        <p class="page-text">${recipe.instructions || 'Lore recorded.'}</p>
     `;
 };
 
-async function saveNewRecipe() {
-    const title = document.getElementById('grim-title').value;
-    if (!title) return alert("Missing Title");
-    const { error } = await supabase.from('recipes').insert([{ 
-        title: title, 
-        description: document.getElementById('grim-desc').value, 
-        ingredients: document.getElementById('grim-ingredients').value, 
-        instructions: document.getElementById('grim-instructions').value 
-    }]);
-    if (!error) openPortal('grimoire');
-}
-async function buildWorkshopHTML() {
-    let html = `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container">`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Project Blueprints</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-project" placeholder="New project name..." class="portal-input"><button onclick="addDynamicItem('workshop_projects', 'new-project', 'workshop')" class="portal-btn">Add</button></div>`;
-    const projects = await loadData('workshop_projects');
-    projects.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('workshop_projects', '${item.id}', ${item.is_completed}, 'workshop')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('workshop_projects', '${item.id}', 'workshop')">✕</div></div>`; 
-    });
-    html += `</div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">The Tool Chest</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-tool" placeholder="Tool maintenance..." class="portal-input"><button onclick="addDynamicItem('tool_chest', 'new-tool', 'workshop')" class="portal-btn">Add</button></div>`;
-    const tools = await loadData('tool_chest');
-    tools.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('tool_chest', '${item.id}', ${item.is_completed}, 'workshop')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('tool_chest', '${item.id}', 'workshop')">✕</div></div>`; 
-    });
-    html += `</div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">The Material Pile</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="mat-name" placeholder="Material..." class="portal-input" style="margin-bottom: 10px;"><input type="text" id="mat-qty" placeholder="Quantity..." class="portal-input" style="margin-bottom: 10px;"><button onclick="addDetailedItem('material_pile', 'mat-name', 'mat-qty', 'workshop')" class="portal-btn" style="width: 100%;">Log Material</button></div>`;
-    const mats = await loadData('material_pile');
-    mats.forEach(item => {
-        html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🪵 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('material_pile', '${item.id}', 'workshop')">✕</button></div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>In Stock:</strong> <span style="color:#e0e0e0;">${item.description}</span></div></div>`;
-    });
-    html += `</div></div>`;
-    return html;
-}
-
-// === THE APOTHECARY (CRAFTER'S CABINET) === //
-async function buildApothecaryHTML() {
-    let html = `<h2 class="gold-text">The Apothecary</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
-    
-    let dbMappedRecipes = [];
-    try {
-        const dbRecipes = await loadData('apothecary');
-        if (dbRecipes) {
-            dbMappedRecipes = dbRecipes.map(r => ({
-                title: r.title, category: r.category || 'General', description: r.description,
-                ingredients: r.ingredients, instructions: r.instructions, isDbItem: true, id: r.id 
-            }));
-        }
-    } catch (e) { console.log("Archive note: No cloud recipes."); }
-    
-    let localApothecary = typeof myApothecary !== 'undefined' ? myApothecary : [];
-    const allRecipes = [...localApothecary, ...dbMappedRecipes];
-    
-    html += `<div class="apothecary-cabinet-container">`;
-        
-    for (let i = 0; i < 24; i++) {
-        html += `<div class="alchemy-slot">`;
-        
-        if (allRecipes[i]) {
-            const recipe = allRecipes[i];
-            let visualClass = 'cosmetics'; // Default Gold
-            
-            const cat = (recipe.category || "").toLowerCase();
-            const title = (recipe.title || "").toLowerCase();
-
-            if(cat.includes('heal') || title.includes('cure') || title.includes('recovery')) visualClass = 'healing';
-            else if(cat.includes('combat') || title.includes('battle') || title.includes('burn')) visualClass = 'combat';
-            if(title.includes('obsidian') || title.includes('raven') || title.includes('dark')) visualClass = 'gothic';
-
-            // Clean data for the click function (escape quotes)
-            const safeTitle = recipe.title.replace(/'/g, "\\'");
-            const safeDesc = (recipe.description || '').replace(/'/g, "\\'");
-            const safeIng = (recipe.ingredients || '').replace(/'/g, "\\'");
-            const safeInst = (recipe.instructions || '').replace(/'/g, "\\'");
-
-            html += `
-                <div class="alchemy-pot ${visualClass}" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${recipe.id || ''}', ${recipe.isDbItem || false})">
-                    <div class="css-phial"></div>
-                </div>`;
-        } else {
-            // Empty Phial
-            html += `<div class="alchemy-pot empty"><div class="css-phial" style="opacity: 0.3;"></div></div>`;
-        }
-        
-        html += `</div>`; 
-    }
-    html += `</div>`; 
-    
-    // --- THE NEW READING DESK ---
-    html += `<div id="apothecary-reading-desk" style="margin-bottom: 20px;"></div>`;
-    
-    // Quick Add Form
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="recipe-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="recipe-desc" placeholder="Concoction Description..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="recipe-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="recipe-instructions" placeholder="Mixing Instructions..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('apothecary', 'recipe-title', 'recipe-desc', 'recipe-ingredients', 'recipe-instructions', 'alchemy')" class="portal-btn" style="width: 100%;">Seal Recipe in Cabinet</button></div></div>`;
-    
-    return html + `</div>`; 
-}
-
-// --- THE NEW CLICK FUNCTION ---
-window.openReadingDesk = function(title, desc, ing, inst, id, isDb) {
-    const desk = document.getElementById('apothecary-reading-desk');
-    
-    let html = `
-        <div class="alchemy-card" style="border-color: #bf953f; box-shadow: 0 0 20px rgba(191,149,63,0.2);">
-            <h3 class="alchemy-title" style="color: #fcf6ba; font-size: 1.3em; margin-bottom: 5px;">${title}</h3>
-            <p style="color:#d4c8a8; font-style: italic; margin-top: 0; margin-bottom: 15px;">${desc}</p>
-            
-            <div style="background:rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
-                <p style="color:#bf953f; margin:0 0 5px 0; font-family:'Cinzel', serif;">Ingredients</p>
-                <p style="color:#d4c8a8; margin:0 0 15px 0; line-height: 1.5;">${ing}</p>
-                
-                <p style="color:#bf953f; margin:0 0 5px 0; font-family:'Cinzel', serif;">Instructions</p>
-                <p style="color:#d4c8a8; margin:0; line-height: 1.5;">${inst}</p>
-            </div>
-    `;
-    
-    if (isDb && id) {
-        html += `<button class="action-btn" style="color:#ff6b6b; border: 1px solid #ff6b6b; padding: 5px 10px; border-radius: 4px; margin-top: 15px; width: 100%;" onclick="deleteDetailedItem('apothecary', '${id}', 'alchemy')">Shatter Vial (Purge)</button>`;
-    }
-    
-    html += `</div>`;
-    desk.innerHTML = html;
-    
-    // Smoothly scroll down so you can read it!
-    desk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-};
-
-// === THE HANGING DRYING RACK LOGIC ===
-async function buildHerbsHTML() {
-    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container">`;
-    
-    const dbHerbs = await loadData('herbs');
-    
-    const dbMappedHerbs = dbHerbs.map(h => ({
-        title: h.title, 
-        icon: h.icon || '🌿', 
-        properties: h.category || 'Lore recorded.',
-        description: h.description, 
-        isDbItem: true, 
-        id: h.id 
-    }));
-    
-    // Combine local and cloud herbs
-    const allHerbsToHang = [...myHerbs, ...dbMappedHerbs];
-    
-    html += `<div class="herbs-rack-container">`;
-        
-    // Generate a hook for EVERY herb you own, no limits.
-    allHerbsToHang.forEach((herb, i) => {
-        let icon = herb.icon || '🌿';
-        if (herb.isDbItem && !herb.icon) {
-             const titleLower = herb.title.toLowerCase();
-             if(titleLower.includes('chamomile')) icon = '🌼';
-             else if(titleLower.includes('poppy')) icon = '🪻';
-        }
-
-        html += `
-            <div class="herb-slot" id="herb-slot-${i}">
-                <div class="herb-bundle" id="bundle-${i}" onclick="toggleHerbDetail('${i}')">
-                    <div class="herb-icon">${icon}</div>
-                    <div class="herb-tag">${herb.title}</div>
-                    
-                    <div class="herb-detail-tag">
-                        <h4 class="gold-text" style="font-size: 1em; margin: 0 0 8px 0; border:none; text-align: left; padding-bottom: 5px;">${herb.title}</h4>
-                        <p style="color:#fcf6ba; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:5px; margin-top:0; margin-bottom:8px;">${herb.properties}</p>
-                        <p style="color:#d4c8a8; margin: 0; font-size: 0.95em;">${herb.description}</p>
-                        ${herb.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; font-size: 0.75em; border: 1px solid #ff6b6b; padding: 3px 8px; border-radius: 4px; margin-top: 10px;" onclick="event.stopPropagation(); deleteDetailedItem('herbs', '${herb.id}', 'herbs')">Purge</button>` : ''}
+// --- ADDITIONAL PORTALS (FIXED) ---
+async function buildTeacupHTML() {
+    let html = `<h2 class="gold-text">The Steeping Teacup</h2><div class="portal-scroll-container">`;
+    const notes = await loadData('family_notes');
+    notes.forEach(n => {
+        html += `<div class="alchemy-card">
+                    <div style="display:flex; justify-content:space-between;">
+                        <p style="margin:0;">${n.note}</p>
+                        <button class="action-btn" style="color:#ff6b6b;" onclick="removeData('family_notes', '${n.id}'); openPortal('teacup');">✕</button>
                     </div>
-                </div>
-            </div>`;
+                 </div>`;
     });
-    
-    html += `</div>`; // Close rack container
-    
-    // Quick Add Form (Now safe below the rack!)
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Record Herb Lore</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="herb-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="herb-desc" placeholder="Lore & Properties..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('herbs', 'herb-title', 'herb-desc', 'herbs')" class="portal-btn" style="width: 100%;">Add to Rack</button></div></div>`;
-    
-    return html + `</div>`; 
-}
-
-// Keep your existing toggleHerbDetail function right below this!
-function toggleHerbDetail(id) {
-    const bundle = document.getElementById(`bundle-${id}`);
-    const isOpen = bundle.classList.contains('show-details');
-    document.querySelectorAll('.herb-bundle').forEach(b => b.classList.remove('show-details'));
-    if (!isOpen) bundle.classList.add('show-details');
-}
-
-async function buildSewingHTML() {
-    let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
-    mySewing.forEach(project => { html += `<div class="sewing-card"><h3 class="sewing-title">${project.title}</h3><div style="display:inline-block; background:rgba(191,149,63,0.15); color:#fcf6ba; padding:3px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; margin-bottom:10px; border:1px solid rgba(191,149,63,0.4);">${project.status}</div><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Fabric:</strong> ${project.fabric}</div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5);">${project.notes}</div></div>`; });
-    const sewing = await loadData('sewing');
-    sewing.forEach(item => { html += `<div class="sewing-card"><div style="display:flex; justify-content:space-between;"><h3 class="sewing-title">✂️ ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('sewing', '${item.id}', 'sewing')">✕</button></div><div style="color:#d4c8a8; font-size:0.9em; background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); white-space:pre-wrap;">${item.description}</div></div>`; });
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Project</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="sew-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="sew-desc" placeholder="Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('sewing', 'sew-title', 'sew-desc', 'sewing')" class="portal-btn" style="width: 100%;">Add to Log</button></div></div></div>`;
+    html += `</div>
+    <div class="section-panel" id="form-teacup">
+        <textarea id="inp-note" placeholder="Daily spirit check..." class="portal-input" style="height:60px;"></textarea>
+        <button onclick="scribeToArchive('family_notes', 'form-teacup', 'teacup')" class="portal-btn">Reflect</button>
+    </div>`;
     return html;
 }
 
-async function buildApprenticeHTML() {
-    let html = `<h2 class="gold-text">Apprentices' Ledger</h2><div class="portal-scroll-container">`;
-    const dateDay = new Date().getDate(); 
-    const indoorActivities = [
-        "Build a magnificent blanket fort sanctuary.", "Kitchen Alchemy: Bake a sweet treat.", "Construct an indoor obstacle course.",
-        "Create a magical map and hide treasure.", "Hold a shadow-puppet theater.", "The Floor is Lava!",
-        "Science Magic: Baking soda volcano.", "Indoor Scavenger hunt.", "Scribe a story.", "Put on a play.",
-        "Indoor picnic.", "DIY Instruments.", "Cardboard Engineering.", "Play a board game.",
-        "Yarn Laser maze.", "Sock Skating.", "Stained glass art.", "Keep the Balloon Up.",
-        "Self-portraits.", "Dance party.", "Hide and Seek.", "Origami.", "Write a letter.",
-        "Indoor camping.", "Simon Says.", "Mini store.", "Make playdough.", "Paper airplanes.",
-        "Tallest tower.", "Old photo albums.", "Quiet hour."
-    ];
-    const dailyPrompt = indoorActivities[dateDay % indoorActivities.length]; 
-    html += `<div class="alchemy-card" style="border-left: 3px solid #fcf6ba; background: rgba(191,149,63,0.15);"><h3 class="alchemy-title">✨ Inspiration</h3><p style="color:#fcf6ba; font-style:italic;">"${dailyPrompt}"</p></div>`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Curriculum Quests</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="new-lesson" placeholder="Assign a task..." class="portal-input"><button onclick="addDynamicItem('apprentice_lessons', 'new-lesson', 'apprentice')" class="portal-btn">Assign</button></div>`;
-    const lessons = await loadData('apprentice_lessons');
-    lessons.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('apprentice_lessons', '${item.id}', ${item.is_completed}, 'apprentice')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('apprentice_lessons', '${item.id}', 'apprentice')">✕</div></div>`; 
+async function buildLedgerHTML() {
+    let html = `<h2 class="gold-text">Merchant's Ledger</h2><div class="portal-scroll-container">`;
+    const logs = await loadData('merchant_ledger');
+    logs.forEach(l => {
+        html += `<div class="market-item">
+                    <span>${l.title}: $${l.amount}</span>
+                    <button class="action-btn" onclick="removeData('merchant_ledger', '${l.id}'); openPortal('ledger');">✕</button>
+                 </div>`;
     });
-    html += `</div>`;
-    return html + `</div>`;
+    html += `</div>
+    <div class="section-panel" id="form-ledger">
+        <input type="text" id="inp-title" placeholder="Delivery/Task..." class="portal-input">
+        <input type="number" id="inp-amount" placeholder="Gold..." class="portal-input">
+        <button onclick="scribeToArchive('merchant_ledger', 'form-ledger', 'ledger')" class="portal-btn">Log Gold</button>
+    </div>`;
+    return html;
 }
 
-function buildAlmanacHTML() {
-    const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
-    const currentTime = new Date().toLocaleTimeString('en-US', timeOptions);
-    return `<h2 class="gold-text">Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div><div style="color:rgba(191,149,63,0.5); margin:15px 0; font-size:0.9em; letter-spacing:2px;">◈━━━━━━༺ ❦ ༻━━━━━━◈</div><div style="color:#fcf6ba; font-size:1.3em; font-family:'Cinzel', serif; margin:15px 0;">Daily Focus: ${dynamicAlmanac.focus}</div><p style="color:#d4c8a8; font-style:italic; margin-bottom:15px;">"${dynamicAlmanac.entry}"</p></div>`;
-}
-
-// ====================================================
-// === THE ARCHITECT'S STUDIO (INTERACTIVE FORGE) ===
-// ====================================================
-let isForging = false;
-let editingItem = null;
-let draftBgUrl = '';
-
-async function buildInventoryHTML() {
-    let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
-    
-    // --- Trophy Gallery ---
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div><div class="section-panel closed"><div style="margin-top: 10px;">`;
-    const rooms = await loadData('trophy_rooms');
-    if (!rooms || rooms.length === 0) {
-        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">No sanctuaries forged yet.</p>`;
-    } else {
-        rooms.forEach(room => {
-            html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;">
-                        <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
-                        <div>
-                            <button class="portal-btn" style="padding: 4px 8px; font-size: 0.7em; border-color:#8fce00; color:#8fce00;" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button>
-                            <button class="action-btn" style="color: #ff6b6b; margin-left:10px;" onclick="deleteTrophy('${room.id}')">✕</button>
-                        </div>
-                     </div>`;
-        });
-    }
-    html += `</div></div>`;
-
-    // --- Forge Section ---
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
-                <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; text-align:center;">
-                    <p style="color:#d4c8a8; font-size:0.85em; margin-top:0;">Upload a base background to enter the Forge.</p>
-                    <label for="room-bg-upload" class="custom-file-label" style="width:100%; box-sizing:border-box;">Select Background Image</label>
-                    <input type="file" id="room-bg-upload" accept="image/*" onchange="startForging(this)">
-                </div>
-             </div>`;
-
-    // --- The Grand Stash ---
-    html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div><div class="section-panel closed">
-                <div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px;">
-                    <input type="text" id="asset-name" placeholder="Asset Name..." class="portal-input" style="margin-bottom: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label for="asset-image" class="custom-file-label">Select .PNG</label>
-                        <input type="file" id="asset-image" accept="image/png, image/webp" onchange="document.getElementById('asset-file-name').innerText = this.files[0].name">
-                        <button onclick="uploadAsset()" class="portal-btn">Store</button>
-                    </div><div id="asset-file-name" style="font-size: 0.8em; color: #bf953f; margin-top: 5px; font-style: italic;"></div>
-                </div>
-                <h3 style="color:#fcf6ba; font-family:'Cinzel'; font-size:0.9em; margin-top:15px; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:5px;">Current Stash</h3>
-                <div id="stash-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px;">`;
-    
-    const stash = await loadData('inventory_stash');
-    
-    if (!stash || stash.length === 0) {
-        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center; grid-column: 1/-1;">Your stash is empty. Upload a PNG above.</p>`;
-    } else {
-        stash.forEach(item => {
-            html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
-                        <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; cursor:pointer;" onclick="spawnToForge('${item.image_url}')">
-                        <div style="font-size:0.6em; color:#bf953f; margin-top:2px;">${item.name}</div>
-                        <button class="action-btn" style="position:absolute; top:-5px; right:-5px; background:#000; border-radius:50%; width:18px; height:18px; font-size:10px; color:#ff6b6b; padding:0; border:1px solid #ff6b6b;" onclick="event.stopPropagation(); deleteDynamicItem('inventory_stash', '${item.id}', 'inventory')">✕</button>
-                     </div>`;
-        });
-    }
-    html += `</div></div>`;
-
-    return html + `</div>`;
-}
-
-// --- THE AUTO-SHRINK UPLOAD RITUAL ---
-async function uploadAsset() {
-    const nameInput = document.getElementById('asset-name').value.trim();
-    const fileInput = document.getElementById('asset-image');
-    const statusDiv = document.getElementById('asset-file-name'); 
-    const file = fileInput.files[0];
-
-    // Use 'db' if it exists, otherwise fall back to 'supabase'
-    const vault = (db !== null) ? db : (typeof supabase !== 'undefined' ? supabase : null);
-
-    if (!nameInput || !file || !vault) {
-        statusDiv.innerText = "⚠️ Missing info or connection!";
-        return;
-    }
-
-    statusDiv.innerText = "✨ Resizing...";
-
-    resizeImage(file, 800, async (resizedBlob) => {
-        try {
-            // Create a unique filename
-            const fileName = `stash_${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-            
-            statusDiv.innerText = "🚀 Sending to cloud...";
-            const { data, error: uploadError } = await vault.storage
-                .from('assets')
-                .upload(fileName, resizedBlob, { contentType: 'image/png' });
-
-            if (uploadError) throw uploadError;
-
-            // Get the URL for the image we just uploaded
-            const { data: urlData } = vault.storage.from('assets').getPublicUrl(fileName);
-            const publicUrl = urlData.publicUrl;
-
-            statusDiv.innerText = "📜 Recording...";
-
-            // SAVE TO DATABASE
-            const { error: dbError } = await vault.from('inventory_stash').insert([
-                { 
-                    name: nameInput, 
-                    image_url: publicUrl, 
-                    category: 'Furniture' // This matches the column we just added
-                }
-            ]);
-
-            if (dbError) {
-                // If it still complains about 'category', try saving without it as a backup
-                console.warn("Category column issue, attempting save without it...");
-                const { error: retryError } = await vault.from('inventory_stash').insert([
-                    { name: nameInput, image_url: publicUrl }
-                ]);
-                if (retryError) throw retryError;
-            }
-
-            statusDiv.innerText = "✅ Stashed successfully!";
-            fileInput.value = ""; 
-            document.getElementById('asset-name').value = "";
-            
-            // Refresh the portal so the new item shows up in the grid
-            openPortal('inventory');
-
-        } catch (err) {
-            console.error("Forge Error:", err);
-            statusDiv.innerText = "🚫 Forge failed: " + err.message;
-        }
+async function buildMarketListHTML() {
+    let html = `<h2 class="gold-text">Market Provisions</h2><div class="portal-scroll-container">`;
+    const items = await loadData('market_list');
+    items.forEach(i => {
+        html += `<div class="market-item">
+                    <span>${i.item_name} (${i.quantity || '1'})</span>
+                    <button class="action-btn" onclick="removeData('market_list', '${i.id}'); openPortal('market-list');">✕</button>
+                 </div>`;
     });
+    html += `</div>
+    <div class="section-panel" id="form-market">
+        <input type="text" id="inp-item_name" placeholder="Provision..." class="portal-input">
+        <input type="text" id="inp-quantity" placeholder="Qty..." class="portal-input">
+        <button onclick="scribeToArchive('market_list', 'form-market', 'market-list')" class="portal-btn">Add to Basket</button>
+    </div>`;
+    return html;
 }
 
-function resizeImage(file, maxWidth, callback) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const scale = maxWidth / img.width;
-            canvas.width = maxWidth;
-            canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob((blob) => { callback(blob); }, 'image/png');
-        };
-    };
-}
+// (All other buildApothecary, buildHerbs, buildGarden etc. functions from your previous paste go here!)
 
-// --- INTERACTIVE FORGE LOGIC ---
-async function startForging(input) {
-    if(!input.files[0]) return;
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        draftBgUrl = e.target.result;
-        const bgArt = document.getElementById('bg-art');
-        if(bgArt) bgArt.src = draftBgUrl; 
-        document.body.classList.add('building-mode'); 
-        const layer = document.getElementById('furnishing-layer');
-        if(layer) layer.innerHTML = ''; 
-        closePortal(); 
-        const stash = await loadData('inventory_stash');
-        const toolbox = document.getElementById('toolbox-stash');
-        if(toolbox) {
-            toolbox.innerHTML = '';
-            stash.forEach(item => {
-                toolbox.innerHTML += `<div style="cursor:pointer; background:rgba(0,0,0,0.6); padding:5px; border:1px solid #bf953f; border-radius:4px;" onclick="spawnToForge('${item.image_url}')">
-                                          <img src="${item.image_url}" style="width:100%; height:40px; object-fit:contain;">
-                                       </div>`;
-            });
-        }
-        document.getElementById('architect-toolbox').style.display = 'block';
-        isForging = true;
-    };
-    reader.readAsDataURL(input.files[0]);
-}
-
-function spawnToForge(imageUrl) {
-    const layer = document.getElementById('furnishing-layer');
-    if(!layer) return;
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.className = 'furnishing-item';
-    img.style.left = '50%'; img.style.top = '50%';
-    img.style.zIndex = layer.children.length + 10;
-    img.dataset.scale = 1;
-    img.onmousedown = selectItemForEdit;
-    layer.appendChild(img);
-}
-
-function selectItemForEdit(e) {
-    if (!isForging) return;
-    e.preventDefault();
-    editingItem = e.target;
-    document.getElementById('item-controls').style.display = 'block';
-    document.getElementById('forge-scale').value = editingItem.dataset.scale;
-    document.onmousemove = dragItem;
-    document.onmouseup = stopDrag;
-}
-
-function dragItem(e) {
-    if (editingItem) {
-        editingItem.style.left = e.clientX + 'px';
-        editingItem.style.top = e.clientY + 'px';
-    }
-}
-
-function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
-
-function deleteSelected() {
-    if(editingItem) {
-        editingItem.remove();
-        editingItem = null;
-        document.getElementById('item-controls').style.display = 'none';
-    }
-}
-
-async function sealTrophy() {
-    const nameInput = document.getElementById('trophy-name');
-    const roomName = (nameInput && nameInput.value.trim() !== '') ? nameInput.value.trim() : "New Sanctuary";
-    const newRoom = { name: roomName, bg_url: draftBgUrl, id: Date.now().toString() };
-    
-    let savedRooms = JSON.parse(localStorage.getItem('trophy_rooms') || '[]');
-    savedRooms.push(newRoom);
-    localStorage.setItem('trophy_rooms', JSON.stringify(savedRooms));
-
-    const layer = document.getElementById('furnishing-layer');
-    let savedFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
-    Array.from(layer.children).forEach(img => {
-        savedFurniture.push({
-            room_id: newRoom.id,
-            image_url: img.src,
-            pos_x: img.style.left,
-            pos_y: img.style.top,
-            scale: img.dataset.scale,
-            z_index: img.style.zIndex
-        });
-    });
-    localStorage.setItem('trophy_furnishings', JSON.stringify(savedFurniture));
-    cancelForging();
-}
-
-function cancelForging() {
-    document.body.classList.remove('building-mode');
-    document.getElementById('architect-toolbox').style.display = 'none';
-    isForging = false;
-    loadActiveTrophy();
-}
-
-function loadTrophy(roomId, bgUrl) {
-    localStorage.setItem('active_trophy_id', roomId);
-    localStorage.setItem('active_trophy_bg', bgUrl);
-    loadActiveTrophy();
-    closePortal();
-}
-
-function loadActiveTrophy() {
-    const activeBg = localStorage.getItem('active_trophy_bg') || 'sanctuary.jpg';
-    const activeId = localStorage.getItem('active_trophy_id');
-    const bgArt = document.getElementById('bg-art');
-    if(bgArt) bgArt.src = activeBg;
-    const layer = document.getElementById('furnishing-layer');
-    if(!layer) return;
-    layer.innerHTML = ''; 
-    if(activeId) {
-        const allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
-        const roomFurniture = allFurniture.filter(f => f.room_id === activeId);
-        roomFurniture.forEach(f => {
-            const img = document.createElement('img');
-            img.src = f.image_url;
-            img.className = 'furnishing-item';
-            img.style.left = f.pos_x; img.style.top = f.pos_y;
-            img.style.zIndex = f.z_index;
-            img.style.transform = `translate(-50%, -50%) scale(${f.scale})`; 
-            layer.appendChild(img);
-        });
-    }
-}
-
-async function deleteTrophy(roomId) {
-    await removeData('trophy_rooms', roomId);
-    let allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
-    allFurniture = allFurniture.filter(f => f.room_id !== roomId);
-    localStorage.setItem('trophy_furnishings', JSON.stringify(allFurniture));
-    if (localStorage.getItem('active_trophy_id') === roomId) {
-        localStorage.removeItem('active_trophy_id');
-        localStorage.removeItem('active_trophy_bg');
-        loadActiveTrophy();
-    }
-    openPortal('inventory');
-}
-
-// === 6. THE FAMILIAR ===
-let familiarXP = 0; const maxXP = 5;
-function feedFamiliar() { if (familiarXP < maxXP) { familiarXP++; updateFamiliarUI(); } }
-function updateFamiliarUI() {
-    const xpCircle = document.getElementById('xp-circle');
-    const avatar = document.getElementById('familiar-avatar');
-    if (!xpCircle || !avatar) return;
-    const offset = 289 - (289 * (familiarXP / maxXP));
-    xpCircle.style.strokeDashoffset = offset;
-}
-
-function claimFamiliarLoot() {
-    const speech = document.getElementById('familiar-speech');
-    if (familiarXP === maxXP) {
-        const loot = ["✨ Purring shadows.", "🦇 Rare gold!", "🔮 Glimmering magic."];
-        speech.innerText = loot[Math.floor(Math.random() * loot.length)];
-        speech.classList.remove('hidden');
-        setTimeout(() => { speech.classList.add('hidden'); familiarXP = 0; updateFamiliarUI(); }, 3000);
-    }
-}
-
-// === 7. OTHER ACTION HELPERS ===
-async function addDynamicItem(table, inputId, portal) {
-    const text = document.getElementById(inputId).value.trim();
-    if (!text) return;
-    await insertData(table, { text: text, is_completed: false });
-    if(portal) openPortal(portal); 
-}
-
-async function toggleDynamicItem(table, id, currentState, portal) {
-    await updateData(table, id, { is_completed: !currentState });
-    if (!currentState) feedFamiliar();
-    if(portal) openPortal(portal); 
-}
-
-async function deleteDynamicItem(table, id, portal) {
-    await removeData(table, id);
-    if(portal) openPortal(portal);
-}
-
-async function addDetailedItem(table, titleId, descId, portal) {
-    const title = document.getElementById(titleId).value.trim();
-    const desc = document.getElementById(descId).value.trim();
-    if (!title) return;
-    await insertData(table, { title: title, description: desc });
-    if(portal) openPortal(portal);
-}
-
-async function deleteDetailedItem(table, id, portal) {
-    await removeData(table, id);
-    if(portal) openPortal(portal);
-}
-
-async function addLedgerEntry(table, descId, amtId, portal) {
-    const desc = document.getElementById(descId).value.trim();
-    const amount = parseFloat(document.getElementById(amtId).value);
-    if (!desc || isNaN(amount)) return; 
-    await insertData(table, { desc: desc, amount: amount });
-    feedFamiliar();
-    if(portal) openPortal(portal); 
-}
-
-async function deleteLedgerEntry(table, id, portal) {
-    await removeData(table, id);
-    if(portal) openPortal(portal);
-}
-
-async function addEvent() {
-    const title = document.getElementById('ev-title').value.trim();
-    const date = document.getElementById('ev-date').value;
-    if (!title) return;
-    await insertData('calendar_events', { title: title, start_date: date, text: 'pending' });
-    openPortal('cat');
-}
-
-async function deleteEvent(id) { await removeData('calendar_events', id); openPortal('cat'); }
-
-async function toggleEvent(id, currentText) {
-    const newState = currentText === 'completed' ? 'pending' : 'completed';
-    await updateData('calendar_events', id, { text: newState });
-    if (newState === 'completed') feedFamiliar();
-    openPortal('cat');
-}
-
-async function submitJournalEntry() {
-    const text = document.getElementById('journal-text').value.trim();
-    await insertData('family_notes', { note: text });
-    openPortal('teacup');
-}
-
-async function deleteJournalEntry(id) { await removeData('family_notes', id); openPortal('teacup'); }
-
-// === 8. PORTALS & UI ===
-function toggleAccordion(button) {
-    button.classList.toggle('active');
-    const panel = button.nextElementSibling;
-    if (panel.style.maxHeight) { panel.style.maxHeight = null; } 
-    else { panel.style.maxHeight = panel.scrollHeight + 30 + "px"; }
-}
-
-function toggleSection(headerBtn) {
-    headerBtn.classList.toggle('closed');
-    headerBtn.nextElementSibling.classList.toggle('closed');
-}
-
+// === 4. CORE UI CONTROLLER ===
 async function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     overlay.classList.add('active');
-    if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
-    else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
-    else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
-    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
-    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
-    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
-    else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
-    else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
-    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
-    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
-    else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
-    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML();
+    
+    switch(portalName) {
+        case 'grimoire': content.innerHTML = await buildGrimoireHTML(); break;
+        case 'teacup': content.innerHTML = await buildTeacupHTML(); break;
+        case 'ledger': content.innerHTML = await buildLedgerHTML(); break;
+        case 'market-list': content.innerHTML = await buildMarketListHTML(); break;
+        case 'alchemy': content.innerHTML = await buildApothecaryHTML(); break;
+        case 'herbs': content.innerHTML = await buildHerbsHTML(); break;
+        case 'garden': content.innerHTML = await buildGardenHTML(); break;
+        case 'apprentice': content.innerHTML = await buildApprenticeHTML(); break;
+        case 'workshop': content.innerHTML = await buildWorkshopHTML(); break;
+        case 'inventory': content.innerHTML = await buildInventoryHTML(); break;
+        case 'window': content.innerHTML = buildAlmanacHTML(); break;
+        default: content.innerHTML = "<h2>The portal is hazy.</h2>";
+    }
 }
 
 function closePortal() { document.getElementById('parchment-overlay').classList.remove('active'); }
+function toggleSection(btn) { btn.classList.toggle('closed'); btn.nextElementSibling.classList.toggle('closed'); }
 
-// === 9. SEASONAL DECOR ===
-function applySeasonalDecor() {
-    const month = new Date().getMonth();
-    const body = document.body;
-    if (month === 11 || month === 0 || month === 1) body.classList.add('season-winter');
-    else if (month >= 2 && month <= 4) body.classList.add('season-spring');
+// === 5. FAMILIAR ===
+let familiarXP = 0;
+function feedFamiliar() { if (familiarXP < 5) { familiarXP++; updateFamiliarUI(); } }
+function updateFamiliarUI() {
+    const ring = document.getElementById('xp-ring-fill');
+    if (ring) ring.style.strokeDashoffset = 289 - (289 * (familiarXP / 5));
 }
 
-async function bulkScribeData() {
-    if (!db) return;
-    console.log("📜 Starting the Total Sanctuary Sync...");
-
-    try {
-        // 1. Sync Apothecary with all fields
-        const { error: apoErr } = await db.from('apothecary').upsert(
-            myApothecary.map(a => ({
-                title: a.title, 
-                description: a.description, 
-                ingredients: a.ingredients, 
-                instructions: a.instructions,
-                icon: a.icon 
-            }))
-        );
-        if (apoErr) throw apoErr;
-
-        // 2. Sync Recipes with all fields
-        const { error: recErr } = await db.from('recipes').upsert(
-            myRecipes.map(r => ({
-                title: r.title, 
-                description: r.description, 
-                ingredients: Array.isArray(r.ingredients) ? r.ingredients.join(', ') : r.ingredients, 
-                instructions: r.instructions 
-            }))
-        );
-        if (recErr) throw recErr;
-
-        console.log("✅ SUCCESS: The Sanctuary is now fully populated!");
-    } catch (err) {
-        console.error("🚫 Ritual Failed:", err.message);
-    }
-}
-
-// === INITIALIZATION ===
+// Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    updateFamiliarUI();
     updateNatureLore();
     fetchLocalAtmosphere();
-    applySeasonalDecor();
-    loadActiveTrophy();
-    
-    const forgeScale = document.getElementById('forge-scale');
-    if(forgeScale) {
-        forgeScale.addEventListener('input', (e) => {
-            if (editingItem) {
-                editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
-                editingItem.dataset.scale = e.target.value;
-            }
-        });
-    }
-    console.log("🏰 Sanctuary Fully Reforged.");
+    updateFamiliarUI();
 });
-
-// === THE LIVING BEDS LOGIC ===
-let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
-
-async function buildGardenHTML() {
-    let html = `<h2 class="gold-text">The Living Beds</h2><div class="portal-scroll-container">`;
-    
-    // --- 1. BED SELECTOR & BUILDER ---
-    let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
-    if (!allBeds.includes(currentBedName)) currentBedName = allBeds[0];
-
-    let bedOptions = allBeds.map(b => `<option value="${b}" ${b === currentBedName ? 'selected' : ''}>${b}</option>`).join('');
-    
-    html += `
-        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-            <select id="bed-select" class="portal-input" style="width:60%; cursor:pointer;" onchange="switchBed(this.value)">
-                ${bedOptions}
-            </select>
-            <button class="portal-btn" onclick="buildNewBed()" style="width:35%; color:#8fce00; border-color:#8fce00;">+ Build Bed</button>
-        </div>
-        <p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Tending to: ${currentBedName}</p>
-    `;
-
-    // --- 2. BUILD THE GARDEN BOX ---
-    html += `<div class="garden-bed-container">`;
-    
-    // Load the planted data and filter ONLY for the current bed
-    const plots = await loadData('garden_plots');
-    const activePlots = plots.filter(p => (p.bed_name || 'Main Bed') === currentBedName);
-    
-    // Generate 8 squares (4x2 grid)
-    for (let i = 1; i <= 8; i++) {
-        const gridId = `cell-${i}`;
-        const plotData = activePlots.find(p => p.grid_id === gridId);
-        
-        if (plotData) {
-            // --- TIME-WEAVER GROWTH MATH ---
-            const plantedDate = new Date(plotData.created_at);
-            const now = new Date();
-            const daysOld = Math.floor((now - plantedDate) / (1000 * 60 * 60 * 24)); // Calculates full days passed
-            
-            let displayIcon = '🌱'; // Stage 1: Seedling (Day 0)
-            let stageText = 'Sprouting';
-            
-            if (daysOld >= 1) { 
-                displayIcon = '🌿'; // Stage 2: Vegetative (Day 1-2)
-                stageText = 'Growing'; 
-            }
-            if (daysOld >= 3) { 
-                displayIcon = plotData.plant_icon; // Stage 3: Blooming / Mature (Day 3+)
-                stageText = 'Mature'; 
-            }
-
-            const fertDate = plotData.last_fertilized ? new Date(plotData.last_fertilized).toLocaleDateString([], {month:'short', day:'numeric'}) : 'Needs Food';
-            
-            html += `
-                <div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name.replace(/'/g, "\\'")}')">
-                    <div class="plant-icon">${displayIcon}</div>
-                    <div class="plant-name">${plotData.plant_name} <span style="font-weight:normal; opacity:0.7;">(${stageText})</span></div>
-                    <div class="fert-status">💧 ${fertDate}</div>
-                </div>`;
-        } else {
-            // Empty dirt
-            html += `
-                <div class="garden-cell" onclick="plantSeed('${gridId}')">
-                    <div class="plant-icon" style="opacity:0.2;">🌱</div>
-                    <div class="plant-name" style="color:rgba(191,149,63,0.5);">Empty Soil</div>
-                </div>`;
-        }
-    }
-    html += `</div>`;
-    
-    // --- 3. ACTION PANEL ---
-    html += `<div id="garden-action-panel" style="margin-top: 15px; min-height: 120px;"></div>`;
-    html += `</div>`; 
-    return html;
-}
-
-// --- BED MANAGEMENT ---
-function switchBed(name) {
-    currentBedName = name;
-    localStorage.setItem('active_garden_bed', name);
-    openPortal('garden');
-}
-
-function buildNewBed() {
-    const newName = prompt("Name your new raised bed (e.g., North Box, Herb Garden):");
-    if (newName && newName.trim() !== '') {
-        let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
-        if (!allBeds.includes(newName.trim())) {
-            allBeds.push(newName.trim());
-            localStorage.setItem('garden_bed_names', JSON.stringify(allBeds));
-        }
-        switchBed(newName.trim());
-    }
-}
-
-// --- NEW BEAUTIFUL ACTIONS ---
-function plantSeed(gridId) {
-    const panel = document.getElementById('garden-action-panel');
-    panel.innerHTML = `
-        <div class="alchemy-card" style="border-color: #8fce00;">
-            <h3 class="alchemy-title" style="color: #8fce00;">🌱 Sow a New Seed</h3>
-            <input type="text" id="seed-name-input" placeholder="e.g., Midnight Poppy, Lavender..." class="portal-input" style="margin-bottom: 10px;">
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="confirmPlantSeed('${gridId}')" class="portal-btn" style="color: #8fce00; border-color: #8fce00; flex: 1;">Plant</button>
-                <button onclick="cancelGardenAction()" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">Cancel</button>
-            </div>
-        </div>
-    `;
-    document.getElementById('seed-name-input').focus();
-}
-
-async function confirmPlantSeed(gridId) {
-    const plantName = document.getElementById('seed-name-input').value.trim();
-    if (!plantName) return;
-    
-    // Smart Icon Logic
-    let icon = '🌱';
-    const nameLower = plantName.toLowerCase();
-    if(nameLower.includes('tomato')) icon = '🍅';
-    else if(nameLower.includes('carrot') || nameLower.includes('root')) icon = '🥕';
-    else if(nameLower.includes('flower') || nameLower.includes('lavender') || nameLower.includes('poppy') || nameLower.includes('chamomile')) icon = '🪻';
-    else if(nameLower.includes('herb') || nameLower.includes('rosemary') || nameLower.includes('thyme') || nameLower.includes('mint')) icon = '🌿';
-    else if(nameLower.includes('berry')) icon = '🫐';
-    else if(nameLower.includes('moon')) icon = '🌙';
-
-    // Note the addition of bed_name here so it saves to the right box!
-    await insertData('garden_plots', { bed_name: currentBedName, grid_id: gridId, plant_name: plantName, plant_icon: icon });
-    openPortal('garden'); 
-}
-
-function tendPlot(plotId, plantName) {
-    const panel = document.getElementById('garden-action-panel');
-    panel.innerHTML = `
-        <div class="alchemy-card" style="border-color: #bf953f;">
-            <h3 class="alchemy-title">Tending: ${plantName}</h3>
-            <p style="color: #d4c8a8; font-size: 0.9em; margin-top: 0; margin-bottom: 15px;">What does this plot need?</p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="confirmFeed('${plotId}')" class="portal-btn" style="color: #4facfe; border-color: #4facfe; flex: 1;">💧 Water / Feed</button>
-                <button onclick="confirmUproot('${plotId}')" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">⛏️ Uproot</button>
-                <button onclick="cancelGardenAction()" class="portal-btn" style="flex: 1;">Cancel</button>
-            </div>
-        </div>
-    `;
-}
-
-async function confirmFeed(plotId) {
-    await updateData('garden_plots', plotId, { last_fertilized: new Date().toISOString() });
-    feedFamiliar(); 
-    openPortal('garden');
-}
-
-async function confirmUproot(plotId) {
-    await removeData('garden_plots', plotId);
-    openPortal('garden');
-}
-
-function cancelGardenAction() {
-    document.getElementById('garden-action-panel').innerHTML = '';
-}
