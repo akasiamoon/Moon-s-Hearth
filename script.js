@@ -286,13 +286,16 @@ function prefillDate(dateStr) {
 }
 
 // === 4. HTML BUILDERS ===
-// === THE KITCHEN GRIMOIRE (CLEAN CHANNEL) ===
+// === THE KITCHEN GRIMOIRE (LOCAL-FIRST VERSION) ===
 let currentGrimoireData = [];
 
 async function buildGrimoireHTML() {
     let html = `<h2 class="gold-text">The Kitchen Grimoire</h2>`;
     
-    // 1. Fetch Cloud Data
+    // 1. START WITH LOCAL DATA (The recipes you already have)
+    let localG = (typeof myGrimoire !== 'undefined') ? myGrimoire : [];
+    
+    // 2. TRY TO FETCH CLOUD DATA (With a Safety Net)
     let dbMapped = [];
     try {
         const dbRecipes = await loadData('grimoire');
@@ -303,24 +306,21 @@ async function buildGrimoireHTML() {
                 isDbItem: true, id: r.id 
             }));
         }
-    } catch (e) { console.error("Database connection lost in the mists."); }
+    } catch (e) {
+        console.warn("Archive connection weak. Falling back to local scrolls.");
+    }
     
-    // 2. Combine with Local Data
-    let localG = (typeof myGrimoire !== 'undefined') ? myGrimoire : [];
+    // 3. MERGE THEM
     currentGrimoireData = [...localG, ...dbMapped];
 
-    // 3. IF THE BOOK IS EMPTY: Add placeholders so you can test the UI!
-    if (currentGrimoireData.length === 0) {
-        currentGrimoireData = [
-            { title: "Sample: Hearthfire Bread", description: "Test item", ingredients: "Flour", instructions: "Bake" },
-            { title: "Sample: Moon-Sugar Cobbler", description: "Test item", ingredients: "Sugar", instructions: "Mix" }
-        ];
-    }
+    // 4. ALPHABETICAL SORT (Essential for the A-Z headers)
+    currentGrimoireData.sort((a, b) => {
+        const titleA = (a.title || "").toUpperCase();
+        const titleB = (b.title || "").toUpperCase();
+        return titleA.localeCompare(titleB);
+    });
 
-    // 4. Force Alphabetical Sort
-    currentGrimoireData.sort((a, b) => a.title.localeCompare(b.title));
-
-    // 5. Build the Tome Structure
+    // 5. BUILD THE BOOK
     html += `
     <div class="grimoire-tome-container">
         <div class="grimoire-page-wrapper">
@@ -332,7 +332,7 @@ async function buildGrimoireHTML() {
     
                 <input type="text" id="grimoire-search" class="grimoire-search-bar" 
                        list="recipe-predictions" autocomplete="off" 
-                       placeholder="Search the archives..." oninput="filterGrimoire()">
+                       placeholder="Search the index..." oninput="filterGrimoire()">
                 
                 <div id="grimoire-index-list">
                     ${renderGrimoireIndex('')} 
@@ -352,37 +352,22 @@ async function buildGrimoireHTML() {
     return html;
 }
 
-// --- NEW SAVE FUNCTION (Ensures the page updates!) ---
-async function saveNewRecipe() {
-    const title = document.getElementById('grim-title').value;
-    const desc = document.getElementById('grim-desc').value;
-    const ing = document.getElementById('grim-ingredients').value;
-    const inst = document.getElementById('grim-instructions').value;
-
-    if (!title) return alert("The recipe must have a name, Scribe!");
-
-    const { error } = await supabase.from('grimoire').insert([
-        { title: title, description: desc, ingredients: ing, instructions: inst }
-    ]);
-
-    if (error) {
-        alert("The ink won't take: " + error.message);
-    } else {
-        // This is the magic part: it reloads the portal so you SEE the new recipe!
-        openPortal('grimoire'); 
-    }
-}
-
-// --- INDEX RENDERER ---
+// --- INDEX RENDERER (THE A-Z MAGIC) ---
 window.renderGrimoireIndex = function(query) {
     let listHTML = '';
     let currentLetter = '';
     const q = (query || "").toLowerCase();
 
     currentGrimoireData.forEach((recipe, i) => {
-        if (q === '' || recipe.title.toLowerCase().includes(q)) {
+        // Match title or ingredients
+        const isMatch = q === '' || 
+                        (recipe.title && recipe.title.toLowerCase().includes(q)) || 
+                        (recipe.ingredients && recipe.ingredients.toLowerCase().includes(q));
+
+        if (isMatch) {
+            // Draw A-Z Headers only if not searching
             if (q === '') {
-                const firstLetter = recipe.title.charAt(0).toUpperCase();
+                const firstLetter = (recipe.title ? recipe.title.charAt(0).toUpperCase() : '?');
                 if (firstLetter !== currentLetter) {
                     listHTML += `<div class="toc-header">- ${firstLetter} -</div>`;
                     currentLetter = firstLetter;
@@ -391,20 +376,29 @@ window.renderGrimoireIndex = function(query) {
             listHTML += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
         }
     });
+    
     return listHTML || `<div style="text-align:center; margin-top:20px; opacity:0.5;">Empty archives.</div>`;
 };
 
+// --- UPDATED SEARCH TRIGGER ---
 window.filterGrimoire = function() {
     const query = document.getElementById('grimoire-search').value;
     document.getElementById('grimoire-index-list').innerHTML = renderGrimoireIndex(query);
 };
 
+// --- READ PAGE ---
 window.readGrimoirePage = function(index) {
     const recipe = currentGrimoireData[index];
     const rightPage = document.getElementById('grimoire-right-page');
-    rightPage.innerHTML = `<h3 class="page-title">${recipe.title}</h3><p class="page-text" style="font-style:italic;">${recipe.description || ''}</p><h4 class="page-header">Ingredients</h4><p class="page-text">${recipe.ingredients || 'Properties recorded.'}</p><h4 class="page-header">Instructions</h4><p class="page-text">${recipe.instructions || 'Lore recorded.'}</p>`;
+    rightPage.innerHTML = `
+        <h3 class="page-title">${recipe.title}</h3>
+        <p class="page-text" style="font-style:italic;">${recipe.description || ''}</p>
+        <h4 class="page-header">Ingredients</h4>
+        <p class="page-text">${recipe.ingredients || 'Properties recorded.'}</p>
+        <h4 class="page-header">Instructions</h4>
+        <p class="page-text">${recipe.instructions || 'Lore recorded.'}</p>
+    `;
 };
-
 async function buildWorkshopHTML() {
     let html = `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container">`;
     html += `<div class="section-header closed" onclick="toggleSection(this)">Project Blueprints</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-project" placeholder="New project name..." class="portal-input"><button onclick="addDynamicItem('workshop_projects', 'new-project', 'workshop')" class="portal-btn">Add</button></div>`;
