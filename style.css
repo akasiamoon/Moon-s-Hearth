@@ -662,32 +662,28 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     position: relative;
     width: 100%;
     max-width: 750px;
-    height: 500px; /* Big enough to read */
+    height: 500px;
     background: url('open_grimoire.jpg') center/100% 100% no-repeat;
     margin: 20px auto;
     display: flex;
     justify-content: space-between;
-    /* This padding pushes the text inward so it sits perfectly on the blank pages */
-    padding: 50px 60px 50px 60px; 
+    padding: 50px 60px 50px 60px; /* Adjust to sit on parchment */
     box-sizing: border-box;
     filter: drop-shadow(0 15px 25px rgba(0,0,0,0.9));
 }
 
-/* The Pages */
 .grimoire-page {
-    width: 45%; /* Gives space in the middle for the book binding */
+    width: 45%;
     height: 100%;
     overflow-y: auto;
     padding-right: 10px;
-    color: #2b1d14; /* Dark brown ink! */
+    color: #2b1d14; /* Dark ink! */
 }
 
-/* Custom Scrollbar for the Pages (So it doesn't look like a modern browser) */
 .grimoire-page::-webkit-scrollbar { width: 4px; }
 .grimoire-page::-webkit-scrollbar-track { background: transparent; }
 .grimoire-page::-webkit-scrollbar-thumb { background: rgba(43, 29, 20, 0.4); border-radius: 2px; }
 
-/* The Search Bar */
 .grimoire-search-bar {
     width: 100%;
     background: rgba(0, 0, 0, 0.05);
@@ -702,7 +698,6 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 }
 .grimoire-search-bar::placeholder { color: rgba(43, 29, 20, 0.5); }
 
-/* The Index List Items */
 .grimoire-index-item {
     font-family: 'Cinzel', serif;
     font-weight: bold;
@@ -714,11 +709,10 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 }
 .grimoire-index-item:hover {
     background: rgba(43, 29, 20, 0.05);
-    color: #8fce00; /* Subtle magic glow when hovering over ink */
-    padding-left: 10px; /* Slides right slightly */
+    color: #8fce00;
+    padding-left: 10px;
 }
 
-/* The Right Page Recipe Formatting */
 .page-title { font-family: 'Cinzel', serif; font-size: 1.4em; border-bottom: 2px solid #2b1d14; padding-bottom: 5px; margin-top: 0; }
 .page-header { font-family: 'Cinzel', serif; font-weight: bold; margin-top: 15px; margin-bottom: 5px; font-size: 1.1em; }
 .page-text { font-family: 'Quicksand', sans-serif; font-size: 0.9em; line-height: 1.5; margin: 0; white-space: pre-wrap; }
