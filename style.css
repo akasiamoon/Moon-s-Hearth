@@ -660,75 +660,48 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 /* === THE OPEN GRIMOIRE TOME === */
 .grimoire-tome-container {
     position: relative;
-    
-    /* THE BREAKOUT TRICK: Forces the book to be 85% of your total screen width */
     width: 85vw; 
     max-width: 1200px; 
-    min-width: 800px; /* Prevents it from ever getting too small */
-    
-    /* Centers it perfectly on the screen regardless of the parent container */
+    min-width: 800px; 
     left: 50%;
     transform: translateX(-50%); 
-    
     aspect-ratio: 16 / 9; 
     background: url('open_grimoire.jpg') center/cover no-repeat;
     margin: 40px 0; 
-    display: flex;
-    justify-content: space-between;
-    
-    padding: 8% 11% 10% 11%; 
-    box-sizing: border-box;
     filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
 }
 
+/* THE INVISIBLE FRAME - This forces the text to stay on the parchment */
+.grimoire-page-wrapper {
+    position: absolute;
+    /* ADJUST THESE 4 PERCENTAGES to fit the text onto your specific image's paper */
+    top: 10%;    /* Distance from top leather edge */
+    bottom: 12%; /* Distance from bottom leather edge */
+    left: 12%;   /* Distance from left leather edge */
+    right: 12%;  /* Distance from right leather edge */
+    
+    display: flex;
+    justify-content: space-between;
+}
+
 .grimoire-page {
-    width: 42%; 
+    /* 43% width for each page leaves a perfect 14% gap in the middle for the spine */
+    width: 43%; 
     height: 100%;
     overflow-y: auto;
-    padding-right: 15px;
     color: #2b1d14; 
-    font-size: 1.1em; /* Bumps up the base ink size */
+    font-size: 1.1em;
+    padding: 0 15px; /* Keeps text slightly off the invisible edges */
+    box-sizing: border-box;
 }
 
-/* Make the specific text elements larger and more legible */
-.page-title { font-size: 1.8em; margin-bottom: 10px; }
-.page-header { font-size: 1.3em; margin-top: 20px; }
-.page-text { font-size: 1.1em; }
-.grimoire-index-item { font-size: 1.1em; padding: 10px 5px; }
-
-.grimoire-page::-webkit-scrollbar { width: 4px; }
+/* Ensure the scrollbar doesn't look ugly against the parchment */
+.grimoire-page::-webkit-scrollbar { width: 6px; }
 .grimoire-page::-webkit-scrollbar-track { background: transparent; }
-.grimoire-page::-webkit-scrollbar-thumb { background: rgba(43, 29, 20, 0.4); border-radius: 2px; }
+.grimoire-page::-webkit-scrollbar-thumb { background: rgba(43, 29, 20, 0.3); border-radius: 3px; }
 
-.grimoire-search-bar {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(43, 29, 20, 0.3);
-    border-radius: 3px;
-    padding: 8px;
-    font-family: 'Cinzel', serif;
-    color: #2b1d14;
-    font-weight: bold;
-    margin-bottom: 15px;
-    outline: none;
-}
-.grimoire-search-bar::placeholder { color: rgba(43, 29, 20, 0.5); }
-
-.grimoire-index-item {
-    font-family: 'Cinzel', serif;
-    font-weight: bold;
-    font-size: 0.95em;
-    padding: 8px 5px;
-    border-bottom: 1px dashed rgba(43, 29, 20, 0.2);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.grimoire-index-item:hover {
-    background: rgba(43, 29, 20, 0.05);
-    color: #8fce00;
-    padding-left: 10px;
-}
-
-.page-title { font-family: 'Cinzel', serif; font-size: 1.4em; border-bottom: 2px solid #2b1d14; padding-bottom: 5px; margin-top: 0; }
-.page-header { font-family: 'Cinzel', serif; font-weight: bold; margin-top: 15px; margin-bottom: 5px; font-size: 1.1em; }
-.page-text { font-family: 'Quicksand', sans-serif; font-size: 0.9em; line-height: 1.5; margin: 0; white-space: pre-wrap; }
+/* Readability bumps */
+.page-title { font-size: 1.8em; margin-bottom: 10px; border-bottom: 2px solid rgba(43,29,20,0.5); }
+.page-header { font-size: 1.3em; margin-top: 20px; }
+.page-text { font-size: 1.1em; line-height: 1.6; }
+.grimoire-index-item { font-size: 1.1em; padding: 10px 5px; }
