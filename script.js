@@ -302,37 +302,81 @@ async function buildGrimoireHTML() {
     let localGrimoire = typeof myGrimoire !== 'undefined' ? myGrimoire : [];
     currentGrimoireData = [...localGrimoire, ...dbMappedRecipes];
 
-  html += `<div class="grimoire-tome-container">`;
+    // 1. Sort the entire collection Alphabetically (A-Z)
+    currentGrimoireData.sort((a, b) => a.title.localeCompare(b.title));
+
+    html += `<div class="grimoire-tome-container">
+                <div class="grimoire-page-wrapper">`;
     
-    // === THE NEW INVISIBLE WRAPPER ===
-    html += `<div class="grimoire-page-wrapper">`;
-    
-    // --- LEFT PAGE: Search & Index ---
+    // --- LEFT PAGE: Search & Table of Contents ---
     html += `<div class="grimoire-page" id="grimoire-left-page">
-                <input type="text" id="grimoire-search" class="grimoire-search-bar" placeholder="Search the archives..." onkeyup="filterGrimoire()">
+                
+                <datalist id="recipe-predictions">`;
+    currentGrimoireData.forEach(recipe => {
+        html += `<option value="${recipe.title}">`;
+    });
+    html += `   </datalist>
+    
+                <input type="text" id="grimoire-search" class="grimoire-search-bar" list="recipe-predictions" placeholder="Search the index..." oninput="filterGrimoire()">
+                
                 <div id="grimoire-index-list">`;
                 
-    currentGrimoireData.forEach((recipe, i) => {
-        const safeTitle = recipe.title.replace(/'/g, "\\'");
-        html += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
-    });
+    // Generate the initial Alphabetical Table of Contents
+    html += generateTableOfContents('');
     
     html += `   </div>
               </div>`;
 
     // --- RIGHT PAGE: Recipe Details ---
     html += `<div class="grimoire-page" id="grimoire-right-page">
-                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe from the index to read its contents.</p>
-              </div>`;
-              
-    html += `</div>`; // === CLOSE THE WRAPPER ===
-              
-    html += `</div>`; // Close Tome Container
+                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe from the Table of Contents to read its lore.</p>
+              </div>
+            </div>
+          </div>`;
+
     // Quick Add Form
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description / Category..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
 
     return html;
 }
+
+// --- NEW TABLE OF CONTENTS GENERATOR ---
+window.generateTableOfContents = function(query) {
+    let listHTML = '';
+    let currentLetter = '';
+
+    currentGrimoireData.forEach((recipe, i) => {
+        // Only show items that match the search query (or show all if empty)
+        if (query === '' || recipe.title.toLowerCase().includes(query) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(query))) {
+            
+            // Only draw the A, B, C headers if we are browsing the full list
+            if (query === '') {
+                const firstLetter = recipe.title.charAt(0).toUpperCase();
+                if (firstLetter !== currentLetter) {
+                    listHTML += `<div class="toc-header">- ${firstLetter} -</div>`;
+                    currentLetter = firstLetter;
+                }
+            }
+            
+            // Note: Replace quotes to prevent click errors
+            const safeTitle = recipe.title.replace(/'/g, "\\'");
+            listHTML += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
+        }
+    });
+    
+    if (listHTML === '') {
+        listHTML = `<div style="font-style:italic; text-align:center; margin-top:20px; color:rgba(43,29,20,0.6);">No lore matches your query.</div>`;
+    }
+    return listHTML;
+};
+
+// --- UPDATED PREDICTIVE SEARCH LOGIC ---
+window.filterGrimoire = function() {
+    const query = document.getElementById('grimoire-search').value.toLowerCase();
+    document.getElementById('grimoire-index-list').innerHTML = generateTableOfContents(query);
+};
+
+// --- (Keep your window.readGrimoirePage function exactly as it is below this!) ---
 
 // --- NEW SEARCH BAR LOGIC ---
 window.filterGrimoire = function() {
