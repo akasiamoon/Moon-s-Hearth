@@ -416,7 +416,7 @@ async function buildWorkshopHTML() {
 }
 
 // === THE APOTHECARY (CRAFTER'S CABINET) LOGIC ===
-async function buildAlchemyHTML() {
+async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">The Apothecary</h2><div class="portal-scroll-container">`;
     html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Click a concoction to open the recipe.</p>`;
     
