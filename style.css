@@ -526,8 +526,8 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     display: flex;
     justify-content: center;
     align-items: flex-end; 
-    /* ALIGNMENT KNOB 2: Change '10px' to lift the jars up or down so they sit on the wood */
-    padding-bottom: 10px;   
+    /* INCREASE THIS NUMBER to push the vials higher up the shelf */
+    padding-bottom: 25px;   
 }
 
 /* The pot/jar container */
