@@ -59,9 +59,9 @@ body::before {
 /* --- 6. THE GILDED DOSSIER --- */
 #parchment-overlay {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
-    width: 85%; max-width: 500px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
+    width: 85%; max-width: 650px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
     border: 5px solid; border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-    border-image-slice: 1; padding: 60px 40px; opacity: 0; visibility: hidden; z-index: 10000;
+    border-image-slice: 1; padding: 40px; opacity: 0; visibility: hidden; z-index: 10000;
     transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -119,11 +119,11 @@ h2, .gold-text {
 
 .portal-scroll-container {
     margin-top: 15px; 
-    max-height: 75vh; /* Increased to 75% of your screen height */
+    max-height: 75vh; 
     overflow-y: auto; 
     padding-right: 10px; 
     text-align: left;
-    scrollbar-width: thin; /* Makes scrollbar less bulky in Firefox */
+    scrollbar-width: thin;
 }
 
 /* --- 9. AUDIO GRIMOIRE --- */
@@ -150,31 +150,88 @@ h2, .gold-text {
 .section-header::after { content: '▼'; font-size: 0.8em; transition: transform 0.3s ease; color: #bf953f; }
 .section-header.closed::after { transform: rotate(-90deg); }
 .section-panel { 
-    max-height: 10000px; /* Increased from 2000px to fit your full collection */
+    max-height: 10000px; 
     overflow: hidden; 
     transition: max-height 0.5s ease-in-out; 
 }
 .section-panel.closed { max-height: 0; }
 
-/* --- 11. GRIMOIRE ACCORDIONS --- */
-.grimoire-header {
-    width: 100%; background: rgba(8, 8, 10, 0.8); color: #bf953f;
-    border: 1px solid rgba(191, 149, 63, 0.4); padding: 12px 18px;
-    font-family: 'Cinzel', serif; font-size: 1.05em; text-align: left;
-    cursor: pointer; transition: all 0.3s ease; margin-bottom: 5px;
-    display: flex; justify-content: space-between; align-items: center;
+/* --- 11. GRIMOIRE TOME "CAGED" ALIGNMENT --- */
+.grimoire-tome-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: url('open_grimoire.jpg') center/cover no-repeat;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
 }
-.grimoire-header:hover { background: rgba(191, 149, 63, 0.15); color: #fcf6ba; }
-.grimoire-header.active { border-color: #fcf6ba; background: rgba(191, 149, 63, 0.2); }
-.grimoire-header::after { content: '\2727'; font-size: 1.2em; color: #bf953f; transition: transform 0.4s ease, opacity 0.4s; }
-.grimoire-header.active::after { transform: rotate(180deg); opacity: 0.5; }
-.grimoire-panel {
-    padding: 0 15px; background: rgba(0, 0, 0, 0.4); border-left: 2px solid #bf953f;
-    margin-bottom: 10px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-    color: #d4c8a8; font-size: 0.95em; line-height: 1.6;
+
+.grimoire-page-wrapper {
+    position: absolute;
+    /* CAGED ALIGNMENT: Ensures text stays on the paper centers */
+    top: 15%; 
+    bottom: 16%; 
+    left: 14%; 
+    right: 14%;
+    display: flex;
+    justify-content: space-between;
 }
-.grimoire-panel ul { list-style-type: square; color: #bf953f; padding-left: 20px; }
-.grimoire-panel ul li span { color: #d4c8a8; }
+
+.grimoire-page {
+    width: 43%; 
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    color: #2b1d14; /* Ink Color */
+}
+
+#grimoire-left-page { position: relative; left: 35px; }
+#grimoire-right-page { position: relative; right: 35px; padding-right: 20px; }
+
+/* A-Z NAVIGATION Logic */
+.alphabet-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 10px;
+}
+
+.letter-btn {
+    background: transparent;
+    border: none;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #5c4033;
+    cursor: pointer;
+    width: 18px;
+    transition: transform 0.2s;
+}
+
+.letter-btn:hover { color: #8fce00; transform: scale(1.3); }
+
+.toc-header {
+    color: #5c4033;
+    text-align: center;
+    font-weight: bold;
+    font-family: 'Cinzel', serif;
+    border-bottom: 1px solid rgba(43,29,20,0.2);
+    margin: 15px 0 5px 0;
+}
+
+.grimoire-index-item {
+    color: #2b1d14;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85em;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(43,29,20,0.1);
+}
+
+.page-title { border-bottom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; color: #2b1d14; }
+.page-header { font-family: 'Cinzel'; font-size: 1.1em; margin-top: 15px; color: #5c4033; }
+.page-text { font-size: 0.9em; line-height: 1.4; color: #2b1d14; }
 
 /* --- 12. QUESTS & APPOINTMENTS --- */
 .quest-item {
@@ -193,10 +250,7 @@ h2, .gold-text {
 .quest-title { color: #bf953f; font-family: 'Cinzel', serif; font-size: 1.1em; margin: 0 0 4px 0; }
 .quest-desc { color: #d4c8a8; font-size: 0.9em; margin: 0; opacity: 0.9; }
 .quest-item.completed .quest-details { opacity: 0.4; text-decoration: line-through; text-decoration-color: #bf953f; }
-.delete-icon {
-    color: rgba(191, 149, 63, 0.5); font-size: 1.2em; cursor: pointer;
-    transition: all 0.2s; padding: 0 5px; display: flex; align-items: center;
-}
+.delete-icon { color: rgba(191, 149, 63, 0.5); font-size: 1.2em; cursor: pointer; transition: all 0.2s; padding: 0 5px; display: flex; align-items: center; }
 .delete-icon:hover { color: #ff5555; transform: scale(1.1); }
 
 /* --- 13. LITERAL CALENDAR --- */
@@ -215,7 +269,7 @@ h2, .gold-text {
 .cal-cell.empty { background: transparent; border: none; }
 .cal-marker { width: 6px; height: 6px; background: #bf953f; border-radius: 50%; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); }
 
-/* --- 14. ALMANAC & CARDS --- */
+/* --- 14. CARDS & ALMANAC --- */
 .alchemy-card, .tea-card, .sewing-card {
     background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3);
     padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left;
@@ -225,516 +279,69 @@ h2, .gold-text {
 .sewing-card { border-top: 3px double #bf953f; position: relative; }
 .sewing-card::before { content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 1px dashed rgba(191, 149, 63, 0.2); pointer-events: none; }
 .alchemy-title, .tea-title, .sewing-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; }
-.alchemy-ingredients { color: #bf953f; font-size: 0.9em; margin-bottom: 8px; }
-.alchemy-ingredients span { color: #e0e0e0; }
-#herbs-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-.herb-card { background: rgba(8, 8, 10, 0.5); border: 1px dashed rgba(191, 149, 63, 0.5); padding: 15px; text-align: center; }
 
 #almanac-container { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.4); padding: 20px 15px; text-align: center; }
 .almanac-temp { color: #fcf6ba; font-size: 1.5em; font-family: 'Cinzel', serif; margin: 10px 0; text-shadow: 0 0 5px rgba(191, 149, 63, 0.4); }
 .almanac-stat { color: #d4c8a8; font-size: 1.1em; margin: 8px 0; font-family: 'Cinzel', serif; }
 .almanac-stat span { color: #bf953f; font-weight: bold; }
-.almanac-focus { color: #fcf6ba; font-size: 1.3em; font-family: 'Cinzel', serif; margin: 15px 0; text-shadow: 0 0 8px rgba(191, 149, 63, 0.3); }
 
-/* --- 15. INPUTS, BUTTONS, & UPLOADS --- */
+/* --- 15. INPUTS & BUTTONS --- */
 .portal-input {
     background: rgba(15, 12, 10, 0.9); color: #d4c8a8;
     border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px;
     font-family: 'Quicksand', sans-serif; font-size: 1.05em; width: 100%; box-sizing: border-box; outline: none;
 }
-.portal-input:focus { border-color: #fcf6ba; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
-.portal-input::placeholder { color: rgba(191, 149, 63, 0.5); font-style: italic; }
-::-webkit-calendar-picker-indicator { filter: invert(70%) sepia(80%) saturate(400%) hue-rotate(350deg); cursor: pointer; }
-
 .portal-btn {
     padding: 8px 16px; background: rgba(8, 8, 10, 0.8); color: #bf953f;
     border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer;
-    font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; transition: all 0.2s;
+    font-family: 'Cinzel', serif; font-weight: bold; transition: all 0.2s;
 }
 .portal-btn:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 
-input[type="file"] { display: none; }
-.custom-file-label {
-    display: inline-block; padding: 8px 15px; background: rgba(8, 8, 10, 0.8);
-    color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px;
-    cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; transition: all 0.2s ease;
-}
-.custom-file-label:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
-.action-btn { background: none; border: none; color: #bf953f; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; padding: 0 5px; }
-.action-btn:hover { color: #fcf6ba; }
-
-/* --- 16. CALENDAR HOLIDAY HIGHLIGHTS --- */
-.cal-cell.holiday { border-color: rgba(255, 154, 158, 0.4); background: rgba(255, 154, 158, 0.05); box-shadow: inset 0 0 10px rgba(255, 154, 158, 0.1); }
-.cal-cell.holiday:hover { border-color: #ff9a9e; background: rgba(255, 154, 158, 0.15); }
-.holiday-text { font-size: 0.55em; color: #ff9a9e; line-height: 1.1; margin-top: 4px; font-family: 'Quicksand', sans-serif; text-transform: none; letter-spacing: 0; padding: 0 2px; }
-
-/* === 17. THE FAMILIAR (ALINOR SHADOW CAT) === */
-#familiar-container {
-    position: fixed; bottom: 30px; right: 30px; width: 150px; height: 150px;
-    cursor: pointer; z-index: 1000; transition: transform 0.3s ease;
-}
-#familiar-container:hover { transform: scale(1.05); }
-
-.familiar-glass {
-    position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
-    background: rgba(8, 8, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 50%;
-    display: flex; justify-content: center; align-items: center; font-size: 2rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(191, 149, 63, 0.1);
-}
-
-.xp-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-.xp-ring-bg { fill: none; stroke: rgba(191, 149, 63, 0.15); stroke-width: 4; }
+/* --- 16. THE FAMILIAR (ALINOR SHADOW CAT) --- */
+#familiar-container { position: fixed; bottom: 30px; right: 30px; width: 120px; height: 120px; cursor: pointer; z-index: 1000; }
 .xp-ring-fill {
     fill: none; stroke: #bf953f; stroke-width: 4;
-    stroke-dasharray: 289; stroke-dashoffset: 289; transition: stroke-dashoffset 0.5s ease-out, stroke 0.3s ease;
+    stroke-dasharray: 289; stroke-dashoffset: 289; transition: stroke-dashoffset 0.5s;
     filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.8));
 }
 
-#familiar-avatar { width: 90%; height: 90%; object-fit: cover; border-radius: 50%; }
+/* --- 17. THE ARCHITECT'S FORGE --- */
+#furnishing-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+body.building-mode #furnishing-layer { pointer-events: auto; background: rgba(0, 0, 0, 0.4); }
+.furnishing-item { position: absolute; transform-origin: center; cursor: grab; }
 
-.state-sleeping { opacity: 0.6; transform: translateY(3px); transition: all 0.5s ease; }
-.state-awake { opacity: 1; transform: translateY(0); filter: drop-shadow(0 0 8px rgba(191,149,63,0.5)); transition: all 0.3s ease; }
-.state-zoomies { animation: zoomies 0.5s infinite alternate ease-in-out; filter: drop-shadow(0 0 12px rgba(191,149,63,0.8)); }
-
-@keyframes zoomies {
-    0% { transform: translateY(0) scale(1); }
-    100% { transform: translateY(-5px) scale(1.1); }
-}
-
-#familiar-speech {
-    position: absolute; bottom: 160px; right: 10px; background: rgba(8, 8, 10, 0.85); border: 1px solid #bf953f;
-    color: #fcf6ba; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; white-space: nowrap; opacity: 1;
-    transition: opacity 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
-#familiar-speech.hidden { opacity: 0; pointer-events: none; }
-
-/* === 18. SEASONAL & HOLIDAY MAGIC === */
-body.season-spring .dust-container {
-    background-image: radial-gradient(ellipse, rgba(255, 182, 193, 0.9) 3px, transparent 5px), radial-gradient(ellipse, rgba(255, 105, 180, 0.6) 2px, transparent 4px), radial-gradient(ellipse, rgba(255, 192, 203, 0.8) 4px, transparent 6px);
-    animation: petalDrift 20s linear infinite;
-}
-@keyframes petalDrift { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: 0.8; } 80% { opacity: 0.8; } 100% { transform: translate(-100px, -150px); opacity: 0; } }
-
-body.season-autumn .dust-container {
-    background-image: radial-gradient(ellipse, rgba(255, 140, 0, 0.9) 4px, transparent 5px), radial-gradient(ellipse, rgba(200, 50, 0, 0.7) 3px, transparent 4px), radial-gradient(ellipse, rgba(255, 200, 0, 0.8) 5px, transparent 6px);
-    animation: leafFall 18s ease-in-out infinite;
-}
-@keyframes leafFall { 0% { transform: translate(0, -50px); opacity: 0; } 20% { opacity: 0.8; } 80% { opacity: 0.8; } 100% { transform: translate(-80px, 150px); opacity: 0; } }
-
-body.season-winter .dust-container {
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.95) 2.5px, transparent 3.5px), radial-gradient(circle, rgba(255, 255, 255, 0.7) 1.5px, transparent 2.5px), radial-gradient(circle, rgba(255, 255, 255, 0.8) 3px, transparent 4px);
-    animation: snowFall 22s linear infinite;
-}
-@keyframes snowFall { 0% { transform: translate(0, -100px); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translate(50px, 200px); opacity: 0; } }
-
-body.holiday-halloween::before { background: radial-gradient(circle at 85% 85%, rgba(138, 43, 226, 0.55), transparent 70%); }
-body.holiday-yule::before { background: radial-gradient(circle at 85% 85%, rgba(255, 50, 50, 0.4), transparent 60%), radial-gradient(circle at 15% 15%, rgba(50, 255, 50, 0.25), transparent 60%); }
-body.holiday-valentines::before { background: radial-gradient(circle at 85% 85%, rgba(255, 20, 147, 0.45), transparent 70%); }
-
-/* === 19. THE ARCHITECT'S FORGE === */
-#furnishing-layer {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 5; pointer-events: none; /* Clicks pass through normally */
-}
-
-/* Safe Building Mode */
-body.building-mode .portal {
-    pointer-events: none; 
-    opacity: 0; /* Hides portals so you don't accidentally click them */
-}
-body.building-mode #furnishing-layer {
-    pointer-events: auto; /* Activates the furniture canvas */
-    background: rgba(0, 0, 0, 0.4); /* Dims the room to help you focus */
-}
-
-.furnishing-item {
-    position: absolute; transform-origin: center; user-select: none;
-    transition: filter 0.2s; pointer-events: auto;
-}
-body.building-mode .furnishing-item { cursor: grab; filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.5)); }
-body.building-mode .furnishing-item:hover { filter: drop-shadow(0 0 15px #fcf6ba); outline: 1px dashed rgba(191, 149, 63, 0.8); }
-body.building-mode .furnishing-item:active { cursor: grabbing; }
-
-/* === THE LIVING BEDS === */
+/* --- 18. THE LIVING BEDS (GARDEN) --- */
 .garden-bed-container {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    height: 300px;
-    background: url('raisedbed1.jpg') center/cover no-repeat;
-    background-color: #271915; /* Dark dirt fallback color */
-    border: 8px solid #3e2723; /* Dark wood border */
-    border-radius: 8px;
-    margin: 20px auto;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    position: relative; width: 100%; max-width: 600px; height: 300px;
+    background: #271915; border: 8px solid #3e2723; border-radius: 8px;
+    margin: 20px auto; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr);
     box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.9);
 }
 
 .garden-cell {
-    border: 1px dashed rgba(143, 206, 0, 0.2); /* Faint green grid lines */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.3s;
+    border: 1px dashed rgba(143, 206, 0, 0.2); display: flex;
+    flex-direction: column; justify-content: center; align-items: center;
+    cursor: pointer; transition: background 0.3s;
 }
-
 .garden-cell:hover { background: rgba(143, 206, 0, 0.15); }
+.plant-icon { font-size: 2.5em; filter: drop-shadow(2px 4px 4px #000); }
+.plant-name { font-size: 0.75em; color: #fcf6ba; font-weight: bold; margin-top: 5px; }
 
-.plant-icon { font-size: 2.5em; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.8)); }
-.plant-name { 
-    font-size: 0.75em; 
-    color: #fcf6ba; 
-    text-align: center; 
-    text-shadow: 1px 1px 3px #000, -1px -1px 3px #000; 
-    margin-top: 5px;
-    font-weight: bold;
-}
-.fert-status {
-    font-size: 0.6em;
-    color: #8fce00;
-    margin-top: 2px;
-}
+/* --- 19. THE DRYING RACK (HERBS) --- */
+#herbs-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+.herb-card { background: rgba(8, 8, 10, 0.5); border: 1px dashed rgba(191, 149, 63, 0.5); padding: 15px; text-align: center; }
 
-/* === THE DRYING RACK VISUALS === */
-
-.herbs-rack-container {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    min-height: 200px; /* Changed from fixed 300px so it can grow! */
-    
-    /* The Background Fix */
-    background: url('drying_rack.jpg') top center/100% auto repeat-y;
-    background-color: #1a1412; 
-    border: 4px solid #3e2723; 
-    border-top: 30px solid #2d1a11; /* Creates a thick 'wooden beam' look even without the image! */
-    border-radius: 4px;
-    
-    margin: 20px auto 60px auto; /* Added extra bottom margin to protect your input box */
-    padding: 10px 10px 40px 10px; 
-    display: grid;
-    
-    /* Automatically wraps the herbs so they don't squish */
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 40px 10px; 
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.9);
-}
-
-.herb-slot {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; 
-}
-
-.herb-bundle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    transform-origin: top center; 
-    transition: transform 0.3s ease;
-    z-index: 1001; 
-}
-
-.herb-bundle:hover {
-    animation: swayBundle 2s ease-in-out infinite alternate;
-}
-
-@keyframes swayBundle {
-    0% { transform: rotate(2deg); }
-    100% { transform: rotate(-2deg); }
-}
-
-.herb-icon {
-    font-size: 3em; 
-    filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.8));
-    margin-bottom: -5px; 
-}
-
-.herb-tag {
-    background: rgba(20, 15, 12, 0.95);
-    color: #fcf6ba;
-    font-family: 'Cinzel', serif;
-    font-size: 0.65em;
-    padding: 4px 8px;
-    border: 1px dashed rgba(191, 149, 63, 0.5);
-    border-top: 2px solid #bf953f; 
-    border-radius: 0 0 4px 4px;
-    text-align: center;
-    box-shadow: 0 3px 5px rgba(0,0,0,0.6);
-    pointer-events: none; 
-}
-
-/* Detailed Info Box */
-.herb-detail-tag {
-    position: absolute;
-    top: 60px; /* Pushed up slightly so it doesn't hang as low */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 220px;
-    background: rgba(8, 8, 10, 0.98);
-    border: 2px solid;
-    border-image: linear-gradient(45deg, #bf953f, transparent, #b38728) 1;
-    padding: 15px;
-    color: #d4c8a8;
-    font-size: 0.85em;
-    text-align: left;
-    box-shadow: 0 10px 30px rgba(0,0,0,1);
-    opacity: 0;
-    visibility: hidden;
-    z-index: 9999; /* Forces it over everything else */
-    transition: opacity 0.2s ease, top 0.2s ease;
-}
-
-.herb-bundle.show-details .herb-detail-tag {
-    opacity: 1;
-    visibility: visible;
-    top: 70px; 
-}
-/* === THE APOTHECARY (CRAFTER'S CABINET) === */
-
-.apothecary-cabinet-container {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    height: 450px; /* INCREASED: Gives the shelves more breathing room */
-    background: url('apothecary_cabinet_v2.jpg') center/cover no-repeat;
-    background-color: #0c0c0e;
-    border: 5px solid;
-    border-image: linear-gradient(45deg, #3e2723, #1a1412, #3e2723) 1;
-    border-radius: 4px;
-    margin: 20px auto 40px auto;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr); 
-    grid-template-rows: repeat(4, 1fr);    
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1);
-    
-    /* ALIGNMENT KNOB 1: Change the '50px' to push the entire grid down from the arches */
-    padding: 50px 15px 15px 15px; 
-    overflow: hidden;
-}
-
-/* Individual shelf slot */
-.alchemy-slot {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end; 
-    /* INCREASE THIS NUMBER to push the vials higher up the shelf */
-    padding-bottom: 10px;   
-}
-
-/* The pot/jar container */
-/* --- PURE CSS POTIONS --- */
-.alchemy-pot {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    z-index: 10;
-}
-.alchemy-pot:hover {
-    transform: translateY(-5px) scale(1.1);
-}
-
-/* The Glass Bottle */
+/* --- 20. APOTHECARY VIALS --- */
 .css-phial {
-    width: 26px;
-    height: 38px;
-    border-radius: 10px 10px 15px 15px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2);
-    position: relative;
-    margin: 0 auto;
+    width: 22px; height: 32px; border-radius: 8px 8px 12px 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.05);
+    position: relative; margin: 0 auto;
 }
-
-/* The Cork */
-.css-phial::before {
-    content: '';
-    position: absolute;
-    top: -8px; left: 5px;
-    width: 12px; height: 8px;
-    background: #5c4033;
-    border-radius: 2px 2px 0 0;
-}
-
-/* The Glowing Liquid */
 .css-phial::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 50%; /* Half full */
-    border-radius: 0 0 13px 13px;
-    transition: box-shadow 0.3s ease;
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 50%; border-radius: 0 0 10px 10px; transition: box-shadow 0.3s;
 }
-
-/* The Colors! */
-.alchemy-pot.healing .css-phial::after { background: #8fce00; box-shadow: 0 0 15px #8fce00; }
-.alchemy-pot.combat .css-phial::after { background: #ff6b6b; box-shadow: 0 0 15px #ff6b6b; height: 70%;}
-.alchemy-pot.cosmetics .css-phial::after { background: #bf953f; box-shadow: 0 0 15px #bf953f; }
-.alchemy-pot.gothic .css-phial::after { background: #111; box-shadow: 0 0 10px #000; height: 40%; }
-.alchemy-pot.empty .css-phial::after { background: transparent; box-shadow: none; }
-
-/* DYNAMIC CONTAINER STYLES */
-
-/* Category: Healing (Cure, Recovery, Muscle soak) */
-/* Vibe: Traditional, corked apothecary vials */
-.alchemy-pot.healing .alchemy-icon {
-    filter: drop-shadow(0 0 5px #8fce00); /* Emerald green healing glow */
-}
-.alchemy-pot.healing:hover .alchemy-icon {
-    filter: drop-shadow(0 0 15px #8fce00); /* Brighter on hover */
-}
-
-/* Category: Combat (Battle, Burn, Shield) */
-/* Vibe: Geometric, dark pots or deep red geometrically shaped bottles */
-.alchemy-pot.combat .alchemy-icon {
-    filter: drop-shadow(0 0 5px #ff6b6b); /* Deep red battle glow */
-    transform: rotate(5deg); /* Pushed slightly off-axis for visual contrast */
-}
-.alchemy-pot.combat:hover .alchemy-icon {
-    filter: drop-shadow(0 0 15px #ff6b6b);
-}
-
-/* Category: Cosmetics (Lip Stain, Highlighters) */
-/* This is where we handle BOTH Gothic (dark) and Lisa Frank (neon)! */
-.alchemy-pot.cosmetics .alchemy-icon {
-    font-size: 2.2em; /* Slightly smaller, delicate jars */
-}
-
-/* Specific item handling for GOTHIC items (e.g., 'Obsidian Lip Stain', 'Raven Eye Coal') */
-/* Vibe: Matte black or geometric, non-glowing pots */
-.alchemy-pot.cosmetics[data-title*="Obsidian"],
-.alchemy-pot.cosmetics[data-title*="Raven"] {
-    filter: contrast(0.5) brightness(0.7); /* Mutes the emoji colors to feel dark */
-}
-.alchemy-pot.cosmetics[data-title*="Obsidian"]:hover,
-.alchemy-pot.cosmetics[data-title*="Raven"]:hover {
-    filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); /* Deep shadow hover glow, NOT light */
-}
-
-/* Specific item handling for LISA FRANK / Y2K items (e.g., 'Neon highlighter', 'Iridescent') */
-/* Vibe: Iridescent, multi-colored, round pots, strong colorful glow */
-.alchemy-pot.cosmetics[data-title*="Neon"],
-.alchemy-pot.cosmetics[data-title*="Iridescent"] {
-    animation: neonJarPulse 3s infinite alternate; /* Iridescent pulse animation */
-}
-
-@keyframes neonJarPulse {
-    0% { filter: drop-shadow(0 0 3px #4facfe); } /* Cool Blue */
-    50% { filter: drop-shadow(0 0 8px #fcf6ba); } /* Warm Gold */
-    100% { filter: drop-shadow(0 0 3px #bf953f); } /* Rich Gold */
-}
-
-.alchemy-pot.cosmetics[data-title*="Neon"]:hover,
-.alchemy-pot.cosmetics[data-title*="Iridescent"]:hover {
-    filter: drop-shadow(0 0 20px #fcf6ba); /* Brighter gold focus glare */
-    animation: none; /* Stop pulsing and hold the bright glare */
-}
-
-/* THE POPUP PANEL FIXES */
-.herb-detail-tag { /* Borrowed from the Drying Rack, but applied here too */
-    z-index: 10000; /* Force it over everything */
-}
-/* --- APOTHECARY CLICK & COLOR FIXES --- */
-
-/* This actually reveals the popup when clicked! */
-.alchemy-pot.show-details .herb-detail-tag {
-    opacity: 1;
-    visibility: visible;
-    top: 50px; /* Adjust this to slide the popup up or down */
-}
-
-/* Coloring for our new glass SVGs */
-.alchemy-pot.healing { color: #8fce00; }
-.alchemy-pot.combat { color: #ff6b6b; }
-.alchemy-pot.cosmetics { color: #bf953f; }
-.alchemy-pot[data-title*="Obsidian"], 
-.alchemy-pot[data-title*="Raven"] { color: #444; } /* Dark glass for gothic items */
-
-/* === THE OPEN GRIMOIRE TOME === */
-.grimoire-tome-container {
-    position: relative;
-    width: 85vw; 
-    max-width: 1200px; 
-    min-width: 800px; 
-    left: 50%;
-    transform: translateX(-50%); 
-    aspect-ratio: 16 / 9; 
-    background: url('open_grimoire.jpg') center/cover no-repeat;
-    margin: 40px 0; 
-    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
-}
-
-.grimoire-page-wrapper {
-    position: absolute;
-    top: 10%; bottom: 12%; left: 12%; right: 12%;
-    display: flex;
-    justify-content: space-between;
-}
-
-/* THE INVISIBLE FRAME - Shrinking the readable area and lowering it */
-.grimoire-page-wrapper {
-    position: absolute;
-    
-    /* DIAL: Increase 'top' to move text DOWN the page */
-    top: 14%;    
-    
-    /* DIAL: Increase these to make the readable area SMALLER/TIGHTER */
-    bottom: 15%; 
-    left: 14%;   
-    right: 14%;  
-    
-    display: flex;
-    justify-content: space-between;
-}
-
-/* LEFT PAGE: Micro-nudge away from the outer left edge */
-#grimoire-left-page {
-    position: relative;
-    left: 40px; 
-}
-
-/* RIGHT PAGE: Micro-nudge away from the outer right edge */
-#grimoire-right-page {
-    position: relative;
-    right: 40px; 
-    padding-right: 20px; 
-}
-
-/* SEARCH BAR: Smaller & Pushed Right */
-.grimoire-search-bar {
-    width: 80%;
-    margin-left: 30px; 
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid rgba(43, 29, 20, 0.6);
-    color: #2b1d14;
-    font-family: 'Cinzel', serif;
-    font-size: 0.9em; 
-    padding: 8px 5px;
-    outline: none;
-    margin-bottom: 15px;
-}
-
-/* A-Z HEADERS */
-.toc-header {
-    color: #5c4033 !important; /* Dark Brown Ink */
-    display: block !important; /* Forces it to be visible */
-    text-align: center;
-    font-weight: bold;
-    margin-top: 15px;
-}
-
-.grimoire-index-item {
-    color: #2b1d14 !important; /* Dark Brown Ink */
-    cursor: pointer;
-    padding: 5px;
-}tom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; }
-.page-header { font-size: 1.1em; margin-top: 15px; }
-.page-text { font-size: 0.9em; line-height: 1.5; }
+.healing .css-phial::after { background: #8fce00; box-shadow: 0 0 12px #8fce00; }
+.combat .css-phial::after { background: #ff6b6b; box-shadow: 0 0 12px #ff6b6b; }
+.cosmetics .css-phial::after { background: #bf953f; box-shadow: 0 0 12px #bf953f; }
