@@ -2,30 +2,24 @@
 
 /* --- 1. THE REBORN ANIMATIONS --- */
 @keyframes hearthPulse { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.45; } }
-@keyframes dustDrift { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: 0.8; } 80% { opacity: 0.8; } 100% { transform: translate(80px, -120px); opacity: 0; } }
-@keyframes goldShimmer { to { background-position: 200% center; } }
+@keyframes dustDrift { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translate(80px, -120px); opacity: 0; } }
 
 /* --- 2. FOUNDATION --- */
 html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; color: #e0e0e0; font-family: 'Quicksand', sans-serif; }
 
 /* --- 3. THE FIRE GLOW --- */
 body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 85% 85%, rgba(255, 140, 0, 0.45), transparent 70%); z-index: 2; pointer-events: none; animation: hearthPulse 4s infinite ease-in-out; }
-.dust-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; background-image: radial-gradient(circle, rgba(255, 202, 40, 0.8) 2px, transparent 3px), radial-gradient(circle, rgba(255, 255, 255, 0.5) 1.5px, transparent 2px), radial-gradient(circle, rgba(255, 170, 50, 0.6) 2.5px, transparent 4px); background-size: 350px 350px, 450px 450px, 550px 550px; background-position: 0 0, 50px 100px, 150px 200px; filter: blur(0.5px); animation: dustDrift 18s linear infinite; }
 
-/* --- 4. THE GILDED PARCHMENT --- */
-#parchment-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1); width: 85%; max-width: 700px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px); border: 5px solid; border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #bf953f) 1; padding: 30px; opacity: 0; visibility: hidden; z-index: 10000; transition: 0.5s ease; }
+/* --- 4. THE PARCHMENT OVERLAY --- */
+#parchment-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1); width: 85%; max-width: 700px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px); border: 5px solid; border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #bf953f); border-image-slice: 1; padding: 30px; opacity: 0; visibility: hidden; z-index: 10000; transition: 0.5s ease; }
 #parchment-overlay.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 
 /* --- 5. GRIMOIRE "CAGED" ALIGNMENT --- */
 .grimoire-tome-container { position: relative; width: 100%; aspect-ratio: 16 / 9; background: url('open_grimoire.jpg') center/cover no-repeat; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9)); }
 .grimoire-page-wrapper {
     position: absolute;
-    top: 15%; 
-    bottom: 16%; 
-    left: 14%; 
-    right: 14%; /* THE PERFECT NARROW NUDGE */
-    display: flex;
-    justify-content: space-between;
+    top: 15%; bottom: 16%; left: 14%; right: 14%; /* THE PERFECT NARROW NUDGE */
+    display: flex; justify-content: space-between;
 }
 .grimoire-page { width: 43%; height: 100%; overflow-y: auto; color: #2b1d14; padding: 10px; box-sizing: border-box; }
 #grimoire-left-page { position: relative; left: 35px; }
@@ -33,70 +27,29 @@ body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; heigh
 
 /* A-Z NAVIGATION */
 .alphabet-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-bottom: 10px; }
-.letter-btn { background: transparent; border: none; font-family: 'Cinzel', serif; font-size: 0.75em; color: #5c4033; cursor: pointer; width: 20px; transition: transform 0.2s; }
+.letter-btn { background: transparent; border: none; font-family: 'Cinzel'; font-size: 0.75em; color: #5c4033; cursor: pointer; width: 18px; transition: transform 0.2s; }
 .letter-btn:hover { color: #8fce00; transform: scale(1.3); }
-.toc-header { color: #5c4033; text-align: center; font-weight: bold; font-family: 'Cinzel'; border-bottom: 1px solid rgba(43,29,20,0.2); margin: 15px 0 5px 0; }
-.grimoire-index-item { color: #2b1d14; cursor: pointer; font-family: 'Cinzel'; font-size: 0.85em; padding: 4px 0; border-bottom: 1px dashed rgba(43,29,20,0.1); }
 
-/* --- 6. APOTHECARY & DRYING RACK (RESTORED BEAUTY) --- */
-.apothecary-cabinet-container {
-    position: relative; width: 100%; max-width: 600px; height: 450px;
-    background: url('apothecary_cabinet_v2.jpg') center/cover no-repeat;
-    background-color: #0c0c0e; border: 5px solid #3e2723; border-radius: 4px;
-    margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1); padding: 50px 15px 15px 15px; overflow: hidden;
-}
+/* --- 6. APOTHECARY & SOUNDSCAPES --- */
+.apothecary-cabinet-container { border: 2px solid #bf953f; }
+.css-phial { width: 26px; height: 38px; border-radius: 10px 10px 15px 15px; border: 2px solid rgba(255,255,255,0.3); position: relative; margin: 0 auto; }
+.css-phial::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; border-radius: 0 0 13px 13px; background: #8fce00; box-shadow: 0 0 15px #8fce00; transition: box-shadow 0.3s ease; }
 
-.css-phial {
-    width: 26px; height: 38px; border-radius: 10px 10px 15px 15px;
-    border: 2px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.05);
-    position: relative; margin: 0 auto;
-}
-.css-phial::after {
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-    height: 50%; border-radius: 0 0 13px 13px; background: #8fce00; box-shadow: 0 0 15px #8fce00; transition: box-shadow 0.3s ease;
-}
+.play-btn { width: 100%; background: transparent; color: #d4c8a8; border: 1px solid #bf953f; padding: 8px; cursor: pointer; }
+.play-btn.active { background: rgba(191,149,63,0.3); border-color: #fcf6ba; }
 
-.herbs-rack-container {
-    position: relative; width: 100%; max-width: 600px; min-height: 200px;
-    background: url('drying_rack.jpg') top center/100% auto repeat-y;
-    border: 4px solid #3e2723; border-top: 30px solid #2d1a11; border-radius: 4px;
-    margin: 20px auto 60px auto; padding: 10px 10px 40px 10px;
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 40px 10px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.9);
-}
-
-.herb-bundle {
-    display: flex; flex-direction: column; align-items: center; cursor: pointer;
-    transition: transform 0.3s; transform-origin: top center;
-}
+/* --- 7. THE DRYING RACK --- */
+.herb-bundle { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; transform-origin: top center; }
 .herb-bundle:hover { animation: swayBundle 2s ease-in-out infinite alternate; }
 @keyframes swayBundle { 0% { transform: rotate(2deg); } 100% { transform: rotate(-2deg); } }
-
-.herb-detail-tag {
-    position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 220px;
-    background: rgba(8, 8, 10, 0.98); border: 2px solid #bf953f; padding: 15px;
-    opacity: 0; visibility: hidden; z-index: 1001; transition: 0.3s;
-}
+.herb-detail-tag { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 220px; background: rgba(8, 8, 10, 0.98); border: 2px solid #bf953f; padding: 15px; opacity: 0; visibility: hidden; z-index: 1001; transition: 0.3s; }
 .herb-bundle.show-details .herb-detail-tag { opacity: 1; visibility: visible; }
-
-/* --- 7. GARDEN BEDS --- */
-.garden-bed-container { position: relative; width: 100%; height: 300px; background: url('raisedbed1.jpg') center/cover; border: 8px solid #3e2723; border-radius: 8px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
-.garden-cell { border: 1px dashed rgba(143, 206, 0, 0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; }
-.plant-icon { font-size: 2.5em; filter: drop-shadow(2px 4px 4px #000); }
 
 /* --- 8. THE FORGE --- */
 #furnishing-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
 body.building-mode #furnishing-layer { pointer-events: auto; background: rgba(0, 0, 0, 0.4); }
 .furnishing-item { position: absolute; cursor: grab; }
 
-/* --- 9. GENERAL UI --- */
-.portal-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid #bf953f; color: #fcf6ba; padding: 10px; margin-bottom: 10px; font-family: inherit; }
-.portal-btn { width: 100%; padding: 10px; background: rgba(191,149,63,0.1); color: #fcf6ba; border: 1px solid #bf953f; font-family: 'Cinzel', serif; cursor: pointer; }
-.section-header { background: rgba(191,149,63,0.2); padding: 10px; font-family: 'Cinzel'; cursor: pointer; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
-.section-panel.closed { display: none; }
-.gold-text { font-family: 'Cinzel', serif; color: #fcf6ba; text-align: center; text-transform: uppercase; }
-
-/* --- 10. THE FAMILIAR --- */
+/* --- 9. THE FAMILIAR --- */
 #familiar-container { position: fixed; bottom: 30px; right: 30px; width: 120px; height: 120px; z-index: 1000; }
 .xp-ring-fill { fill: none; stroke: #bf953f; stroke-width: 4; stroke-dasharray: 289; stroke-dashoffset: 289; transition: stroke-dashoffset 0.5s; filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.8)); }
