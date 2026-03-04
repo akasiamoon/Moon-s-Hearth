@@ -976,7 +976,7 @@ async function buildGardenHTML() {
             // Something is planted here!
             const fertDate = plotData.last_fertilized ? new Date(plotData.last_fertilized).toLocaleDateString([], {month:'short', day:'numeric'}) : 'Needs Food';
             html += `
-                <div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name}')">
+                <div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name.replace(/'/g, "\\'")}')">
                     <div class="plant-icon">${plotData.plant_icon}</div>
                     <div class="plant-name">${plotData.plant_name}</div>
                     <div class="fert-status">💧 ${fertDate}</div>
@@ -990,36 +990,83 @@ async function buildGardenHTML() {
                 </div>`;
         }
     }
+    html += `</div>`;
     
-    html += `</div></div>`;
+    // --- THIS IS THE NEW ACTION PANEL ---
+    html += `<div id="garden-action-panel" style="margin-top: 15px; min-height: 120px;"></div>`;
+    
+    html += `</div>`; // Close scroll container
     return html;
 }
 
-// Action: Click an empty square
-async function plantSeed(gridId) {
-    const plantName = prompt("What are you planting here? (e.g., Lavender, Tomatoes)");
-    if (!plantName) return;
-    
-    // Quick icon logic
-    let icon = '🌱';
-    if(plantName.toLowerCase().includes('tomato')) icon = '🍅';
-    if(plantName.toLowerCase().includes('carrot')) icon = '🥕';
-    if(plantName.toLowerCase().includes('flower') || plantName.toLowerCase().includes('lavender')) icon = '🪻';
-    if(plantName.toLowerCase().includes('herb') || plantName.toLowerCase().includes('rosemary')) icon = '🌿';
+// --- NEW BEAUTIFUL ACTIONS ---
 
-    await insertData('garden_plots', { grid_id: gridId, plant_name: plantName, plant_icon: icon });
-    openPortal('garden'); // Refresh
+// Action: Click an empty square
+function plantSeed(gridId) {
+    const panel = document.getElementById('garden-action-panel');
+    panel.innerHTML = `
+        <div class="alchemy-card" style="border-color: #8fce00;">
+            <h3 class="alchemy-title" style="color: #8fce00;">🌱 Sow a New Seed</h3>
+            <input type="text" id="seed-name-input" placeholder="e.g., Midnight Poppy, Lavender..." class="portal-input" style="margin-bottom: 10px;">
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="confirmPlantSeed('${gridId}')" class="portal-btn" style="color: #8fce00; border-color: #8fce00; flex: 1;">Plant</button>
+                <button onclick="cancelGardenAction()" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">Cancel</button>
+            </div>
+        </div>
+    `;
+    // Auto-focus the input box so you can just start typing!
+    document.getElementById('seed-name-input').focus();
 }
 
-// Action: Click an existing plant to fertilize or uproot
-async function tendPlot(plotId, plantName) {
-    const action = prompt(`Tending to ${plantName}.\nType 'feed' to fertilize, or 'uproot' to clear the soil.`);
+// Confirm the planting
+async function confirmPlantSeed(gridId) {
+    const plantName = document.getElementById('seed-name-input').value.trim();
+    if (!plantName) return;
     
-    if (action && action.toLowerCase() === 'feed') {
-        await updateData('garden_plots', plotId, { last_fertilized: new Date().toISOString() });
-        feedFamiliar(); // Bonus XP for gardening!
-    } else if (action && action.toLowerCase() === 'uproot') {
-        await removeData('garden_plots', plotId);
-    }
-    openPortal('garden'); // Refresh
+    // Smart Icon Logic
+    let icon = '🌱';
+    const nameLower = plantName.toLowerCase();
+    if(nameLower.includes('tomato')) icon = '🍅';
+    else if(nameLower.includes('carrot') || nameLower.includes('root')) icon = '🥕';
+    else if(nameLower.includes('flower') || nameLower.includes('lavender') || nameLower.includes('poppy')) icon = '🪻';
+    else if(nameLower.includes('herb') || nameLower.includes('rosemary') || nameLower.includes('thyme') || nameLower.includes('mint')) icon = '🌿';
+    else if(nameLower.includes('berry')) icon = '🫐';
+    else if(nameLower.includes('moon')) icon = '🌙';
+
+    await insertData('garden_plots', { grid_id: gridId, plant_name: plantName, plant_icon: icon });
+    openPortal('garden'); // Refresh the garden to show the new plant
+}
+
+// Action: Click an existing plant
+function tendPlot(plotId, plantName) {
+    const panel = document.getElementById('garden-action-panel');
+    panel.innerHTML = `
+        <div class="alchemy-card" style="border-color: #bf953f;">
+            <h3 class="alchemy-title">Tending: ${plantName}</h3>
+            <p style="color: #d4c8a8; font-size: 0.9em; margin-top: 0; margin-bottom: 15px;">What does this plot need?</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="confirmFeed('${plotId}')" class="portal-btn" style="color: #4facfe; border-color: #4facfe; flex: 1;">💧 Fertilize</button>
+                <button onclick="confirmUproot('${plotId}')" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">⛏️ Uproot</button>
+                <button onclick="cancelGardenAction()" class="portal-btn" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    `;
+}
+
+// Confirm Fertilizing
+async function confirmFeed(plotId) {
+    await updateData('garden_plots', plotId, { last_fertilized: new Date().toISOString() });
+    feedFamiliar(); // Bonus XP for taking care of your plants!
+    openPortal('garden');
+}
+
+// Confirm Uprooting
+async function confirmUproot(plotId) {
+    await removeData('garden_plots', plotId);
+    openPortal('garden');
+}
+
+// Close the panel without doing anything
+function cancelGardenAction() {
+    document.getElementById('garden-action-panel').innerHTML = '';
 }
