@@ -725,21 +725,32 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     font-style: italic; 
 }
 
-/* === THE LEFT PAGE NUDGE === */
 #grimoire-left-page {
     position: relative;
-    /* DIAL 1: Increase this number to push the left page further RIGHT */
-    left: 25px; 
+    /* Pushes the index RIGHT towards the center spine */
+    left: 45px; 
 }
 
-/* === THE RIGHT PAGE NUDGE === */
 #grimoire-right-page {
     position: relative;
-    /* DIAL 2: Increase this number to push the right page further LEFT */
-    right: 25px; 
-    
+    /* Pushes the recipe LEFT towards the center spine */
+    right: 45px; 
     padding-left: 0px;   
-    padding-right: 40px; 
+    padding-right: 20px; 
+}
+
+/* Ensure the search bar matches the index alignment */
+.grimoire-search-bar {
+    width: 80%;
+    margin-left: 10px; /* Aligns with the index headers */
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(43, 29, 20, 0.6);
+    color: #2b1d14;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9em;
+    padding: 8px 5px;
+    outline: none;
 }
 
 /* === THE SCALED-DOWN TEXT === */
