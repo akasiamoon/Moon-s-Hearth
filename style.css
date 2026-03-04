@@ -527,7 +527,7 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     justify-content: center;
     align-items: flex-end; 
     /* INCREASE THIS NUMBER to push the vials higher up the shelf */
-    padding-bottom: 35px;   
+    padding-bottom: 20px;   
 }
 
 /* The pot/jar container */
