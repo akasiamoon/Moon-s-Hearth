@@ -415,26 +415,54 @@ async function buildWorkshopHTML() {
     return html;
 }
 
-// === THE APOTHECARY (CRAFTER'S CABINET) LOGIC ===
+// === THE APOTHECARY (CRAFTER'S CABINET) LOGIC - (With Safety Net) ===
 async function buildAlchemyHTML() {
     let html = `<h2 class="gold-text">The Apothecary</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic;">Click a concoction to open the recipe.</p>`;
+    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Click a concoction to open the recipe.</p>`;
     
-    // We combine your hardcoded library with the Supabase data
-    const dbRecipes = await loadData('apothecary');
+    console.log("📜 Attempting to scribe the Crafter's Cabinet...");
+
+    let dbMappedRecipes = [];
     
-    const dbMappedRecipes = dbRecipes.map(r => ({
-        title: r.title, 
-        icon: r.icon || '🏺', // Fallback icon
-        category: r.category || 'General',
-        description: r.description,
-        ingredients: r.ingredients,
-        instructions: r.instructions,
-        isDbItem: true, 
-        id: r.id 
-    }));
+    // --- SAFETY CHECK: Only try to load from Supabase if the connection exists ---
+    const vault = (db !== null) ? db : (typeof supabase !== 'undefined' ? supabase : null);
     
-    const allRecipes = [...myApothecary, ...dbMappedRecipes];
+    if (vault) {
+        try {
+            console.log("☁️ Connected to archive. Loading cloud recipes...");
+            const dbRecipes = await loadData('apothecary');
+            
+            if (dbRecipes) {
+                dbMappedRecipes = dbRecipes.map(r => ({
+                    title: r.title, 
+                    icon: r.icon || '🏺', // Fallback icon
+                    category: r.category || 'General',
+                    description: r.description,
+                    ingredients: r.ingredients,
+                    instructions: r.instructions,
+                    isDbItem: true, 
+                    id: r.id 
+                }));
+            }
+        } catch (error) {
+            console.error("🚫 Failed to load cloud recipes:", error);
+            // We do nothing else, just let dbMappedRecipes remain empty.
+        }
+    } else {
+        console.warn("⚠️ Archive connection missing. Loading local recipes only.");
+    }
+    
+    // --- COMBINE LIBRARIES ---
+    // Start with your core hardcoded recipes first
+    let localApothecary = [];
+    if (typeof myApothecary !== 'undefined') {
+        localApothecary = myApothecary;
+    } else {
+        console.error("🚫 Critical Error: 'myApothecary' local data is not defined!");
+    }
+    
+    const allRecipes = [...localApothecary, ...dbMappedRecipes];
+    console.log(`🏺 Visualizing ${allRecipes.length} recipes in the cabinet.`);
     
     // 1. Build the cabinet container and grid
     html += `<div class="apothecary-cabinet-container">`;
@@ -450,42 +478,47 @@ async function buildAlchemyHTML() {
             
             // Generate the visual category for CSS targeting
             let visualClass = 'general';
-            if(recipe.category.toLowerCase().includes('heal') || recipe.title.toLowerCase().includes('cure') || recipe.title.toLowerCase().includes('recovery') || recipe.title.toLowerCase().includes('muscle')) visualClass = 'healing';
-            else if(recipe.category.toLowerCase().includes('combat') || recipe.title.toLowerCase().includes('battle') || recipe.title.toLowerCase().includes('burn') || recipe.title.toLowerCase().includes('shield')) visualClass = 'combat';
-            else if(recipe.category.toLowerCase().includes('cosmetic') || recipe.title.toLowerCase().includes('stain') || recipe.title.toLowerCase().includes(' highlighter') || recipe.title.toLowerCase().includes(' eye ')) visualClass = 'cosmetics';
+            const catLower = (recipe.category || "").toLowerCase();
+            const titleLower = (recipe.title || "").toLowerCase();
+
+            if(catLower.includes('heal') || titleLower.includes('cure') || titleLower.includes('recovery') || titleLower.includes('muscle')) visualClass = 'healing';
+            else if(catLower.includes('combat') || titleLower.includes('battle') || titleLower.includes('burn') || titleLower.includes('shield')) visualClass = 'combat';
+            else if(catLower.includes('cosmetic') || titleLower.includes('stain') || titleLower.includes(' highlighter') || titleLower.includes(' eye ')) visualClass = 'cosmetics';
 
             // Special handling to mute Supabase's colorful emojis for gothic items
             let icon = recipe.icon;
             if(recipe.isDbItem && !recipe.icon) {
-                 const titleLower = recipe.title.toLowerCase();
-                 // If the Supabase title includes dark keywords, use the dark geometric pot emoji
-                 if(titleLower.includes('obsidian') || titleLower.includes('raven') || titleLower.includes('night') || titleLower.includes('dark')) {
-                     icon = '🖤'; // Using the dark heart as a temporary geometric pot icon
+                 const dbTitleLower = recipe.title.toLowerCase();
+                 // If the Supabase title includes dark keywords, use the dark heart as a temporary dark vessel
+                 if(dbTitleLower.includes('obsidian') || dbTitleLower.includes('raven') || dbTitleLower.includes('night') || dbTitleLower.includes('dark')) {
+                     icon = '🖤'; 
                  } else {
-                     icon = '🏺'; // Fallback vessel
+                     icon = '🏺'; 
                  }
             }
 
             // The main pot element with hover and click logic
-            // data-title is crucial for the complex cosmetics CSS targeting!
             html += `
                 <div class="alchemy-pot ${visualClass}" data-title="${recipe.title.replace(/'/g, "")}" id="recipe-${i}" onclick="toggleRecipeDetail('${i}')">
-                    <div class="alchemy-icon">${icon}</div>
+                    <div class="alchemy-icon">${icon || '🏺'}</div>
                     
                     <div class="herb-detail-tag" id="recipe-popup-${i}">
-                        <h4 class="gold-text" style="font-size: 1em; margin: 0 0 10px 0; border:none; text-align: left;">${recipe.title}</h4>
+                        <h4 class="gold-text" style="font-size: 1em; margin: 0 0 10px 0; border:none; text-align: left; padding-bottom: 5px;">${recipe.title}</h4>
                         <p style="color:#d4c8a8; margin: 0; font-size: 0.95em;">${recipe.description}</p>
                         
                         <div style="background:rgba(0,0,0,0.4); padding: 10px; margin-top: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
                             <p style="color:#fcf6ba; font-style:italic; margin-top:0; margin-bottom: 5px;">Ingredients:</p>
-                            <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.ingredients}</p>
+                            <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.ingredients || 'Properties recorded.'}</p>
                             <p style="color:#fcf6ba; font-style:italic; margin-top:10px; margin-bottom: 5px;">Instructions:</p>
-                            <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.instructions}</p>
+                            <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.instructions || 'Lore recorded.'}</p>
                         </div>
                         
                         ${recipe.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; font-size: 0.75em; border: 1px solid #ff6b6b; padding: 3px 8px; border-radius: 4px; margin-top: 10px;" onclick="event.stopPropagation(); deleteDetailedItem('apothecary', '${recipe.id}', 'alchemy')">Purge</button>` : ''}
                     </div>
                 </div>`;
+        } else {
+            // Empty Slot (Just for the grid visual, we could add a subtle empty vial icon later)
+            // html += `<div class="alchemy-icon" style="opacity:0.1; filter:contrast(0);">🏺</div>`;
         }
         
         html += `</div>`; // Close slot
@@ -497,23 +530,6 @@ async function buildAlchemyHTML() {
     html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="recipe-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="recipe-desc" placeholder="Concoction Description..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="recipe-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="recipe-instructions" placeholder="Mixing Instructions..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('apothecary', 'recipe-title', 'recipe-desc', 'recipe-ingredients', 'recipe-instructions', 'alchemy')" class="portal-btn" style="width: 100%;">Seal Recipe in Cabinet</button></div></div>`;
     
     return html + `</div>`; // Close scroll container
-    
-}
-
-// --- NEW APOTHECARY INTERACTION FUNCTION ---
-function toggleRecipeDetail(id) {
-    const popup = document.getElementById(`recipe-popup-${id}`);
-    
-    // Check if it's already open
-    const isOpen = popup.classList.contains('show-details');
-    
-    // Close all other popups
-    document.querySelectorAll('.alchemy-pot .herb-detail-tag').forEach(b => b.classList.remove('show-details'));
-    
-    // Open this one if it was closed
-    if (!isOpen) {
-        popup.classList.add('show-details');
-    }
 }
 
 // === THE HANGING DRYING RACK LOGIC ===
