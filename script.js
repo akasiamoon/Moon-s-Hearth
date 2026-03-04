@@ -515,7 +515,6 @@ function toggleRecipeDetail(id) {
         popup.classList.add('show-details');
     }
 }
-}
 
 // === THE HANGING DRYING RACK LOGIC ===
 async function buildHerbsHTML() {
