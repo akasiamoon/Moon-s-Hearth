@@ -428,83 +428,62 @@ async function buildApothecaryHTML() {
 async function buildHerbsHTML() {
     let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container">`;
     
-    // We combine your hardcoded library with the Supabase data
     const dbHerbs = await loadData('herbs');
     
-    // Distinguish Supabase herbs with a different icon base
     const dbMappedHerbs = dbHerbs.map(h => ({
         title: h.title, 
-        icon: h.icon || '🌿', // Fallback icon
+        icon: h.icon || '🌿', 
         properties: h.category || 'Lore recorded.',
         description: h.description, 
         isDbItem: true, 
         id: h.id 
     }));
     
+    // Combine local and cloud herbs
     const allHerbsToHang = [...myHerbs, ...dbMappedHerbs];
     
-    // 1. Build the rack container and grid
-    html += `
-        <div class="herbs-rack-container">`;
+    html += `<div class="herbs-rack-container">`;
         
-    // Generate slots (let's assume 12 slots for a visually full rack)
-    const totalSlots = 12;
-    for (let i = 0; i < totalSlots; i++) {
-        html += `<div class="herb-slot" id="herb-slot-${i}">`;
-        
-        // If we have an herb for this slot, hang it up!
-        if (allHerbsToHang[i]) {
-            const herb = allHerbsToHang[i];
-            
-            // Icon Logic for Supabase items (since your hardcoded ones don't have this field)
-            let icon = herb.icon;
-            if (herb.isDbItem && !herb.icon) {
-                 const titleLower = herb.title.toLowerCase();
-                 if(titleLower.includes('chamomile')) icon = '🌼';
-                 else if(titleLower.includes('poppy')) icon = '🪻';
-                 else icon = '🌿'; // Fallback bundle
-            }
+    // Generate a hook for EVERY herb you own, no limits.
+    allHerbsToHang.forEach((herb, i) => {
+        let icon = herb.icon || '🌿';
+        if (herb.isDbItem && !herb.icon) {
+             const titleLower = herb.title.toLowerCase();
+             if(titleLower.includes('chamomile')) icon = '🌼';
+             else if(titleLower.includes('poppy')) icon = '🪻';
+        }
 
-            // The main bundle element with its hover and click events
-            html += `
+        html += `
+            <div class="herb-slot" id="herb-slot-${i}">
                 <div class="herb-bundle" id="bundle-${i}" onclick="toggleHerbDetail('${i}')">
                     <div class="herb-icon">${icon}</div>
                     <div class="herb-tag">${herb.title}</div>
                     
                     <div class="herb-detail-tag">
-                        <h4 class="gold-text" style="font-size: 1em; margin: 0 0 8px 0; border:none; text-align: left; letter-spacing: 2px;">${herb.title}</h4>
-                        <p style="color:#fcf6ba; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:5px; margin-bottom:8px;">${herb.properties}</p>
+                        <h4 class="gold-text" style="font-size: 1em; margin: 0 0 8px 0; border:none; text-align: left; padding-bottom: 5px;">${herb.title}</h4>
+                        <p style="color:#fcf6ba; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:5px; margin-top:0; margin-bottom:8px;">${herb.properties}</p>
                         <p style="color:#d4c8a8; margin: 0; font-size: 0.95em;">${herb.description}</p>
-                        ${herb.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; font-size: 0.75em;" onclick="event.stopPropagation(); deleteDetailedItem('herbs', '${herb.id}', 'herbs')">Purge</button>` : ''}
+                        ${herb.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; font-size: 0.75em; border: 1px solid #ff6b6b; padding: 3px 8px; border-radius: 4px; margin-top: 10px;" onclick="event.stopPropagation(); deleteDetailedItem('herbs', '${herb.id}', 'herbs')">Purge</button>` : ''}
                     </div>
-                </div>`;
-        }
-        
-        html += `</div>`; // Close slot
-    }
+                </div>
+            </div>`;
+    });
     
     html += `</div>`; // Close rack container
     
-    // Quick Add Form (remains at the bottom, just like the Grimoire quick scribe)
+    // Quick Add Form (Now safe below the rack!)
     html += `<div class="section-header closed" onclick="toggleSection(this)">Record Herb Lore</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="herb-title" placeholder="Name..." class="portal-input" style="margin-bottom: 10px;"><textarea id="herb-desc" placeholder="Lore & Properties..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('herbs', 'herb-title', 'herb-desc', 'herbs')" class="portal-btn" style="width: 100%;">Add to Rack</button></div></div>`;
     
-    return html + `</div>`; // Close scroll container
+    return html + `</div>`; 
 }
 
-// --- NEW HERB INTERACTION FUNCTION ---
+// Keep your existing toggleHerbDetail function right below this!
 function toggleHerbDetail(id) {
     const bundle = document.getElementById(`bundle-${id}`);
-    
-    // Check if it's already open
     const isOpen = bundle.classList.contains('show-details');
-    
-    // Close all detail tags first (to avoid clutter)
     document.querySelectorAll('.herb-bundle').forEach(b => b.classList.remove('show-details'));
-    
-    // If it was closed, open it.
-    if (!isOpen) {
-        bundle.classList.add('show-details');
-    }
+    if (!isOpen) bundle.classList.add('show-details');
+}
 }
 
 async function buildSewingHTML() {
