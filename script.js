@@ -23,13 +23,18 @@ async function loadData(tableName, orderBy = 'created_at', asc = false) {
     }
     if (!results) {
         results = JSON.parse(localStorage.getItem(tableName) || '[]');
+        results.sort((a, b) => {
+            if (a[orderBy] < b[orderBy]) return asc ? -1 : 1;
+            if (a[orderBy] > b[orderBy]) return asc ? 1 : -1;
+            return 0;
+        });
     } else {
         localStorage.setItem(tableName, JSON.stringify(results));
     }
     return results;
 }
 
-// === THE MASTER SCRIBE (Unified Input Logic) ===
+// === THE MASTER SCRIBE (Painless Unified Input) ===
 async function scribeToArchive(tableName, formId, portalToReload) {
     const container = document.getElementById(formId);
     if (!container) return;
@@ -37,11 +42,12 @@ async function scribeToArchive(tableName, formId, portalToReload) {
     const entry = {};
 
     inputs.forEach(input => {
+        // IDs must follow 'inp-column_name' format
         const fieldName = input.id.replace('inp-', ''); 
         entry[fieldName] = input.value;
     });
 
-    if (!entry.title && !entry.item_name && !entry.note && !entry.text) {
+    if (!entry.title && !entry.item_name && !entry.plant_name && !entry.note && !entry.text) {
         return alert("The scroll requires a name or content!");
     }
 
@@ -51,7 +57,7 @@ async function scribeToArchive(tableName, formId, portalToReload) {
         error = dbErr;
     } else {
         const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
-        localData.push({ ...entry, id: Date.now(), created_at: new Date().toISOString() });
+        localData.push({ ...entry, id: Date.now().toString(), created_at: new Date().toISOString() });
         localStorage.setItem(tableName, JSON.stringify(localData));
     }
 
@@ -97,7 +103,6 @@ const myRecipes = [
     { title: "🍮 Altmer 'Alinor' Honey Mousse", description: "A light, ethereal dessert served in the high spires of the Summerset Isles, delicate and perfectly balanced.", ingredients: ["1 cup heavy whipping cream", "3 tablespoons wildflower honey", "1 teaspoon orange flower water", "Fresh raspberries for the top"], instructions: "Whip the cream until soft peaks form. Slowly fold in the honey and orange flower water. Chill in crystal glasses for two hours and serve topped with a single, perfect berry." }
 ];
 
-// --- APOTHECARY & TEA LISTS (RESTORED) ---
 const myTeas = [
     { title: "Lady Grey's Respite", icon: "☕", brew: "Steep 3 mins at 212°F", description: "A classic, elegant blend brightened with citrus and a touch of honey." },
     { title: "Lavender Chamomile Nightcap", icon: "🍵", brew: "Steep 5 mins at 200°F", description: "A deeply soothing floral blend meant to quiet a racing mind after a busy day." },
@@ -185,6 +190,10 @@ const myHerbs = [
     { title: "Astragalus", icon: "🎋", properties: "Deep Immunity & Vitality", description: "A slow-acting but powerful tonic for the immune system." }
 ];
 
+const mySewing = [
+    { title: "Hearth Apron", status: "Completed", fabric: "Sturdy Canvas", notes: "Added deep pockets for gathering herbs." }
+];
+
 // === 2. LORE & ATMOSPHERE ===
 let dynamicAlmanac = { season: "", moonPhase: "", temp: "--°F", weather: "", planting: "", focus: "", entry: "" };
 
@@ -193,36 +202,106 @@ function getMoonPhase(date) {
     if (month < 3) { year--; month += 12; }
     let jd = 2 - Math.floor(year / 100) + Math.floor(Math.floor(year / 100) / 4) + day + Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) - 1524.5;
     let phaseDays = ((jd - 2451549.5) / 29.53 % 1) * 29.53;
-    return phaseDays < 16.61 ? { phase: "Waxing Moon 🌔" } : { phase: "Waning Moon 🌘" };
+    if (phaseDays < 16.61) return { phase: "Waxing Moon 🌔", isWaxing: true };
+    return { phase: "Waning Moon 🌘", isWaxing: false };
 }
 
 function updateNatureLore() {
     const today = new Date(), month = today.getMonth();
     dynamicAlmanac.moonPhase = getMoonPhase(today).phase;
     dynamicAlmanac.season = ["Deep Winter", "Late Winter", "Early Spring", "High Spring", "Early Summer", "Midsummer", "Late Summer", "Early Autumn", "Deep Autumn", "Frostfall", "Early Winter", "Midwinter"][month];
+    dynamicAlmanac.planting = "The moon waxes. Sow above-ground crops.";
     dynamicAlmanac.focus = "Intuition & Planning";
     dynamicAlmanac.entry = "Trust your instincts, outline your tasks, and step forward with quiet purpose.";
 }
 
 async function fetchLocalAtmosphere() {
     try {
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=34.93&longitude=-88.48&current_weather=true&temperature_unit=fahrenheit');
-        const data = await res.json();
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=34.93&longitude=-88.48&current_weather=true&temperature_unit=fahrenheit');
+        const data = await response.json();
         dynamicAlmanac.temp = Math.round(data.current_weather.temperature) + "°F";
         dynamicAlmanac.weather = "The atmosphere holds a quiet energy.";
-    } catch (e) { dynamicAlmanac.weather = "The magical currents are scrambled."; }
+    } catch (error) { dynamicAlmanac.weather = "The magical currents are scrambled."; }
 }
 
-// === 3. PORTAL BUILDERS ===
+const portalData = { 'audio': '<h2 class="gold-text">Bardic Soundscapes</h2><p style="color: rgba(191,149,63,0.8); font-style:italic; text-align:center;">Select your ambient mix.</p>' };
 
+// === 3. CALENDAR ===
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+let holidayCache = {}; 
+
+async function fetchHolidays(year) {
+    if (holidayCache[year]) return holidayCache[year];
+    try {
+        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/US`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        holidayCache[year] = data;
+        return data;
+    } catch(e) { return []; }
+}
+
+function changeCalendarMonth(offset) {
+    calMonth += offset;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    else if (calMonth > 11) { calMonth = 0; calYear++; }
+    openPortal('cat'); 
+}
+
+async function generateCalendarHTML(events) {
+    const today = new Date();
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const monthName = new Date(calYear, calMonth).toLocaleDateString('default', { month: 'long' });
+    const holidays = await fetchHolidays(calYear);
+
+    let html = `
+    <div class="calendar-wrapper">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <span class="action-btn" style="font-size:1.5em;" onclick="changeCalendarMonth(-1)">◀</span>
+            <h3 class="gold-text" style="margin: 0; font-size: 1.2em; padding-bottom: 0;">${monthName} ${calYear}</h3>
+            <span class="action-btn" style="font-size:1.5em;" onclick="changeCalendarMonth(1)">▶</span>
+        </div>
+        <div class="calendar-grid">
+            <div class="cal-day-name">Su</div><div class="cal-day-name">Mo</div><div class="cal-day-name">Tu</div>
+            <div class="cal-day-name">We</div><div class="cal-day-name">Th</div><div class="cal-day-name">Fr</div><div class="cal-day-name">Sa</div>`;
+
+    for (let i = 0; i < firstDay; i++) { html += `<div class="cal-cell empty"></div>`; }
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const hasEvent = events && events.some(e => e.start_date && e.start_date.startsWith(dateStr) && e.text !== 'completed');
+        const marker = hasEvent ? `<div class="cal-marker"></div>` : '';
+        const isToday = (day === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear()) ? 'today' : '';
+        const holiday = holidays.find(h => h.date === dateStr);
+        const holiClass = holiday ? 'holiday' : '';
+        const holiText = holiday ? `<div class="holiday-text">${holiday.name}</div>` : '';
+        html += `<div class="cal-cell ${isToday} ${holiClass}" onclick="prefillDate('${dateStr}')"><span>${day}</span>${holiText}${marker}</div>`;
+    }
+    html += `</div></div>`;
+    return html;
+}
+
+function prefillDate(dateStr) {
+    const section = document.getElementById('scribe-section');
+    const panel = document.getElementById('scribe-panel');
+    if (section && panel) {
+        section.classList.remove('closed');
+        panel.classList.remove('closed');
+        document.getElementById('ev-date').value = dateStr + "T12:00";
+        document.getElementById('ev-title').focus();
+    }
+}
+
+// === 4. HTML BUILDERS (THE CORE CHAMBERS) ===
+
+// --- KITCHEN GRIMOIRE (RESTORATION VERSION) ---
 let currentGrimoireData = [];
 
 async function buildGrimoireHTML() {
-    let html = `<h2 class="gold-text">The Kitchen Grimoire</h2>`;
-    
-    // Fetch Data (Recipes Table)
+    let html = `<h2 class="gold-text">Kitchen Grimoire</h2>`;
     const dbRecipes = await loadData('recipes');
-    currentGrimoireData = [...myRecipes, ...(dbRecipes || [])];
+    currentGrimoireData = [...myRecipes, ...myTeas, ...(dbRecipes || [])];
     currentGrimoireData.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
 
     html += `
@@ -233,11 +312,11 @@ async function buildGrimoireHTML() {
                     ${"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L => `<button class="letter-btn" onclick="filterByLetter('${L}')">${L}</button>`).join('')}
                     <button class="letter-btn" onclick="openPortal('grimoire')" style="width:auto; padding:0 5px;">All</button>
                 </div>
-                <input type="text" id="grimoire-search" class="grimoire-search-bar" placeholder="Search archives..." oninput="filterGrimoire()">
+                <input type="text" id="grimoire-search" class="grimoire-search-bar" placeholder="Search the index..." oninput="filterGrimoire()">
                 <div id="grimoire-index-list">${renderGrimoireIndex('')}</div>
             </div>
             <div class="grimoire-page" id="grimoire-right-page">
-                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe to reveal its secrets.</p>
+                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe to read its lore.</p>
             </div>
         </div>
     </div>
@@ -291,110 +370,242 @@ window.filterGrimoire = function() {
 window.readGrimoirePage = function(index) {
     const recipe = currentGrimoireData[index];
     const rightPage = document.getElementById('grimoire-right-page');
+    let ingList = '';
+    if (recipe.ingredients) {
+        ingList = Array.isArray(recipe.ingredients) ? recipe.ingredients.map(ing => `<li>${ing}</li>`).join('') : recipe.ingredients;
+    }
     rightPage.innerHTML = `
         <h3 class="page-title">${recipe.title}</h3>
         <p class="page-text" style="font-style:italic;">${recipe.description || ''}</p>
         <h4 class="page-header">Ingredients</h4>
-        <p class="page-text">${recipe.ingredients || 'Properties recorded.'}</p>
+        <ul class="page-text">${ingList || 'Properties recorded.'}</ul>
         <h4 class="page-header">Instructions</h4>
         <p class="page-text">${recipe.instructions || 'Lore recorded.'}</p>
     `;
 };
 
-// --- ADDITIONAL PORTALS (FIXED) ---
+// --- THE BOUNTY BOARD (CHORES & CALENDAR) ---
+async function buildBountyBoardHTML() {
+    let html = `<h2 class="gold-text">The Bounty Board</h2><div class="portal-scroll-container">`;
+    const events = await loadData('calendar_events', 'start_date', true);
+    html += await generateCalendarHTML(events);
+    
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Weekly Endeavors</div><div class="section-panel closed">`;
+    events.forEach(ev => {
+        const isDone = ev.text === 'completed' ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleEvent('${ev.id}', '${ev.text}')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${ev.title}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteEvent('${ev.id}')">✕</div></div>`;
+    });
+    html += `</div>`; 
+
+    html += `<div id="scribe-section" class="section-header closed" onclick="toggleSection(this)">Post New Bounty</div>
+             <div id="scribe-panel" class="section-panel closed" id="form-bounty">
+                <div style="margin-top: 10px; margin-bottom: 15px;">
+                    <input type="text" id="inp-title" placeholder="Alignment/Chore Title..." class="portal-input" style="margin-bottom: 10px;">
+                    <input type="datetime-local" id="inp-start_date" class="portal-input" style="margin-bottom: 10px;">
+                    <button onclick="scribeToArchive('calendar_events', 'form-bounty', 'cat')" class="portal-btn" style="width: 100%;">Seal in the Stars</button>
+                </div>
+             </div>`;
+    return html;
+}
+
+// --- THE LIVING BEDS (GARDEN RESTORED) ---
+let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
+
+async function buildGardenHTML() {
+    let html = `<h2 class="gold-text">The Living Beds</h2><div class="portal-scroll-container">`;
+    let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
+    if (!allBeds.includes(currentBedName)) currentBedName = allBeds[0];
+    let bedOptions = allBeds.map(b => `<option value="${b}" ${b === currentBedName ? 'selected' : ''}>${b}</option>`).join('');
+    
+    html += `<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+                <select id="bed-select" class="portal-input" style="width:60%; cursor:pointer;" onchange="switchBed(this.value)">${bedOptions}</select>
+                <button class="portal-btn" onclick="buildNewBed()" style="width:35%; color:#8fce00; border-color:#8fce00;">+ Build Bed</button>
+             </div>
+             <p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Tending to: ${currentBedName}</p>`;
+
+    html += `<div class="garden-bed-container">`;
+    const plots = await loadData('garden_plots');
+    const activePlots = plots.filter(p => (p.bed_name || 'Main Bed') === currentBedName);
+    for (let i = 1; i <= 8; i++) {
+        const gridId = `cell-${i}`;
+        const plotData = activePlots.find(p => p.grid_id === gridId);
+        if (plotData) {
+            const plantedDate = new Date(plotData.created_at);
+            const daysOld = Math.floor((new Date() - plantedDate) / (1000 * 60 * 60 * 24));
+            let icon = '🌱'; 
+            if (daysOld >= 1) icon = '🌿';
+            if (daysOld >= 3) icon = plotData.plant_icon || '🌻';
+            html += `<div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name}')">
+                        <div class="plant-icon">${icon}</div>
+                        <div class="plant-name">${plotData.plant_name}</div>
+                     </div>`;
+        } else {
+            html += `<div class="garden-cell" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="opacity:0.2;">🌱</div><div class="plant-name" style="color:rgba(191,149,63,0.5);">Empty Soil</div></div>`;
+        }
+    }
+    html += `</div><div id="garden-action-panel" style="margin-top: 15px; min-height: 120px;"></div></div>`;
+    return html;
+}
+
+function switchBed(name) { currentBedName = name; localStorage.setItem('active_garden_bed', name); openPortal('garden'); }
+function buildNewBed() {
+    const newName = prompt("Name your new raised bed:");
+    if (newName && newName.trim() !== '') {
+        let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
+        if (!allBeds.includes(newName.trim())) {
+            allBeds.push(newName.trim());
+            localStorage.setItem('garden_bed_names', JSON.stringify(allBeds));
+        }
+        switchBed(newName.trim());
+    }
+}
+
+function plantSeed(gridId) {
+    const panel = document.getElementById('garden-action-panel');
+    panel.innerHTML = `<div class="alchemy-card" style="border-color: #8fce00;" id="form-garden">
+            <h3 class="alchemy-title" style="color: #8fce00;">🌱 Sow a New Seed</h3>
+            <input type="text" id="inp-plant_name" placeholder="e.g., Midnight Poppy..." class="portal-input" style="margin-bottom: 10px;">
+            <input type="hidden" id="inp-grid_id" value="${gridId}">
+            <input type="hidden" id="inp-bed_name" value="${currentBedName}">
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="scribeToArchive('garden_plots', 'form-garden', 'garden')" class="portal-btn" style="color: #8fce00; border-color: #8fce00; flex: 1;">Plant</button>
+                <button onclick="cancelGardenAction()" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">Cancel</button>
+            </div>
+        </div>`;
+    document.getElementById('inp-plant_name').focus();
+}
+
+// --- ARCHITECT'S FORGE (RESTORED) ---
+let isForging = false;
+let editingItem = null;
+let draftBgUrl = '';
+
+async function buildInventoryHTML() {
+    let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div><div class="section-panel closed">`;
+    const rooms = await loadData('trophy_rooms');
+    rooms.forEach(room => {
+        html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;">
+                    <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
+                    <button class="portal-btn" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button>
+                 </div>`;
+    });
+    html += `</div><div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
+                <input type="file" id="room-bg-upload" accept="image/*" onchange="startForging(this)">
+                <label for="room-bg-upload" class="custom-file-label">Select Background Image</label>
+             </div>`;
+    return html + `</div>`;
+}
+
+async function startForging(input) {
+    if(!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        draftBgUrl = e.target.result;
+        const bgArt = document.getElementById('bg-art');
+        if(bgArt) bgArt.src = draftBgUrl; 
+        document.body.classList.add('building-mode'); 
+        const layer = document.getElementById('furnishing-layer');
+        if(layer) layer.innerHTML = ''; 
+        closePortal(); 
+        document.getElementById('architect-toolbox').style.display = 'block';
+        isForging = true;
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+function spawnToForge(imageUrl) {
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    const img = document.createElement('img');
+    img.src = imageUrl; img.className = 'furnishing-item';
+    img.style.left = '50%'; img.style.top = '50%';
+    img.onmousedown = selectItemForEdit;
+    layer.appendChild(img);
+}
+
+function selectItemForEdit(e) {
+    if (!isForging) return;
+    e.preventDefault(); editingItem = e.target;
+    document.onmousemove = dragItem;
+    document.onmouseup = stopDrag;
+}
+
+function dragItem(e) { if (editingItem) { editingItem.style.left = e.clientX + 'px'; editingItem.style.top = e.clientY + 'px'; } }
+function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
+
+// --- THE STILLNESS (TEACUP RESTORED) ---
 async function buildTeacupHTML() {
-    let html = `<h2 class="gold-text">The Steeping Teacup</h2><div class="portal-scroll-container">`;
+    let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
+    html += `<div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;" id="form-teacup">
+                <textarea id="inp-note" placeholder="Record your thoughts or visions..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea>
+                <button onclick="scribeToArchive('family_notes', 'form-teacup', 'teacup')" class="portal-btn">Seal Memory</button>
+             </div>`;
     const notes = await loadData('family_notes');
-    notes.forEach(n => {
-        html += `<div class="alchemy-card">
-                    <div style="display:flex; justify-content:space-between;">
-                        <p style="margin:0;">${n.note}</p>
-                        <button class="action-btn" style="color:#ff6b6b;" onclick="removeData('family_notes', '${n.id}'); openPortal('teacup');">✕</button>
-                    </div>
-                 </div>`;
+    notes.forEach(note => {
+        const dateStr = new Date(note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
+        html += `<div class="tea-card"><div style="font-size: 0.85em; color: rgba(191,149,63,0.8); margin-bottom: 8px;"><span>${dateStr}</span></div><p style="margin: 0; white-space: pre-wrap;">${note.note}</p></div>`;
     });
-    html += `</div>
-    <div class="section-panel" id="form-teacup">
-        <textarea id="inp-note" placeholder="Daily spirit check..." class="portal-input" style="height:60px;"></textarea>
-        <button onclick="scribeToArchive('family_notes', 'form-teacup', 'teacup')" class="portal-btn">Reflect</button>
-    </div>`;
-    return html;
+    return html + `</div>`;
 }
 
-async function buildLedgerHTML() {
-    let html = `<h2 class="gold-text">Merchant's Ledger</h2><div class="portal-scroll-container">`;
-    const logs = await loadData('merchant_ledger');
-    logs.forEach(l => {
-        html += `<div class="market-item">
-                    <span>${l.title}: $${l.amount}</span>
-                    <button class="action-btn" onclick="removeData('merchant_ledger', '${l.id}'); openPortal('ledger');">✕</button>
-                 </div>`;
+// --- APOTHECARY CHAMBER (RESTORED) ---
+async function buildApothecaryHTML() {
+    let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
+    myApothecary.forEach(item => { 
+        html += `<div class="alchemy-card"><h3 class="alchemy-title">${item.icon || '🏺'} ${item.title}</h3><p style="color:#d4c8a8; font-style:italic; margin-top:0;">${item.description}</p><div style="color:#bf953f; font-size:0.9em; margin-bottom:8px;"><strong>Components:</strong> <span style="color:#e0e0e0;">${item.ingredients}</span></div><p style="color:#d4c8a8; font-size:0.9em; margin:0;">${item.instructions}</p></div>`; 
     });
-    html += `</div>
-    <div class="section-panel" id="form-ledger">
-        <input type="text" id="inp-title" placeholder="Delivery/Task..." class="portal-input">
-        <input type="number" id="inp-amount" placeholder="Gold..." class="portal-input">
-        <button onclick="scribeToArchive('merchant_ledger', 'form-ledger', 'ledger')" class="portal-btn">Log Gold</button>
-    </div>`;
-    return html;
+    const apoth = await loadData('apothecary');
+    apoth.forEach(item => { 
+        html += `<div class="alchemy-card"><div style="display:flex; justify-content:space-between;"><h3 class="alchemy-title">🏺 ${item.title}</h3><button class="action-btn" style="color: #ff6b6b;" onclick="removeData('apothecary', '${item.id}'); openPortal('alchemy');">✕</button></div><p style="color:#d4c8a8; font-size:0.9em; margin:0; white-space:pre-wrap;">${item.description}</p></div>`; 
+    }); 
+    return html + `</div>`;
 }
 
-async function buildMarketListHTML() {
-    let html = `<h2 class="gold-text">Market Provisions</h2><div class="portal-scroll-container">`;
-    const items = await loadData('market_list');
-    items.forEach(i => {
-        html += `<div class="market-item">
-                    <span>${i.item_name} (${i.quantity || '1'})</span>
-                    <button class="action-btn" onclick="removeData('market_list', '${i.id}'); openPortal('market-list');">✕</button>
-                 </div>`;
+// --- THE DRYING RACK (HERBS RESTORED) ---
+async function buildHerbsHTML() {
+    let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div id="herbs-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">`;
+    myHerbs.forEach(herb => { 
+        html += `<div class="herb-card"><div style="font-size: 2em; margin-bottom:8px;">${herb.icon}</div><h3 class="gold-text" style="font-size:1.1em; margin:0 0 5px 0; padding-bottom: 0;">${herb.title}</h3><div style="color:#fcf6ba; font-size:0.85em; font-style:italic; border-bottom:1px solid rgba(191,149,63,0.2); padding-bottom:8px; margin-bottom:10px;">${herb.properties}</div><p style="color:#d4c8a8; font-size:0.85em; margin:0;">${herb.description}</p></div>`; 
     });
-    html += `</div>
-    <div class="section-panel" id="form-market">
-        <input type="text" id="inp-item_name" placeholder="Provision..." class="portal-input">
-        <input type="text" id="inp-quantity" placeholder="Qty..." class="portal-input">
-        <button onclick="scribeToArchive('market_list', 'form-market', 'market-list')" class="portal-btn">Add to Basket</button>
-    </div>`;
-    return html;
+    return html + `</div></div>`;
 }
 
-// (All other buildApothecary, buildHerbs, buildGarden etc. functions from your previous paste go here!)
-
-// === 4. CORE UI CONTROLLER ===
+// --- CORE UI CONTROLLER ---
 async function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     overlay.classList.add('active');
-    
-    switch(portalName) {
-        case 'grimoire': content.innerHTML = await buildGrimoireHTML(); break;
-        case 'teacup': content.innerHTML = await buildTeacupHTML(); break;
-        case 'ledger': content.innerHTML = await buildLedgerHTML(); break;
-        case 'market-list': content.innerHTML = await buildMarketListHTML(); break;
-        case 'alchemy': content.innerHTML = await buildApothecaryHTML(); break;
-        case 'herbs': content.innerHTML = await buildHerbsHTML(); break;
-        case 'garden': content.innerHTML = await buildGardenHTML(); break;
-        case 'apprentice': content.innerHTML = await buildApprenticeHTML(); break;
-        case 'workshop': content.innerHTML = await buildWorkshopHTML(); break;
-        case 'inventory': content.innerHTML = await buildInventoryHTML(); break;
-        case 'window': content.innerHTML = buildAlmanacHTML(); break;
-        default: content.innerHTML = "<h2>The portal is hazy.</h2>";
-    }
+    if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
+    else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
+    else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
+    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
+    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
+    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
+    else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
+    else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
+    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
+    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
+    else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
+    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML();
 }
 
 function closePortal() { document.getElementById('parchment-overlay').classList.remove('active'); }
-function toggleSection(btn) { btn.classList.toggle('closed'); btn.nextElementSibling.classList.toggle('closed'); }
+function toggleAccordion(button) { button.classList.toggle('active'); const panel = button.nextElementSibling; if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + 30 + "px"; } }
+function toggleSection(headerBtn) { headerBtn.classList.toggle('closed'); headerBtn.nextElementSibling.classList.toggle('closed'); }
 
-// === 5. FAMILIAR ===
-let familiarXP = 0;
-function feedFamiliar() { if (familiarXP < 5) { familiarXP++; updateFamiliarUI(); } }
+// --- FAMILIAR XP (RESTORED) ---
+let familiarXP = 0; const maxXP = 5;
+function feedFamiliar() { if (familiarXP < maxXP) { familiarXP++; updateFamiliarUI(); } }
 function updateFamiliarUI() {
-    const ring = document.getElementById('xp-ring-fill');
-    if (ring) ring.style.strokeDashoffset = 289 - (289 * (familiarXP / 5));
+    const xpFill = document.getElementById('xp-ring-fill');
+    if (!xpFill) return;
+    const offset = 289 - (289 * (familiarXP / maxXP));
+    xpFill.style.strokeDashoffset = offset;
 }
 
-// Initialization
+// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    updateNatureLore();
-    fetchLocalAtmosphere();
-    updateFamiliarUI();
+    updateFamiliarUI(); updateNatureLore(); fetchLocalAtmosphere();
+    console.log("🏰 Sanctuary Fully Reforged.");
 });
