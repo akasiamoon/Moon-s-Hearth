@@ -661,23 +661,28 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 .grimoire-tome-container {
     position: relative;
     width: 100%;
-    max-width: 750px;
-    height: 500px;
+    max-width: 850px; /* WIDENED: Stops the text from feeling squished */
+    height: 600px;    /* TALLER: Gives you more room to read */
     background: url('open_grimoire.jpg') center/100% 100% no-repeat;
     margin: 20px auto;
     display: flex;
     justify-content: space-between;
-    padding: 50px 60px 50px 60px; /* Adjust to sit on parchment */
+    
+    /* === THE ALIGNMENT KNOBS === */
+    /* Adjust these 4 numbers (Top, Right, Bottom, Left) to push the text inside the parchment */
+    padding: 70px 110px 80px 110px; 
+    
     box-sizing: border-box;
     filter: drop-shadow(0 15px 25px rgba(0,0,0,0.9));
 }
 
 .grimoire-page {
-    width: 45%;
+    /* Decreased from 45% to 42% so the text doesn't bleed into the center spine */
+    width: 42%; 
     height: 100%;
     overflow-y: auto;
-    padding-right: 10px;
-    color: #2b1d14; /* Dark ink! */
+    padding-right: 15px;
+    color: #2b1d14; /* Dark ink */
 }
 
 .grimoire-page::-webkit-scrollbar { width: 4px; }
