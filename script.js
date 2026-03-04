@@ -465,49 +465,47 @@ async function buildApothecaryHTML() {
             const catLower = (recipe.category || "").toLowerCase();
             const titleLower = (recipe.title || "").toLowerCase();
 
-            let icon = '🫙'; // Default Glass Jar
+            // Elegant SVG Shapes instead of Emojis
+            let glassShape = `<svg viewBox="0 0 24 24" width="35" height="40" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="12" rx="3"/><path d="M8 10V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v5"/><path d="M4 10h16"/></svg>`; // Default Square Jar
 
             if(catLower.includes('heal') || titleLower.includes('cure') || titleLower.includes('recovery')) {
                 visualClass = 'healing';
-                icon = '🧪'; // Healing gets a chemistry vial
+                glassShape = `<svg viewBox="0 0 24 24" width="35" height="45" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="2"><path d="M10 2v6.5l-6 9C3 20 4 22 12 22s9-2 8-4.5l-6-9V2z"/><path d="M8 2h8"/></svg>`; // Round Flask
             }
             else if(catLower.includes('combat') || titleLower.includes('battle') || titleLower.includes('burn')) {
                 visualClass = 'combat';
-                icon = '🏺'; // Combat gets an amphora/heavy pot
+                glassShape = `<svg viewBox="0 0 24 24" width="30" height="45" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="2"><path d="M7 2h10M9 2v20a2 2 0 002 2h2a2 2 0 002-2V2"/></svg>`; // Tall Thin Vial
             }
             else if(catLower.includes('cosmetic') || titleLower.includes('stain') || titleLower.includes('highlighter')) {
                 visualClass = 'cosmetics';
-                icon = '🔮'; // Cosmetics get a crystal sphere
-            }
-
-            // Dark item override
-            if(titleLower.includes('obsidian') || titleLower.includes('raven')) {
-                icon = '🖤'; // Dark heart for the gothic vibe
+                glassShape = `<svg viewBox="0 0 24 24" width="38" height="30" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.5"><path d="M4 8v12a2 2 0 002 2h12a2 2 0 002-2V8M2 8h20M6 8V4a2 2 0 012-2h8a2 2 0 012 2v4"/></svg>`; // Flat Cosmetic Jar
             }
 
             html += `
                 <div class="alchemy-pot ${visualClass}" data-title="${recipe.title.replace(/'/g, "")}" id="recipe-${i}" onclick="toggleRecipeDetail('${i}')">
-                    <div class="alchemy-icon">${icon}</div>
+                    <div class="alchemy-icon">${glassShape}</div>
                     
                     <div class="herb-detail-tag" id="recipe-popup-${i}">
-                        <h4 class="gold-text" style="font-size: 1em; margin: 0 0 10px 0; border:none; text-align: left; padding-bottom: 5px;">${recipe.title}</h4>
+                        <h4 class="gold-text" style="font-size: 1.1em; margin: 0 0 10px 0; border:none; text-align: left; padding-bottom: 5px;">${recipe.title}</h4>
                         <p style="color:#d4c8a8; margin: 0; font-size: 0.95em;">${recipe.description}</p>
                         
-                        <div style="background:rgba(0,0,0,0.4); padding: 10px; margin-top: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
+                        <div style="background:rgba(0,0,0,0.5); padding: 12px; margin-top: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
                             <p style="color:#fcf6ba; font-style:italic; margin-top:0; margin-bottom: 5px;">Ingredients:</p>
                             <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.ingredients || 'Properties recorded.'}</p>
-                            <p style="color:#fcf6ba; font-style:italic; margin-top:10px; margin-bottom: 5px;">Instructions:</p>
+                            <p style="color:#fcf6ba; font-style:italic; margin-top:12px; margin-bottom: 5px;">Instructions:</p>
                             <p style="color:#d4c8a8; margin: 0; font-size: 0.9em; line-height:1.4;">${recipe.instructions || 'Lore recorded.'}</p>
                         </div>
                         
-                        ${recipe.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; font-size: 0.75em; border: 1px solid #ff6b6b; padding: 3px 8px; border-radius: 4px; margin-top: 10px;" onclick="event.stopPropagation(); deleteDetailedItem('apothecary', '${recipe.id}', 'alchemy')">Purge</button>` : ''}
+                        ${recipe.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; font-size: 0.8em; border: 1px solid #ff6b6b; padding: 4px 10px; border-radius: 4px; margin-top: 12px; width:100%;" onclick="event.stopPropagation(); deleteDetailedItem('apothecary', '${recipe.id}', 'alchemy')">Shatter Vial (Purge)</button>` : ''}
                     </div>
                 </div>`;
         } else {
-            // NO RECIPE: Clean, faint empty glass jars
+            // Empty faint glass outline
             html += `
-                <div class="alchemy-pot" style="cursor: default; transform: none;">
-                    <div class="alchemy-icon" style="opacity: 0.2; filter: grayscale(100%);">🫙</div>
+                <div class="alchemy-pot" style="cursor: default; transform: none; color: rgba(255,255,255,0.15);">
+                    <div class="alchemy-icon">
+                        <svg viewBox="0 0 24 24" width="35" height="40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="10" width="14" height="12" rx="3"/><path d="M8 10V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v5"/><path d="M4 10h16"/></svg>
+                    </div>
                 </div>`;
         }
         
