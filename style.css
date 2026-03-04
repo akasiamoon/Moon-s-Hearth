@@ -716,23 +716,17 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 
 /* A-Z HEADERS */
 .toc-header {
-    font-family: 'Cinzel', serif;
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #5c4033;
+    color: #5c4033 !important; /* Dark Brown Ink */
+    display: block !important; /* Forces it to be visible */
     text-align: center;
-    margin: 20px 0 5px 0;
-    border-bottom: 1px solid rgba(43, 29, 20, 0.2);
+    font-weight: bold;
+    margin-top: 15px;
 }
 
 .grimoire-index-item {
-    font-family: 'Cinzel', serif;
-    font-weight: bold;
-    font-size: 0.9em;
-    padding: 6px 5px;
+    color: #2b1d14 !important; /* Dark Brown Ink */
     cursor: pointer;
-}
-
-.page-title { font-size: 1.4em; border-bottom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; }
+    padding: 5px;
+}tom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; }
 .page-header { font-size: 1.1em; margin-top: 15px; }
 .page-text { font-size: 0.9em; line-height: 1.5; }
