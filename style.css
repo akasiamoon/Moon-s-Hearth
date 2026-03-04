@@ -678,25 +678,33 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     justify-content: space-between;
 }
 
-.grimoire-page {
-    width: 43%; 
-    height: 100%;
-    overflow-y: auto;
-    color: #2b1d14; 
-    box-sizing: border-box;
+/* THE INVISIBLE FRAME - Shrinking the readable area and lowering it */
+.grimoire-page-wrapper {
+    position: absolute;
+    
+    /* DIAL: Increase 'top' to move text DOWN the page */
+    top: 14%;    
+    
+    /* DIAL: Increase these to make the readable area SMALLER/TIGHTER */
+    bottom: 15%; 
+    left: 14%;   
+    right: 14%;  
+    
+    display: flex;
+    justify-content: space-between;
 }
 
-/* LEFT PAGE: Nudge Right */
+/* LEFT PAGE: Micro-nudge away from the outer left edge */
 #grimoire-left-page {
     position: relative;
-    left: 35px; 
+    left: 40px; 
 }
 
-/* RIGHT PAGE: Slide Left & Fit Text */
+/* RIGHT PAGE: Micro-nudge away from the outer right edge */
 #grimoire-right-page {
     position: relative;
-    right: 35px; 
-    padding-right: 30px; 
+    right: 40px; 
+    padding-right: 20px; 
 }
 
 /* SEARCH BAR: Smaller & Pushed Right */
