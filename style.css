@@ -402,83 +402,82 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 
 /* === THE DRYING RACK VISUALS === */
 
-/* The main rack area */
 .herbs-rack-container {
     position: relative;
     width: 100%;
     max-width: 600px;
-    height: 300px; /* Adjust if needed to fit your image aspect ratio */
-    background: url('drying_rack.jpg') center/contain no-repeat;
-    background-color: #0c0c0e; /* Dark fallback */
-    border: 4px solid #3e2723; /* Wooden frame border */
+    min-height: 200px; /* Changed from fixed 300px so it can grow! */
+    
+    /* The Background Fix */
+    background: url('drying_rack.jpg') top center/100% auto repeat-y;
+    background-color: #1a1412; 
+    border: 4px solid #3e2723; 
+    border-top: 30px solid #2d1a11; /* Creates a thick 'wooden beam' look even without the image! */
     border-radius: 4px;
-    margin: 20px auto;
+    
+    margin: 20px auto 60px auto; /* Added extra bottom margin to protect your input box */
+    padding: 10px 10px 40px 10px; 
     display: grid;
-    /* Create an invisible grid over the hanging points in the image */
-    grid-template-columns: repeat(6, 1fr);
+    
+    /* Automatically wraps the herbs so they don't squish */
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 40px 10px; 
     box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.9);
-    overflow: visible; /* Let the details peek out */
 }
 
-/* Individual hanging slot */
 .herb-slot {
     position: relative;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Hang from the top of the grid cell */
-    padding-top: 15px; /* Adjust to align with image hooks */
+    align-items: flex-start; 
 }
 
-/* The bundle and detail tag container */
 .herb-bundle {
     display: flex;
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    transform-origin: top center; /* Sway from the top where it's tied */
+    transform-origin: top center; 
     transition: transform 0.3s ease;
-    z-index: 1001; /* Layer over background image elements */
+    z-index: 1001; 
 }
 
-/* Sway animation on hover */
 .herb-bundle:hover {
     animation: swayBundle 2s ease-in-out infinite alternate;
 }
 
 @keyframes swayBundle {
-    0% { transform: rotate(1.5deg); }
-    100% { transform: rotate(-1.5deg); }
+    0% { transform: rotate(2deg); }
+    100% { transform: rotate(-2deg); }
 }
 
 .herb-icon {
-    font-size: 3.5em; /* Large bundles */
+    font-size: 3em; 
     filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.8));
-    margin-bottom: -10px; /* Draw tag closer to bundle */
+    margin-bottom: -5px; 
 }
 
-/* The parchment tag hanging below */
 .herb-tag {
-    background: rgba(20, 15, 12, 0.9);
+    background: rgba(20, 15, 12, 0.95);
     color: #fcf6ba;
     font-family: 'Cinzel', serif;
-    font-size: 0.75em;
-    padding: 2px 8px;
+    font-size: 0.65em;
+    padding: 4px 8px;
     border: 1px dashed rgba(191, 149, 63, 0.5);
-    border-top: none; /* Looks like it hangs from the bundle */
+    border-top: 2px solid #bf953f; 
     border-radius: 0 0 4px 4px;
     text-align: center;
-    text-transform: capitalize;
     box-shadow: 0 3px 5px rgba(0,0,0,0.6);
-    pointer-events: none; /* Let clicks pass to the bundle */
+    pointer-events: none; 
 }
 
-/* Detailed Info Box (appears on click) */
+/* Detailed Info Box */
 .herb-detail-tag {
     position: absolute;
-    top: 100px; /* Appear below the bundle */
+    top: 60px; /* Pushed up slightly so it doesn't hang as low */
     left: 50%;
     transform: translateX(-50%);
-    width: 200px;
+    width: 220px;
     background: rgba(8, 8, 10, 0.98);
     border: 2px solid;
     border-image: linear-gradient(45deg, #bf953f, transparent, #b38728) 1;
@@ -486,16 +485,15 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
     color: #d4c8a8;
     font-size: 0.85em;
     text-align: left;
-    box-shadow: 0 0 30px rgba(0,0,0,1);
+    box-shadow: 0 10px 30px rgba(0,0,0,1);
     opacity: 0;
     visibility: hidden;
-    z-index: 2000;
-    transition: opacity 0.3s ease, top 0.3s ease;
-    border-radius: 4px;
+    z-index: 9999; /* Forces it over everything else */
+    transition: opacity 0.2s ease, top 0.2s ease;
 }
 
 .herb-bundle.show-details .herb-detail-tag {
     opacity: 1;
     visibility: visible;
-    top: 110px; /* Slight slide-down effect */
+    top: 70px; 
 }
