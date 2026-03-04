@@ -889,6 +889,7 @@ async function openPortal(portalName) {
     else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
     else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
     else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
+    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML();
 }
 
 function closePortal() { document.getElementById('parchment-overlay').classList.remove('active'); }
@@ -954,3 +955,71 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     console.log("🏰 Sanctuary Fully Reforged.");
 });
+
+// === THE LIVING BEDS LOGIC ===
+async function buildGardenHTML() {
+    let html = `<h2 class="gold-text">The Living Beds</h2><div class="portal-scroll-container">`;
+    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic;">Click a patch of soil to plant or tend.</p>`;
+    
+    // Build the container
+    html += `<div class="garden-bed-container">`;
+    
+    // Load the planted data
+    const plots = await loadData('garden_plots');
+    
+    // Generate 8 squares (4x2 grid)
+    for (let i = 1; i <= 8; i++) {
+        const gridId = `cell-${i}`;
+        const plotData = plots.find(p => p.grid_id === gridId);
+        
+        if (plotData) {
+            // Something is planted here!
+            const fertDate = plotData.last_fertilized ? new Date(plotData.last_fertilized).toLocaleDateString([], {month:'short', day:'numeric'}) : 'Needs Food';
+            html += `
+                <div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name}')">
+                    <div class="plant-icon">${plotData.plant_icon}</div>
+                    <div class="plant-name">${plotData.plant_name}</div>
+                    <div class="fert-status">💧 ${fertDate}</div>
+                </div>`;
+        } else {
+            // Empty dirt
+            html += `
+                <div class="garden-cell" onclick="plantSeed('${gridId}')">
+                    <div class="plant-icon" style="opacity:0.2;">🌱</div>
+                    <div class="plant-name" style="color:rgba(191,149,63,0.5);">Empty Soil</div>
+                </div>`;
+        }
+    }
+    
+    html += `</div></div>`;
+    return html;
+}
+
+// Action: Click an empty square
+async function plantSeed(gridId) {
+    const plantName = prompt("What are you planting here? (e.g., Lavender, Tomatoes)");
+    if (!plantName) return;
+    
+    // Quick icon logic
+    let icon = '🌱';
+    if(plantName.toLowerCase().includes('tomato')) icon = '🍅';
+    if(plantName.toLowerCase().includes('carrot')) icon = '🥕';
+    if(plantName.toLowerCase().includes('flower') || plantName.toLowerCase().includes('lavender')) icon = '🪻';
+    if(plantName.toLowerCase().includes('herb') || plantName.toLowerCase().includes('rosemary')) icon = '🌿';
+
+    await insertData('garden_plots', { grid_id: gridId, plant_name: plantName, plant_icon: icon });
+    openPortal('garden'); // Refresh
+}
+
+// Action: Click an existing plant to fertilize or uproot
+async function tendPlot(plotId, plantName) {
+    const action = prompt(`Tending to ${plantName}.\nType 'feed' to fertilize, or 'uproot' to clear the soil.`);
+    
+    if (action && action.toLowerCase() === 'feed') {
+        await updateData('garden_plots', plotId, { last_fertilized: new Date().toISOString() });
+        feedFamiliar(); // Bonus XP for gardening!
+    } else if (action && action.toLowerCase() === 'uproot') {
+        await removeData('garden_plots', plotId);
+    }
+    openPortal('garden'); // Refresh
+}
