@@ -455,30 +455,39 @@ async function buildApothecaryHTML() {
     // Generate 24 slots (6 columns x 4 shelves)
     const totalSlots = 24;
     
-    for (let i = 0; i < totalSlots; i++) {
+  for (let i = 0; i < totalSlots; i++) {
         html += `<div class="alchemy-slot" id="alchemy-slot-${i}">`;
         
         if (allRecipes[i]) {
-            // WE HAVE A RECIPE: Draw the glowing pot
             const recipe = allRecipes[i];
             
             let visualClass = 'general';
             const catLower = (recipe.category || "").toLowerCase();
             const titleLower = (recipe.title || "").toLowerCase();
 
-            if(catLower.includes('heal') || titleLower.includes('cure') || titleLower.includes('recovery')) visualClass = 'healing';
-            else if(catLower.includes('combat') || titleLower.includes('battle') || titleLower.includes('burn')) visualClass = 'combat';
-            else if(catLower.includes('cosmetic') || titleLower.includes('stain') || titleLower.includes('highlighter')) visualClass = 'cosmetics';
+            let icon = '🫙'; // Default Glass Jar
 
-            let icon = recipe.icon;
-            if(recipe.isDbItem && !recipe.icon) {
-                 if(titleLower.includes('obsidian') || titleLower.includes('raven')) icon = '🖤'; 
-                 else icon = '🏺'; 
+            if(catLower.includes('heal') || titleLower.includes('cure') || titleLower.includes('recovery')) {
+                visualClass = 'healing';
+                icon = '🧪'; // Healing gets a chemistry vial
+            }
+            else if(catLower.includes('combat') || titleLower.includes('battle') || titleLower.includes('burn')) {
+                visualClass = 'combat';
+                icon = '🏺'; // Combat gets an amphora/heavy pot
+            }
+            else if(catLower.includes('cosmetic') || titleLower.includes('stain') || titleLower.includes('highlighter')) {
+                visualClass = 'cosmetics';
+                icon = '🔮'; // Cosmetics get a crystal sphere
+            }
+
+            // Dark item override
+            if(titleLower.includes('obsidian') || titleLower.includes('raven')) {
+                icon = '🖤'; // Dark heart for the gothic vibe
             }
 
             html += `
                 <div class="alchemy-pot ${visualClass}" data-title="${recipe.title.replace(/'/g, "")}" id="recipe-${i}" onclick="toggleRecipeDetail('${i}')">
-                    <div class="alchemy-icon">${icon || '🏺'}</div>
+                    <div class="alchemy-icon">${icon}</div>
                     
                     <div class="herb-detail-tag" id="recipe-popup-${i}">
                         <h4 class="gold-text" style="font-size: 1em; margin: 0 0 10px 0; border:none; text-align: left; padding-bottom: 5px;">${recipe.title}</h4>
@@ -495,14 +504,15 @@ async function buildApothecaryHTML() {
                     </div>
                 </div>`;
         } else {
-            // NO RECIPE: Draw an empty, faint glass vial so the shelf isn't bare
+            // NO RECIPE: Clean, faint empty glass jars
             html += `
                 <div class="alchemy-pot" style="cursor: default; transform: none;">
-                    <div class="alchemy-icon" style="opacity: 0.2; filter: grayscale(100%); font-size: 2em;">⚗️</div>
+                    <div class="alchemy-icon" style="opacity: 0.2; filter: grayscale(100%);">🫙</div>
                 </div>`;
         }
         
         html += `</div>`; // Close slot
+    }
     }
     
     html += `</div>`; // Close cabinet container
