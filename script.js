@@ -286,7 +286,7 @@ function prefillDate(dateStr) {
 }
 
 // === 4. HTML BUILDERS ===
-// === THE KITCHEN GRIMOIRE (OPEN TOME V2) ===
+// === THE KITCHEN GRIMOIRE (OPEN TOME MASTER) ===
 let currentGrimoireData = [];
 
 async function buildGrimoireHTML() {
@@ -300,55 +300,53 @@ async function buildGrimoireHTML() {
         isDbItem: true, id: r.id 
     })) : [];
     
-    // 2. Combine with Local Data (Using your 'myGrimoire' list)
+    // 2. Combine with your local 'myGrimoire' list
     let localG = (typeof myGrimoire !== 'undefined') ? myGrimoire : [];
     currentGrimoireData = [...localG, ...dbMapped];
 
-    // 3. FORCE ALPHABETICAL SORT
+    // 3. Alphabetical Sort
     currentGrimoireData.sort((a, b) => a.title.localeCompare(b.title));
 
-    // 4. Build the Tome Structure
+    // 4. Build the Tome
     html += `
     <div class="grimoire-tome-container">
         <div class="grimoire-page-wrapper">
             
             <div class="grimoire-page" id="grimoire-left-page">
-                
                 <datalist id="recipe-predictions">
                     ${currentGrimoireData.map(r => `<option value="${r.title}">`).join('')}
                 </datalist>
     
-                <input type="text" id="grimoire-search" class="grimoire-search-bar" list="recipe-predictions" placeholder="Search the index..." oninput="filterGrimoire()">
+                <input type="text" id="grimoire-search" class="grimoire-search-bar" list="recipe-predictions" placeholder="Search the archives..." oninput="filterGrimoire()">
                 
                 <div id="grimoire-index-list">
-                    ${renderTOC('')} 
+                    ${generateTableOfContents('')} 
                 </div>
             </div>
 
             <div class="grimoire-page" id="grimoire-right-page">
-                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe from the index to read its lore.</p>
+                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe from the Table of Contents to read its lore.</p>
             </div>
 
         </div>
     </div>`;
 
-    // Quick Add Form
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
+    // 5. Quick Add Form
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
 
     return html;
 }
 
-// --- THE ENGINE: ALPHABETICAL INDEX RENDERER ---
-function renderTOC(query) {
+// --- THE TABLE OF CONTENTS ENGINE ---
+window.generateTableOfContents = function(query) {
     let listHTML = '';
     let currentLetter = '';
     const q = query.toLowerCase();
 
     currentGrimoireData.forEach((recipe, i) => {
-        const matches = recipe.title.toLowerCase().includes(q) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(q));
-        
-        if (matches) {
-            // Only show A-Z headers if we AREN'T currently searching
+        if (q === '' || recipe.title.toLowerCase().includes(q) || (recipe.ingredients && recipe.ingredients.toLowerCase().includes(q))) {
+            
+            // Draw A-Z headers only when browsing the full list
             if (q === '') {
                 const firstLetter = recipe.title.charAt(0).toUpperCase();
                 if (firstLetter !== currentLetter) {
@@ -360,13 +358,13 @@ function renderTOC(query) {
         }
     });
     
-    return listHTML || `<div style="text-align:center; margin-top:20px; opacity:0.5;">No lore matches.</div>`;
-}
+    return listHTML || `<div style="text-align:center; margin-top:20px; color:rgba(43,29,20,0.6);">No lore matches.</div>`;
+};
 
 // --- SEARCH TRIGGER ---
 window.filterGrimoire = function() {
     const query = document.getElementById('grimoire-search').value;
-    document.getElementById('grimoire-index-list').innerHTML = renderTOC(query);
+    document.getElementById('grimoire-index-list').innerHTML = generateTableOfContents(query);
 };
 
 // --- READ PAGE ---
@@ -378,18 +376,12 @@ window.readGrimoirePage = function(index) {
         <h3 class="page-title">${recipe.title}</h3>
         <p class="page-text" style="font-style:italic;">${recipe.description || ''}</p>
         <h4 class="page-header">Ingredients</h4>
-        <p class="page-text">${recipe.ingredients || 'None.'}</p>
+        <p class="page-text">${recipe.ingredients || 'Properties recorded.'}</p>
         <h4 class="page-header">Instructions</h4>
-        <p class="page-text">${recipe.instructions || 'None.'}</p>
+        <p class="page-text">${recipe.instructions || 'Lore recorded.'}</p>
         ${recipe.isDbItem ? `<br><button class="action-btn" style="color:#ff6b6b; border: 1px solid #ff6b6b; padding: 4px 8px; border-radius: 4px; margin-top: 20px; font-size: 0.7em;" onclick="deleteDetailedItem('grimoire', '${recipe.id}', 'grimoire')">Burn Page</button>` : ''}
     `;
 };
-
-    // Quick Add Form
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="grim-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="grim-desc" placeholder="Brief Description / Category..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-ingredients" placeholder="Ingredients List..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><textarea id="grim-instructions" placeholder="Preparation Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addConcoction('grimoire', 'grim-title', 'grim-desc', 'grim-ingredients', 'grim-instructions', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button></div></div>`;
-
-    return html;
-}
 
 // --- NEW TABLE OF CONTENTS GENERATOR ---
 window.generateTableOfContents = function(query) {
