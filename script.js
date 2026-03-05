@@ -554,7 +554,10 @@ window.addToGrandStash = async function() {
     }
 };
 
+// === ARCHITECT'S FORGE: ROOM NAVIGATION & DOORS ===
+
 window.loadActiveTrophy = async function() {
+    // 1. Check where we are
     const activeBg = localStorage.getItem('active_trophy_bg') || 'sanctuary.jpg'; 
     const activeId = localStorage.getItem('active_trophy_id');
     const bgArt = document.getElementById('bg-art');
@@ -562,9 +565,30 @@ window.loadActiveTrophy = async function() {
     
     const layer = document.getElementById('furnishing-layer');
     if(!layer) return;
-    layer.innerHTML = ''; 
+    layer.innerHTML = ''; // Clear the current furniture
     
+    // 2. Build the "Return to Sanctuary" Door
+    let exitBtn = document.getElementById('exit-trophy-btn');
+    if (!exitBtn) {
+        exitBtn = document.createElement('button');
+        exitBtn.id = 'exit-trophy-btn';
+        exitBtn.innerHTML = '🚪 Return to Main Sanctuary';
+        exitBtn.className = 'portal-btn';
+        exitBtn.style.position = 'fixed';
+        exitBtn.style.bottom = '20px';
+        exitBtn.style.right = '20px';
+        exitBtn.style.zIndex = '9000';
+        exitBtn.style.backgroundColor = 'rgba(20, 15, 12, 0.9)';
+        exitBtn.style.color = '#bf953f';
+        exitBtn.style.border = '1px solid #bf953f';
+        exitBtn.style.boxShadow = '0 0 15px rgba(0,0,0,0.8)';
+        exitBtn.onclick = leaveTrophyRoom;
+        document.body.appendChild(exitBtn);
+    }
+
+    // 3. Load the Room (or hide the door if we are in the main hall)
     if(activeId) {
+        exitBtn.style.display = 'block'; // Show the door out
         const roomFurniture = await loadData('trophy_furnishings');
         const activeFurniture = roomFurniture.filter(f => f.room_id === activeId);
         
@@ -580,7 +604,18 @@ window.loadActiveTrophy = async function() {
             img.dataset.scale = f.scale || 1;
             layer.appendChild(img);
         });
+    } else {
+        exitBtn.style.display = 'none'; // Hide the door, we are home
     }
+};
+
+window.leaveTrophyRoom = function() {
+    // Clear the active room memory
+    localStorage.removeItem('active_trophy_id');
+    localStorage.removeItem('active_trophy_bg');
+    
+    // Trigger the reload to return to the base Sanctuary
+    loadActiveTrophy();
 };
 
 window.loadTrophy = function(roomId, bgUrl) { 
