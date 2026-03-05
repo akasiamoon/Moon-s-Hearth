@@ -666,7 +666,7 @@ async function buildApprenticeHTML() {
 
     // --- 🗺️ THE CLICKABLE MAP CANVAS ---
     html += `<div id="map-portal-container" onclick="mapClickAction(event)">
-                <img src="https://raw.githubusercontent.com/username/repo/main/quest_map.jpg" id="active-quest-map" alt="Curriculum Map">
+               <img src="quest_map.jpg" id="active-quest-map" alt="Curriculum Map">
                 
                 <div id="marker-layer"></div>
                 
