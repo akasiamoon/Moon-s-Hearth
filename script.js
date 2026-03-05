@@ -806,17 +806,14 @@ window.saveForgedRoom = async function() {
     const roomName = document.getElementById('forge-room-name').value.trim();
     if(!roomName) return alert("The Architect must name this chamber!");
 
-    // 1. Create the room object WITHOUT a fake ID
     let newRoom = {
         name: roomName,
         bg_url: draftBgUrl
     };
     
-    // 2. Wait for the cloud to save it and give us the REAL ID back
     await insertData('trophy_rooms', newRoom);
-    const actualRoomId = newRoom.id; // Capture the real, permanent ID!
+    const actualRoomId = newRoom.id; 
 
-    // 3. Save all the Furniture Placements using the REAL ID
     const layer = document.getElementById('furnishing-layer');
     const items = layer.querySelectorAll('.furnishing-item');
 
@@ -831,14 +828,7 @@ window.saveForgedRoom = async function() {
         });
     }
 
-    // 4. Officially tell the browser you are INSIDE the room
     localStorage.setItem('active_trophy_id', actualRoomId);
-    localStorage.setItem('active_trophy_bg', draftBgUrl);
-
-    exitForge();
-};
-    // THE FIX: Officially tell the browser you are INSIDE the room you just built!
-    localStorage.setItem('active_trophy_id', roomId);
     localStorage.setItem('active_trophy_bg', draftBgUrl);
 
     exitForge();
@@ -853,7 +843,6 @@ window.exitForge = function() {
     if(editingItem) editingItem.style.filter = 'none';
     editingItem = null;
     
-    // Reload the active room (which now triggers the Exit Door to appear)
     loadActiveTrophy();
 };
 
@@ -862,7 +851,6 @@ window.loadActiveTrophy = async function() {
     const activeId = localStorage.getItem('active_trophy_id');
     const bgArt = document.getElementById('bg-art');
     
-    // If we have an active room, show it. Otherwise, force it back to your base sanctuary!
     if(bgArt) {
         bgArt.src = activeBg ? activeBg : 'sanctuary.jpg';
     }
@@ -871,7 +859,6 @@ window.loadActiveTrophy = async function() {
     if(!layer) return;
     layer.innerHTML = ''; 
     
-    // Build the Exit Door
     let exitBtn = document.getElementById('exit-trophy-btn');
     if (!exitBtn) {
         exitBtn = document.createElement('button');
@@ -893,7 +880,6 @@ window.loadActiveTrophy = async function() {
         document.body.appendChild(exitBtn);
     }
 
-    // Only show the door if we are actually inside a custom room
     if(activeId) {
         exitBtn.style.display = 'block'; 
         const roomFurniture = await loadData('trophy_furnishings');
