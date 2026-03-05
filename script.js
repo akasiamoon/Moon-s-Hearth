@@ -829,8 +829,11 @@ window.saveForgedRoom = async function() {
         });
     }
 
+    // THE FIX: Officially tell the browser you are INSIDE the room you just built!
+    localStorage.setItem('active_trophy_id', roomId);
+    localStorage.setItem('active_trophy_bg', draftBgUrl);
+
     exitForge();
-    openPortal('inventory'); // Re-open portal to see the new room in the Gallery
 };
 
 window.exitForge = function() {
@@ -839,12 +842,76 @@ window.exitForge = function() {
     const toolbox = document.getElementById('forge-toolbox');
     if(toolbox) toolbox.style.display = 'none';
     
-    // Deselect any active item
     if(editingItem) editingItem.style.filter = 'none';
     editingItem = null;
     
-    // Reload whatever the previously active room was
-    if(typeof loadActiveTrophy === 'function') loadActiveTrophy();
+    // Reload the active room (which now triggers the Exit Door to appear)
+    loadActiveTrophy();
+};
+
+window.loadActiveTrophy = async function() {
+    const activeBg = localStorage.getItem('active_trophy_bg'); 
+    const activeId = localStorage.getItem('active_trophy_id');
+    const bgArt = document.getElementById('bg-art');
+    
+    // If we have an active room, show it. Otherwise, force it back to your base sanctuary!
+    if(bgArt) {
+        bgArt.src = activeBg ? activeBg : 'sanctuary.jpg';
+    }
+    
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    layer.innerHTML = ''; 
+    
+    // Build the Exit Door
+    let exitBtn = document.getElementById('exit-trophy-btn');
+    if (!exitBtn) {
+        exitBtn = document.createElement('button');
+        exitBtn.id = 'exit-trophy-btn';
+        exitBtn.innerHTML = '🚪 Return to Main Sanctuary';
+        exitBtn.className = 'portal-btn';
+        exitBtn.style.position = 'fixed';
+        exitBtn.style.bottom = '30px';
+        exitBtn.style.right = '30px';
+        exitBtn.style.zIndex = '9999';
+        exitBtn.style.backgroundColor = 'rgba(20, 15, 12, 0.95)';
+        exitBtn.style.color = '#bf953f';
+        exitBtn.style.border = '2px solid #bf953f';
+        exitBtn.style.boxShadow = '0 0 20px rgba(0,0,0,0.9)';
+        exitBtn.style.padding = '15px 20px';
+        exitBtn.style.fontSize = '1.1em';
+        exitBtn.style.cursor = 'pointer';
+        exitBtn.onclick = leaveTrophyRoom;
+        document.body.appendChild(exitBtn);
+    }
+
+    // Only show the door if we are actually inside a custom room
+    if(activeId) {
+        exitBtn.style.display = 'block'; 
+        const roomFurniture = await loadData('trophy_furnishings');
+        const activeFurniture = roomFurniture.filter(f => f.room_id === activeId);
+        
+        activeFurniture.forEach(f => {
+            const img = document.createElement('img');
+            img.src = f.image_url; 
+            img.className = 'furnishing-item';
+            img.style.position = 'absolute';
+            img.style.left = f.pos_x; 
+            img.style.top = f.pos_y;
+            img.style.zIndex = f.z_index || 10; 
+            img.style.transform = `translate(-50%, -50%) scale(${f.scale || 1})`; 
+            img.dataset.scale = f.scale || 1;
+            layer.appendChild(img);
+        });
+    } else {
+        exitBtn.style.display = 'none'; 
+    }
+};
+
+window.leaveTrophyRoom = function() {
+    localStorage.removeItem('active_trophy_id');
+    localStorage.removeItem('active_trophy_bg');
+    loadActiveTrophy();
 };
 // --- THE STILLNESS (TEACUP) ---
 async function buildTeacupHTML() {
