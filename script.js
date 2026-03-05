@@ -470,14 +470,95 @@ async function buildBountyBoardHTML() {
     });
     return html + `</div></div>`; 
 }
-// === ARCHITECT'S FORGE: MASTER MECHANICS ===
+// === ARCHITECT'S FORGE: MASTER MECHANICS & PORTAL ===
 
 // 1. Hardwired Global Memory
 window.draftBgUrl = '';
 window.isForging = false;
 window.editingItem = null;
 
-// 2. The Missing Resizer
+// 2. The Portal Interface (The missing door!)
+async function buildInventoryHTML() {
+    let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
+
+    // Trophy Gallery
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div>
+             <div class="section-panel closed">`;
+    const rooms = await loadData('trophy_rooms');
+    if (rooms.length === 0) {
+        html += `<p style="color:rgba(191,149,63,0.5); font-style:italic; text-align:center;">No chambers forged yet.</p>`;
+    } else {
+        rooms.forEach(room => { 
+            html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px; margin-bottom: 10px;">
+                        <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
+                        <div style="display:flex; gap:10px;">
+                            <button class="portal-btn" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Enter</button>
+                            <button class="action-btn" style="color:#ff6b6b;" onclick="removeData('trophy_rooms', '${room.id}'); openPortal('inventory');">✕</button>
+                        </div>
+                     </div>`; 
+        });
+    }
+    html += `</div>`;
+
+    // Forge New Room
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div>
+             <div class="section-panel closed" style="padding: 15px;">
+                <div style="background:rgba(0,0,0,0.4); padding:15px; border:1px dashed rgba(191,149,63,0.4); border-radius:4px; text-align:center;">
+                    <input type="file" id="room-bg-upload" accept="image/*" onchange="startForging(this)" style="display:none;">
+                    <label for="room-bg-upload" class="portal-btn" style="display:block; width:100%; cursor:pointer; box-sizing:border-box;">Upload Room Background</label>
+                    <p style="color:#bf953f; font-size:0.85em; margin-top:10px; font-style:italic; margin-bottom:0;">Select a background to enter Building Mode.</p>
+                </div>
+             </div>`;
+
+    // The Grand Stash Uploader
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Add Item to Stash</div>
+             <div class="section-panel closed" style="padding: 15px;">
+                <div style="background:rgba(8, 8, 10, 0.6); padding:15px; border-radius:4px; border:1px solid rgba(191,149,63,0.3);">
+                    <input type="text" id="stash-item-name" placeholder="Item Name..." class="portal-input" style="margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(0,0,0,0.4); padding:10px; border:1px dashed rgba(191,149,63,0.3); border-radius:4px;">
+                        <label for="stash-item-upload" class="custom-file-label" style="margin:0;">Attach Transparent Image</label>
+                        <input type="file" id="stash-item-upload" accept="image/*" onchange="document.getElementById('stash-file-status').innerText = this.files[0].name">
+                        <span id="stash-file-status" style="font-size:0.8em; color:#bf953f; font-style:italic; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">No file</span>
+                    </div>
+                    <button onclick="addToGrandStash()" class="portal-btn" style="width:100%;">Stash Item</button>
+                </div>
+             </div>`;
+
+    // The Grand Stash Grid
+    const stash = await loadData('inventory_stash');
+    html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div>
+             <div class="section-panel closed">
+                <div id="stash-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding:10px 0;">`;
+    if (stash.length === 0) {
+        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center; grid-column:1/-1;">Your stash is empty.</p>`;
+    } else {
+        stash.forEach(item => { 
+            html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
+                        <button class="action-btn" style="position:absolute; top:2px; right:2px; color:#ff6b6b; font-size:12px; z-index:2;" onclick="removeData('inventory_stash', '${item.id}'); openPortal('inventory');">✕</button>
+                        <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; border-radius:2px;">
+                        <div style="font-size:0.6em; color:#bf953f; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
+                     </div>`; 
+        });
+    }
+    html += `</div></div></div>`;
+    return html;
+}
+
+window.addToGrandStash = async function() {
+    const name = document.getElementById('stash-item-name').value.trim();
+    const fileInput = document.getElementById('stash-item-upload');
+    
+    if (!name) return alert("The Architect must name this item!");
+    if (fileInput.files.length === 0) return alert("Please attach an image!");
+    
+    const imageUrl = await uploadImageToSupabase(fileInput.files[0], 'stash', 'stash-file-status');
+    if (imageUrl) {
+        await insertData('inventory_stash', { name, image_url: imageUrl });
+        openPortal('inventory');
+    }
+};
+
+// 3. The Missing Resizer
 window.resizeImage = function(file, maxWidth, callback) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -586,7 +667,7 @@ window.buildForgeToolbox = async function() {
     });
 };
 
-// 3. The Unbreakable Drag & Drop Mechanics
+// 4. The Unbreakable Drag & Drop Mechanics
 window.spawnToForge = function(imageUrl) {
     const layer = document.getElementById('furnishing-layer');
     if(!layer) return;
@@ -642,7 +723,7 @@ window.stopDrag = function() {
     document.onmouseup = null; 
 };
 
-// 4. The Fail-Proof Save System
+// 5. The Fail-Proof Save System
 window.saveForgedRoom = async function() {
     try {
         const roomName = document.getElementById('forge-room-name').value.trim();
@@ -701,7 +782,7 @@ window.exitForge = function() {
     loadActiveTrophy();
 };
 
-// 5. Unblockable Exit Doors
+// 6. Unblockable Exit Doors
 window.loadActiveTrophy = async function() {
     const activeBg = localStorage.getItem('active_trophy_bg'); 
     const activeId = localStorage.getItem('active_trophy_id');
