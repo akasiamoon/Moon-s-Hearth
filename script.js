@@ -89,7 +89,7 @@ async function scribeToArchive(tableName, formId, portalToReload) {
     openPortal(portalToReload); 
 }
 
-// === 1. LOCAL DATA (ALL RECIPES, UNABRIDGED) ===
+// === 1. LOCAL DATA (ALL RECIPES RESTORED UNABRIDGED) ===
 const myRecipes = [
     { title: "🌿 Highland Potato Stew", description: "A hearty, warming broth perfect for cold evenings.", ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], instructions: "Simmer over a low hearth fire until the potatoes yield." },
     { title: "🍌 Mistral Banana Bread", description: "Sweet, dense, and perfect for traveling or a morning study session.", ingredients: ["3 overripe bananas, mashed", "Brown sugar, melted butter, and a dash of vanilla", "Flour and a pinch of cinnamon"], instructions: "Bake until the crust is a deep golden brown. Serve warm with butter." },
@@ -311,7 +311,7 @@ function prefillDate(dateStr) {
     }
 }
 
-// === 4. HTML BUILDERS (THE CHAMBERS RESTORED) ===
+// === 4. HTML BUILDERS ===
 
 // --- KITCHEN GRIMOIRE (CAGED & ALPHABETIZED) ---
 let currentGrimoireData = [];
@@ -496,7 +496,7 @@ async function buildBountyBoardHTML() {
     return html;
 }
 
-// --- ARCHITECT'S FORGE (RESTORED INTERACTIVE FORGE) ---
+// --- ARCHITECT'S FORGE ---
 let isForging = false; let editingItem = null; let draftBgUrl = '';
 
 async function buildInventoryHTML() {
@@ -558,6 +558,29 @@ function selectItemForEdit(e) {
 function dragItem(e) { if (editingItem) { editingItem.style.left = e.clientX + 'px'; editingItem.style.top = e.clientY + 'px'; } }
 function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
 
+function loadActiveTrophy() {
+    const activeBg = localStorage.getItem('active_trophy_bg') || 'sanctuary.jpg';
+    const activeId = localStorage.getItem('active_trophy_id');
+    const bgArt = document.getElementById('bg-art');
+    if(bgArt) bgArt.src = activeBg;
+    const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+    layer.innerHTML = ''; 
+    if(activeId) {
+        const allFurniture = JSON.parse(localStorage.getItem('trophy_furnishings') || '[]');
+        const roomFurniture = allFurniture.filter(f => f.room_id === activeId);
+        roomFurniture.forEach(f => {
+            const img = document.createElement('img');
+            img.src = f.image_url;
+            img.className = 'furnishing-item';
+            img.style.left = f.pos_x; img.style.top = f.pos_y;
+            img.style.zIndex = f.z_index;
+            img.style.transform = `translate(-50%, -50%) scale(${f.scale || 1})`; 
+            layer.appendChild(img);
+        });
+    }
+}
+
 // --- THE STILLNESS (TEACUP) ---
 async function buildTeacupHTML() {
     let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
@@ -573,7 +596,7 @@ async function buildTeacupHTML() {
     return html + `</div>`;
 }
 
-// --- APOTHECARY (RESTORED SHELVES & PHIALS) ---
+// --- APOTHECARY ---
 async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
     html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
@@ -607,7 +630,7 @@ window.openReadingDesk = function(title, desc, ing, inst, id, isDb) {
     desk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
-// --- THE DRYING RACK (RESTORED SWAYING BUNDLES) ---
+// --- THE DRYING RACK ---
 async function buildHerbsHTML() {
     let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div class="herbs-rack-container">`;
     const dbHerbs = await loadData('herbs');
@@ -636,7 +659,7 @@ function toggleHerbDetail(id) {
     if (!isOpen) bundle.classList.add('show-details');
 }
 
-// --- THE LIVING BEDS (GARDEN GRID RESTORED) ---
+// --- THE LIVING BEDS ---
 let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
 
 async function buildGardenHTML() {
@@ -700,31 +723,34 @@ function buildAlmanacHTML() {
     return `<h2 class="gold-text">Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div></div>`;
 }
 
+function buildWorkshopHTML() {
+    return `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container"><p style="text-align:center; color:#d4c8a8;">Workshop active.</p></div>`;
+}
+function buildSewingHTML() {
+    return `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container"><p style="text-align:center; color:#d4c8a8;">Sewing active.</p></div>`;
+}
+
 // === 5. MASTER CORE UI CONTROLLER ===
 async function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     overlay.classList.add('active');
     
-    switch(portalName) {
-        case 'grimoire': content.innerHTML = await buildGrimoireHTML(); break;
-        case 'cat': content.innerHTML = await buildBountyBoardHTML(); break;
-        case 'teacup': content.innerHTML = await buildTeacupHTML(); break;
-        case 'ledger': content.innerHTML = await buildLedgerHTML(); break;
-        case 'alchemy': content.innerHTML = await buildApothecaryHTML(); break;
-        case 'herbs': content.innerHTML = await buildHerbsHTML(); break;
-        case 'sewing': content.innerHTML = await buildSewingHTML(); break;
-        case 'workshop': content.innerHTML = await buildWorkshopHTML(); break;
-        case 'apprentice': content.innerHTML = await buildApprenticeHTML(); break;
-        case 'inventory': content.innerHTML = await buildInventoryHTML(); break;
-        case 'garden': content.innerHTML = await buildGardenHTML(); break;
-        case 'audio': content.innerHTML = await buildAudioHTML(); break;
-        case 'window': content.innerHTML = buildAlmanacHTML(); break;
-        default: content.innerHTML = "<h2>Stabilizing Rift...</h2>";
-    }
+    if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
+    else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
+    else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
+    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
+    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
+    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
+    else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
+    else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
+    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
+    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
+    else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
+    else if (portalName === 'audio') content.innerHTML = await buildAudioHTML(); 
+    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML(); 
 }
 
-// RESTORED UI HELPERS 
 function closePortal() { document.getElementById('parchment-overlay').classList.remove('active'); }
 function toggleAccordion(btn) { btn.classList.toggle('active'); let p = btn.nextElementSibling; if(p.style.maxHeight) p.style.maxHeight = null; else p.style.maxHeight = p.scrollHeight + 30 + "px"; }
 function toggleSection(headerBtn) { headerBtn.classList.toggle('closed'); headerBtn.nextElementSibling.classList.toggle('closed'); }
@@ -737,4 +763,30 @@ function updateFamiliarUI() {
     if (fill) fill.style.strokeDashoffset = 289 - (289 * (familiarXP / maxXP));
 }
 
-document.addEventListener('DOMContentLoaded', () => { updateFamiliarUI(); updateNatureLore(); fetchLocalAtmosphere(); });
+function applySeasonalDecor() {
+    const month = new Date().getMonth();
+    const body = document.body;
+    if (month === 11 || month === 0 || month === 1) body.classList.add('season-winter');
+    else if (month >= 2 && month <= 4) body.classList.add('season-spring');
+    else if (month >= 8 && month <= 10) body.classList.add('season-autumn');
+}
+
+// === INITIALIZATION ===
+document.addEventListener('DOMContentLoaded', () => {
+    updateFamiliarUI();
+    updateNatureLore();
+    fetchLocalAtmosphere();
+    applySeasonalDecor();
+    loadActiveTrophy();
+    
+    const forgeScale = document.getElementById('forge-scale');
+    if(forgeScale) {
+        forgeScale.addEventListener('input', (e) => {
+            if (editingItem) {
+                editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
+                editingItem.dataset.scale = e.target.value;
+            }
+        });
+    }
+    console.log("🏰 Sanctuary Fully Reforged.");
+});
