@@ -552,59 +552,89 @@ async function buildTeacupHTML() {
     return html + `</div>`;
 }
 
-// --- APOTHECARY (UPGRADED WITH UPLOADS & INFINITE SHELVES) ---
+// --- APOTHECARY (BULLETPROOF CABINET & UPLOADS) ---
 async function buildApothecaryHTML() {
-    let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
-    
-    // --- ADD NEW RECIPE FORM ---
-    html += `
-    <div class="section-header closed" onclick="toggleSection(this)">Scribe New Concoction</div>
-    <div class="section-panel closed">
-        <div style="background: rgba(8, 8, 10, 0.6); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; margin-bottom: 20px;">
-            <input type="text" id="apo-title" placeholder="Concoction Name..." class="portal-input" style="margin-bottom: 10px;">
-            <textarea id="apo-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea>
-            <textarea id="apo-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
-            <textarea id="apo-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
-            
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(0,0,0,0.4); padding:10px; border:1px dashed rgba(191,149,63,0.3); border-radius:4px;">
-                <label for="apo-image" class="custom-file-label" style="margin:0;">Attach Image</label>
-                <input type="file" id="apo-image" accept="image/*" onchange="document.getElementById('apo-file-status').innerText = this.files[0].name">
-                <span id="apo-file-status" style="font-size:0.8em; color:#bf953f; font-style:italic; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">No file chosen</span>
+    try {
+        let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
+        html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
+        
+        // --- ADD NEW RECIPE FORM ---
+        html += `
+        <div class="section-header closed" onclick="toggleSection(this)">Scribe New Concoction</div>
+        <div class="section-panel closed">
+            <div style="background: rgba(8, 8, 10, 0.6); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; margin-bottom: 20px;">
+                <input type="text" id="apo-title" placeholder="Concoction Name..." class="portal-input" style="margin-bottom: 10px;">
+                <textarea id="apo-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea>
+                <textarea id="apo-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
+                <textarea id="apo-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(0,0,0,0.4); padding:10px; border:1px dashed rgba(191,149,63,0.3); border-radius:4px;">
+                    <label for="apo-image" class="custom-file-label" style="margin:0;">Attach Image</label>
+                    <input type="file" id="apo-image" accept="image/*" onchange="document.getElementById('apo-file-status').innerText = this.files[0].name">
+                    <span id="apo-file-status" style="font-size:0.8em; color:#bf953f; font-style:italic; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">No file chosen</span>
+                </div>
+                
+                <button onclick="addApothecaryRecipe()" class="portal-btn" style="width: 100%;">Add to Cabinet</button>
             </div>
-            
-            <button onclick="addApothecaryRecipe()" class="portal-btn" style="width: 100%;">Add to Cabinet</button>
-        </div>
-    </div>`;
+        </div>`;
 
-    // --- LOAD ALL RECIPES ---
-    const dbRecipes = await loadData('apothecary');
-    const allRecipes = [...myApothecary, ...(dbRecipes || [])];
-    
-    // Ensure we generate enough shelf slots to fit everything perfectly (multiples of 6)
-    const totalSlots = Math.max(Math.ceil(allRecipes.length / 6) * 6, 24);
-
-    html += `<div class="apothecary-cabinet-container">`;
-    for (let i = 0; i < totalSlots; i++) {
-        html += `<div class="alchemy-slot">`;
-        if (allRecipes[i]) {
-            const recipe = allRecipes[i];
-            const safeTitle = encodeURIComponent(recipe.title || '');
-            const safeDesc = encodeURIComponent(recipe.description || '');
-            const safeIng = encodeURIComponent(recipe.ingredients || '');
-            const safeInst = encodeURIComponent(recipe.instructions || '');
-            const safeImg = encodeURIComponent(recipe.image_url || '');
-            
-            html += `<div class="alchemy-pot healing" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${safeImg}', '${recipe.id || ''}')">
-                        <div class="css-phial" title="${recipe.title}"></div>
-                    </div>`;
-        } else {
-            html += `<div class="alchemy-pot empty"><div class="css-phial" style="opacity: 0.3;"></div></div>`;
+        // --- SAFE CLOUD LOADING & DEDUPLICATION ---
+        let dbRecipes = [];
+        if (db) {
+            try {
+                const { data } = await db.from('apothecary').select('*').order('created_at', { ascending: false });
+                if (data) dbRecipes = data;
+            } catch (err) { console.warn("Could not reach cloud apothecary."); }
         }
-        html += `</div>`; 
+
+        // Merge local baseline + cloud without creating duplicates!
+        const localApo = (typeof myApothecary !== 'undefined') ? myApothecary : [];
+        const uniqueRecipes = new Map();
+        
+        // Add local first
+        localApo.forEach(r => uniqueRecipes.set(r.title, r));
+        // Add cloud second (cloud versions will overwrite local versions if they share a name)
+        dbRecipes.forEach(r => uniqueRecipes.set(r.title, r));
+        
+        const allRecipes = Array.from(uniqueRecipes.values());
+        
+        // Ensure we generate enough shelf slots to fit everything perfectly (multiples of 6)
+        const totalSlots = Math.max(Math.ceil(allRecipes.length / 6) * 6, 24);
+
+        // HARDCODED INLINE CSS CABINET (Forced to Render)
+        html += `<div style="display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 100px; min-height: 450px; background: url('apothecary_cabinet_v2.jpg') top center/100% auto repeat-y, #0c0c0e; border: 5px solid #3e2723; border-radius: 4px; margin: 20px auto 40px auto; box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1); padding: 50px 15px 15px 15px;">`;
+        
+        for (let i = 0; i < totalSlots; i++) {
+            html += `<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 5px;">`;
+            if (allRecipes[i]) {
+                const recipe = allRecipes[i];
+                const safeTitle = encodeURIComponent(recipe.title || '');
+                const safeDesc = encodeURIComponent(recipe.description || '');
+                const safeIng = encodeURIComponent(recipe.ingredients || '');
+                const safeInst = encodeURIComponent(recipe.instructions || '');
+                const safeImg = encodeURIComponent(recipe.image_url || '');
+                const icon = recipe.icon || '🏺';
+                
+                html += `<div onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${safeImg}', '${recipe.id || ''}')" style="cursor:pointer; text-align:center; width:100%; transition: transform 0.2s;">
+                            <div title="${recipe.title}" style="width: 26px; height: 38px; border-radius: 10px 10px 15px 15px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); position: relative; margin: 0 auto; box-shadow: inset 0 0 5px rgba(255,255,255,0.2);">
+                                <span style="position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); font-size:14px; z-index:2;">${icon}</span>
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50%; border-radius: 0 0 13px 13px; background: #8fce00; box-shadow: 0 0 10px #8fce00; opacity: 0.8;"></div>
+                            </div>
+                            <div style="font-size:0.55em; color:#bf953f; margin-top:6px; line-height:1.2; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(0,0,0,0.8); border-radius:2px; padding:2px;">${recipe.title}</div>
+                        </div>`;
+            } else {
+                // Empty Bottle Outline
+                html += `<div style="width: 26px; height: 38px; border-radius: 10px 10px 15px 15px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); margin: 0 auto;"></div>`;
+            }
+            html += `</div>`; 
+        }
+        
+        return html + `</div><div id="apothecary-reading-desk" style="margin-bottom: 20px;"></div></div>`;
+        
+    } catch (error) {
+        console.error("Apothecary crashed:", error);
+        return `<h2 class="gold-text">Apothecary</h2><p style="color:#ff6b6b; text-align:center;">The magic failed to render the cabinet. Check console.</p>`;
     }
-    
-    return html + `</div><div id="apothecary-reading-desk" style="margin-bottom: 20px;"></div></div>`;
 }
 
 window.addApothecaryRecipe = async function() {
@@ -617,13 +647,13 @@ window.addApothecaryRecipe = async function() {
     const fileInput = document.getElementById('apo-image');
     
     let imageUrl = null;
-    if (fileInput.files.length > 0) {
+    if (fileInput && fileInput.files.length > 0) {
+        // Uses the global image uploader we built in the last step
         imageUrl = await uploadImageToSupabase(fileInput.files[0], 'apothecary', 'apo-file-status');
     }
 
-    await insertData('apothecary', { title, description, ingredients, instructions, image_url: imageUrl });
-    feedFamiliar();
-    openPortal('alchemy'); // Refresh the portal
+    await insertData('apothecary', { title, description, ingredients, instructions, image_url: imageUrl, icon: '🏺' });
+    openPortal('alchemy'); 
 };
 
 window.openReadingDesk = function(encTitle, encDesc, encIng, encInst, encImg, id) {
@@ -645,14 +675,13 @@ window.openReadingDesk = function(encTitle, encDesc, encIng, encInst, encImg, id
         <p style="color:#d4c8a8; font-style: italic;">${desc}</p>
         <div style="background:rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
             <p style="color:#bf953f; margin:0 0 5px 0; font-weight:bold;">Ingredients</p>
-            <p style="color:#d4c8a8; margin:0 0 15px 0;">${ing}</p>
+            <p style="color:#d4c8a8; margin:0 0 15px 0; white-space:pre-wrap;">${ing}</p>
             <p style="color:#bf953f; margin:0 0 5px 0; font-weight:bold;">Instructions</p>
-            <p style="color:#d4c8a8; margin:0;">${inst}</p>
+            <p style="color:#d4c8a8; margin:0; white-space:pre-wrap;">${inst}</p>
         </div>
     </div>`;
     desk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
-
 // --- THE DRYING RACK ---
 async function buildHerbsHTML() {
     let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div class="herbs-rack-container">`;
