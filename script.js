@@ -552,15 +552,40 @@ async function buildTeacupHTML() {
     return html + `</div>`;
 }
 
-// --- APOTHECARY ---
+// --- APOTHECARY (UPGRADED WITH UPLOADS & INFINITE SHELVES) ---
 async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
     html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
+    
+    // --- ADD NEW RECIPE FORM ---
+    html += `
+    <div class="section-header closed" onclick="toggleSection(this)">Scribe New Concoction</div>
+    <div class="section-panel closed">
+        <div style="background: rgba(8, 8, 10, 0.6); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; margin-bottom: 20px;">
+            <input type="text" id="apo-title" placeholder="Concoction Name..." class="portal-input" style="margin-bottom: 10px;">
+            <textarea id="apo-desc" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea>
+            <textarea id="apo-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
+            <textarea id="apo-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(0,0,0,0.4); padding:10px; border:1px dashed rgba(191,149,63,0.3); border-radius:4px;">
+                <label for="apo-image" class="custom-file-label" style="margin:0;">Attach Image</label>
+                <input type="file" id="apo-image" accept="image/*" onchange="document.getElementById('apo-file-status').innerText = this.files[0].name">
+                <span id="apo-file-status" style="font-size:0.8em; color:#bf953f; font-style:italic; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">No file chosen</span>
+            </div>
+            
+            <button onclick="addApothecaryRecipe()" class="portal-btn" style="width: 100%;">Add to Cabinet</button>
+        </div>
+    </div>`;
+
+    // --- LOAD ALL RECIPES ---
     const dbRecipes = await loadData('apothecary');
     const allRecipes = [...myApothecary, ...(dbRecipes || [])];
     
+    // Ensure we generate enough shelf slots to fit everything perfectly (multiples of 6)
+    const totalSlots = Math.max(Math.ceil(allRecipes.length / 6) * 6, 24);
+
     html += `<div class="apothecary-cabinet-container">`;
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < totalSlots; i++) {
         html += `<div class="alchemy-slot">`;
         if (allRecipes[i]) {
             const recipe = allRecipes[i];
@@ -568,20 +593,63 @@ async function buildApothecaryHTML() {
             const safeDesc = encodeURIComponent(recipe.description || '');
             const safeIng = encodeURIComponent(recipe.ingredients || '');
             const safeInst = encodeURIComponent(recipe.instructions || '');
-            html += `<div class="alchemy-pot healing" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${recipe.id || ''}', true)"><div class="css-phial"></div></div>`;
+            const safeImg = encodeURIComponent(recipe.image_url || '');
+            
+            html += `<div class="alchemy-pot healing" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${safeImg}', '${recipe.id || ''}')">
+                        <div class="css-phial" title="${recipe.title}"></div>
+                    </div>`;
         } else {
             html += `<div class="alchemy-pot empty"><div class="css-phial" style="opacity: 0.3;"></div></div>`;
         }
         html += `</div>`; 
     }
+    
     return html + `</div><div id="apothecary-reading-desk" style="margin-bottom: 20px;"></div></div>`;
 }
 
-window.openReadingDesk = function(encTitle, encDesc, encIng, encInst, id, isDb) {
-    const title = decodeURIComponent(encTitle); const desc = decodeURIComponent(encDesc);
-    const ing = decodeURIComponent(encIng); const inst = decodeURIComponent(encInst);
+window.addApothecaryRecipe = async function() {
+    const title = document.getElementById('apo-title').value.trim();
+    if (!title) return alert("The concoction needs a name!");
+    
+    const description = document.getElementById('apo-desc').value.trim();
+    const ingredients = document.getElementById('apo-ingredients').value.trim();
+    const instructions = document.getElementById('apo-instructions').value.trim();
+    const fileInput = document.getElementById('apo-image');
+    
+    let imageUrl = null;
+    if (fileInput.files.length > 0) {
+        imageUrl = await uploadImageToSupabase(fileInput.files[0], 'apothecary', 'apo-file-status');
+    }
+
+    await insertData('apothecary', { title, description, ingredients, instructions, image_url: imageUrl });
+    feedFamiliar();
+    openPortal('alchemy'); // Refresh the portal
+};
+
+window.openReadingDesk = function(encTitle, encDesc, encIng, encInst, encImg, id) {
+    const title = decodeURIComponent(encTitle); 
+    const desc = decodeURIComponent(encDesc);
+    const ing = decodeURIComponent(encIng); 
+    const inst = decodeURIComponent(encInst);
+    const img = decodeURIComponent(encImg);
+
+    let imgHtml = (img && img !== 'null' && img !== 'undefined' && img !== '') ? `<img src="${img}" style="width:100%; max-height:250px; object-fit:cover; border-radius:4px; margin-bottom:15px; border:1px solid rgba(191,149,63,0.3);">` : '';
+    let delBtn = (id && id !== 'null' && id !== 'undefined' && id !== '') ? `<button class="action-btn" style="position:absolute; top:15px; right:15px; color:#ff6b6b; font-size:16px;" onclick="removeData('apothecary', '${id}'); openPortal('alchemy'); document.getElementById('apothecary-reading-desk').innerHTML='';">✕</button>` : '';
+
     const desk = document.getElementById('apothecary-reading-desk');
-    desk.innerHTML = `<div class="alchemy-card"><h3 class="alchemy-title">${title}</h3><p style="color:#d4c8a8; font-style: italic;">${desc}</p><div style="background:rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);"><p style="color:#bf953f; margin:0 0 5px 0;">Ingredients</p><p style="color:#d4c8a8; margin:0 0 15px 0;">${ing}</p><p style="color:#bf953f; margin:0 0 5px 0;">Instructions</p><p style="color:#d4c8a8; margin:0;">${inst}</p></div></div>`;
+    desk.innerHTML = `
+    <div class="alchemy-card" style="position:relative;">
+        ${delBtn}
+        <h3 class="alchemy-title" style="padding-right: 20px;">${title}</h3>
+        ${imgHtml}
+        <p style="color:#d4c8a8; font-style: italic;">${desc}</p>
+        <div style="background:rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);">
+            <p style="color:#bf953f; margin:0 0 5px 0; font-weight:bold;">Ingredients</p>
+            <p style="color:#d4c8a8; margin:0 0 15px 0;">${ing}</p>
+            <p style="color:#bf953f; margin:0 0 5px 0; font-weight:bold;">Instructions</p>
+            <p style="color:#d4c8a8; margin:0;">${inst}</p>
+        </div>
+    </div>`;
     desk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
