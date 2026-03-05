@@ -646,23 +646,199 @@ async function buildLedgerHTML() {
     return html + `</div>`;
 }
 
-// --- APPRENTICE AREA ---
+// --- INTERACTIVE APPRENTICE QUEST MAP (UPGRADE) ---
+let currentApprentice = localStorage.getItem('active_apprentice') || 'Student 1';
+let selectedMapQuest = null; 
+
 async function buildApprenticeHTML() {
-    let html = `<h2 class="gold-text">Apprentice Ledger</h2><div class="portal-scroll-container">`;
-    const lessons = await loadData('apprentice_lessons');
-    lessons.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('apprentice_lessons', '${item.id}', ${item.is_completed}, 'apprentice')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('apprentice_lessons', '${item.id}', 'apprentice')">✕</div></div>`; 
-    });
-    html += `<div class="section-panel" id="form-apprentice"><input type="text" id="inp-text" placeholder="Assign task..." class="portal-input"><button onclick="scribeToArchive('apprentice_lessons', 'form-apprentice', 'apprentice')" class="portal-btn">Assign</button></div></div>`;
-    return html;
+    let html = `<h2 class="gold-text">Curriculum Map</h2><div class="portal-scroll-container" style="padding:0; overflow:hidden;">`;
+    
+    // --- MAP CONTROLS & APPRENTICE ROSTER ---
+    // In a future update, we can load a real roster from a 'roster' table.
+    const rosterFallback = ['Student 1', 'Student 2']; 
+    
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-bottom:1px solid rgba(191,149,63,0.3);">
+                <select class="portal-input" style="width: auto; margin:0;" onchange="switchApprenticeMap(this.value)">
+                    ${rosterFallback.map(name => `<option value="${name}" ${name === currentApprentice ? 'selected' : ''}>${name}</option>`).join('')}
+                </select>
+                <button onclick="addApprenticeToRoster()" class="action-btn" style="color:#bf953f;">+ Add Apprentice</button>
+             </div>`;
+
+    // --- 🗺️ THE CLICKABLE MAP CANVAS ---
+    html += `<div id="map-portal-container" onclick="mapClickAction(event)">
+                <img src="https://raw.githubusercontent.com/username/repo/main/quest_map.jpg" id="active-quest-map" alt="Curriculum Map">
+                
+                <div id="marker-layer"></div>
+                
+                <div id="map-quest-scroll">
+                    <button class="action-btn" style="position:absolute; top:5px; right:10px; color:#ff6b6b; font-size:1.4em;" onclick="closeMapScroll()">✕</button>
+                    <div id="scroll-subject-badge" class="subject-badge" style="background:#8fce00; color:#000; font-weight:bold; font-size:0.8em; margin-bottom:10px;"></div>
+                    <h3 id="scroll-quest-title" style="font-family:'Cinzel', serif; color:#332211; margin:0 0 10px 0;"></h3>
+                    <div id="scroll-xp-reward" style="font-weight:bold; color:#664422; margin-bottom:15px; border-bottom:1px solid #c9b089; padding-bottom:10px;"></div>
+                    
+                    <div style="display:flex; gap:10px;">
+                        <button id="complete-quest-btn" class="portal-btn" style="background:#8fce00; color:#000; border-color:#668800; flex:2;">Complete Quest</button>
+                        <button id="delete-quest-btn" class="portal-btn" style="background:#ff6b6b; color:#000; border-color:#aa3333; flex:1;">Abandon</button>
+                    </div>
+                </div>
+             </div>`;
+             
+    // --- LOAD MAP MARKERS (Runs AFTER the HTML is on the screen) ---
+    setTimeout(loadMapMarkers, 50); 
+             
+    return html + `</div>`;
 }
 
-function buildAlmanacHTML() {
-    const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
-    const currentTime = new Date().toLocaleTimeString('en-US', timeOptions);
-    return `<h2 class="gold-text">Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div></div>`;
-}
+// === INTERACTIVE MAP HELPER FUNCTIONS ===
+
+window.switchApprenticeMap = function(name) {
+    currentApprentice = name; localStorage.setItem('active_apprentice', name);
+    openPortal('apprentice'); // Reload the portal
+};
+
+// 1. Calculate clicked coordinates and show the 'Assign Quest' prompt
+window.mapClickAction = function(e) {
+    // If they clicked a marker or the scroll, don't trigger a new assignment
+    if (e.target.classList.contains('quest-marker') || e.target.id === 'map-quest-scroll' || e.target.closest('#map-quest-scroll')) return;
+
+    const container = document.getElementById('map-portal-container');
+    const rect = container.getBoundingClientRect();
+    // Get click location as percentage (0-100) for responsiveness
+    const posX = ((e.clientX - rect.left) / rect.width) * 100;
+    const posY = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    closeMapScroll(); // Close any open scroll first
+
+    // Inject the assignment prompt *right into* the map's scroll popup!
+    const scroll = document.getElementById('map-quest-scroll');
+    scroll.innerHTML = `
+        <button class="action-btn" style="position:absolute; top:5px; right:10px; color:#ff6b6b; font-size:1.4em;" onclick="closeMapScroll()">✕</button>
+        <h3 style="font-family:'Cinzel', serif; color:#332211; margin:0 0 15px 0;">Assign Quest to ${currentApprentice}</h3>
+        
+        <input type="text" id="map-inp-title" placeholder="Quest Name (e.g. Solve Fractions)..." class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; margin-bottom:10px;">
+        
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <select id="map-inp-subject" class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; flex:2; cursor:pointer;">
+                <option value="🧮 Math">🧮 Math</option>
+                <option value="📚 Reading">📚 Reading</option>
+                <option value="🧪 Science">🧪 Science</option>
+                <option value="🎨 Art">🎨 Art</option>
+                <option value="🧹 Chores">🧹 Chores</option>
+            </select>
+            <select id="map-inp-diff" class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; flex:1; cursor:pointer;">
+                <option value="Common">Common</option>
+                <option value="Elite">Elite</option>
+                <option value="Boss">Boss</option>
+            </select>
+        </div>
+        
+        <input type="hidden" id="map-inp-x" value="${posX}">
+        <input type="hidden" id="map-inp-y" value="${posY}">
+        <button onclick="saveQuestMarker()" class="portal-btn" style="width:100%; background:#bf953f; color:#fff; border-color:#664422;">Seal Quest</button>
+    `;
+    scroll.classList.add('active'); // Show the scroll
+};
+
+window.closeMapScroll = function() {
+    const scroll = document.getElementById('map-quest-scroll');
+    if (scroll) scroll.classList.remove('active');
+    selectedMapQuest = null; 
+};
+
+// 2. Save the new marker coordinates to the cloud
+window.saveQuestMarker = async function() {
+    const title = document.getElementById('map-inp-title').value.trim();
+    if (!title) return alert("The quest needs a title!");
+    
+    await insertData('apprentice_map_quests', {
+        apprentice_name: currentApprentice,
+        subject: document.getElementById('map-inp-subject').value,
+        difficulty: document.getElementById('map-inp-diff').value,
+        text: title, // Re-using the generic text field from insertData logic
+        is_completed: false,
+        pos_x: parseFloat(document.getElementById('map-inp-x').value),
+        pos_y: parseFloat(document.getElementById('map-inp-y').value)
+    });
+    
+    closeMapScroll();
+    openPortal('apprentice'); // Refresh to show the new marker
+};
+
+// 3. Load markers from cloud and drop them onto the canvas
+window.loadMapMarkers = async function() {
+    const layer = document.getElementById('marker-layer');
+    if (!layer) return;
+    layer.innerHTML = ''; // Clear existing markers
+
+    const allQuests = await loadData('apprentice_map_quests');
+    // Only show quests for the active apprentice
+    const activeQuests = allQuests.filter(q => q.apprentice_name === currentApprentice);
+
+    activeQuests.forEach(quest => {
+        const marker = document.createElement('div');
+        marker.className = `quest-marker ${quest.difficulty.toLowerCase()}`;
+        if (quest.is_completed) marker.classList.add('completed');
+        
+        // Apply the percentage coordinates
+        marker.style.left = `${quest.pos_x}%`;
+        marker.style.top = `${quest.pos_y}%`;
+        
+        // When clicked, open the detail scroll for this quest
+        marker.onclick = (e) => { e.stopPropagation(); openQuestDetail(quest); };
+        
+        layer.appendChild(marker);
+    });
+};
+
+// 4. Show the parchment scroll details for an existing quest
+window.openQuestDetail = function(quest) {
+    selectedMapQuest = quest; // Lock this quest as selected
+    
+    const scroll = document.getElementById('map-quest-scroll');
+    const title = document.getElementById('scroll-quest-title');
+    const badge = document.getElementById('scroll-subject-badge');
+    const xp = document.getElementById('scroll-xp-reward');
+    const completeBtn = document.getElementById('complete-quest-btn');
+    const deleteBtn = document.getElementById('delete-quest-btn');
+    
+    // Reset buttons and text
+    scroll.innerHTML = ''; // Clear assignment form
+    scroll.innerHTML = `<button class="action-btn" style="position:absolute; top:5px; right:10px; color:#ff6b6b; font-size:1.4em;" onclick="closeMapScroll()">✕</button><div id="scroll-subject-badge" class="subject-badge" style="background:#8fce00; color:#000; font-weight:bold; font-size:0.8em; margin-bottom:10px;"></div><h3 id="scroll-quest-title" style="font-family:'Cinzel', serif; color:#332211; margin:0 0 10px 0;"></h3><div id="scroll-xp-reward" style="font-weight:bold; color:#664422; margin-bottom:15px; border-bottom:1px solid #c9b089; padding-bottom:10px;"></div><div style="display:flex; gap:10px;"><button id="complete-quest-btn" class="portal-btn" style="background:#8fce00; color:#000; border-color:#668800; flex:2;">Complete Quest</button><button id="delete-quest-btn" class="portal-btn" style="background:#ff6b6b; color:#000; border-color:#aa3333; flex:1;">Abandon</button></div>`;
+
+    // Re-select elements (needed because we just rewrote innerHTML)
+    const newTitle = document.getElementById('scroll-quest-title');
+    const newBadge = document.getElementById('scroll-subject-badge');
+    const newXp = document.getElementById('scroll-xp-reward');
+    const newCompleteBtn = document.getElementById('complete-quest-btn');
+    const newDeleteBtn = document.getElementById('delete-quest-btn');
+
+    newTitle.innerText = quest.text;
+    newBadge.innerText = quest.subject;
+    
+    // Calculate XP reward
+    const xpVal = quest.difficulty === 'Boss' ? 50 : (quest.difficulty === 'Elite' ? 25 : 10);
+    newXp.innerText = `Reward: +${xpVal} XP`;
+    
+    // Set up button actions
+    newCompleteBtn.onclick = async () => {
+        if (selectedMapQuest) {
+            await updateData('apprentice_map_quests', selectedMapQuest.id, { is_completed: true });
+            feedFamiliar();
+            closeMapScroll();
+            openPortal('apprentice'); 
+        }
+    };
+    
+    newDeleteBtn.onclick = async () => {
+        if (selectedMapQuest && confirm("Abandon this quest forever?")) {
+            await removeData('apprentice_map_quests', selectedMapQuest.id);
+            closeMapScroll();
+            openPortal('apprentice');
+        }
+    };
+
+    scroll.classList.add('active'); // Show the scroll
+};
 
 // --- SEWING & WORKSHOP (UPGRADED WITH IMAGES) ---
 
