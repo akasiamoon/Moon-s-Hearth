@@ -1064,4 +1064,31 @@ document.addEventListener('DOMContentLoaded', () => {
     updateNatureLore();
     fetchLocalAtmosphere();
     if (typeof loadActiveTrophy === "function") loadActiveTrophy();
+    
+    // The Architect's Forge Scale Slider
+    const forgeScale = document.getElementById('forge-scale');
+    if(forgeScale) {
+        forgeScale.addEventListener('input', (e) => {
+            if (editingItem) {
+                editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
+                editingItem.dataset.scale = e.target.value;
+            }
+        });
+    }
+
+    // === NEW: ESCAPE KEY TO CLOSE PORTALS ===
+    document.addEventListener('keydown', (e) => {
+        if (e.key === "Escape") {
+            // Check if the small map scroll is open first
+            const mapScroll = document.getElementById('map-quest-scroll');
+            if (mapScroll && mapScroll.classList.contains('active')) {
+                closeMapScroll();
+            } else {
+                // Otherwise, close the main portal
+                closePortal();
+            }
+        }
+    });
+
+    console.log("🏰 Sanctuary Fully Reforged.");
 });
