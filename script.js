@@ -316,7 +316,7 @@ let activeSoundscapes = {};
 
 async function buildAudioHTML() {
     let html = `<h2 class="gold-text">Bardic Soundscapes</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color: rgba(191,149,63,0.8); font-style:italic;">Select your ambient mix for the Sanctuary.</p>`;
+    html += `<p style="text-align:center; color: rgba(191,149,63,0.8); font-style:italic;">Select your ambient mix.</p>`;
     
     const tracks = [
         { id: 'rain', name: 'Gentle Rainfall', url: 'rain.mp3' },
@@ -341,13 +341,13 @@ async function buildAudioHTML() {
         { id: 'birds', name: 'Morning Chorus', url: 'birds.mp3' }
     ];
 
-    html += `<div id="soundscape-container">`;
+    html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 15px;">`;
     tracks.forEach(track => {
-        const isActive = activeSoundscapes[track.id] ? 'active' : '';
+        const isActive = activeSoundscapes[track.id] ? 'background: rgba(191,149,63,0.3); border-color: #fcf6ba; color: #fff;' : 'background: transparent; color: #d4c8a8; border-color: rgba(191,149,63,0.4);';
         const currentVol = activeSoundscapes[track.id] ? activeSoundscapes[track.id].volume : 0.5;
-        html += `<div class="sound-item">
-                    <button class="play-btn ${isActive}" onclick="toggleTrack('${track.id}', '${track.url}')">${track.name}</button>
-                    <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="${currentVol}" onchange="changeVolume('${track.id}', this.value)">
+        html += `<div style="background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.2); padding: 10px; border-radius: 2px; text-align: center;">
+                    <button style="width: 100%; padding: 8px 4px; font-family: 'Quicksand', sans-serif; font-size: 0.85em; cursor: pointer; margin-bottom: 8px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; ${isActive}" onclick="toggleTrack('${track.id}', '${track.url}')">${track.name}</button>
+                    <input type="range" min="0" max="1" step="0.1" value="${currentVol}" onchange="changeVolume('${track.id}', this.value)" style="width: 90%; cursor: pointer; accent-color: #bf953f;">
                  </div>`;
     });
     html += `</div></div>`;
@@ -358,21 +358,18 @@ function toggleTrack(id, url) {
     if (activeSoundscapes[id]) {
         activeSoundscapes[id].pause();
         delete activeSoundscapes[id];
-        openPortal('audio'); 
     } else {
         const audio = new Audio(url);
         audio.loop = true;
         audio.volume = 0.5;
-        audio.play().catch(e => console.log("Audio playback blocked:", e));
+        audio.play().catch(e => console.log("Audio error:", e));
         activeSoundscapes[id] = audio;
-        openPortal('audio'); 
     }
+    openPortal('audio'); 
 }
 
 function changeVolume(id, vol) {
-    if (activeSoundscapes[id]) {
-        activeSoundscapes[id].volume = vol;
-    }
+    if (activeSoundscapes[id]) activeSoundscapes[id].volume = vol;
 }
 
 async function buildBountyBoardHTML() {
@@ -395,7 +392,7 @@ async function buildBountyBoardHTML() {
 
 async function buildTeacupHTML() {
     let html = `<h2 class="gold-text">The Stillness</h2><div class="portal-scroll-container">`;
-    html += `<div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;"><textarea id="journal-text" placeholder="Record your thoughts or visions..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea><button onclick="submitJournalEntry()" class="portal-btn">Seal Memory</button></div>`;
+    html += `<div style="background: rgba(8, 8, 10, 0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-bottom: 20px;"><textarea id="journal-text" placeholder="Record your thoughts..." class="portal-input" style="height: 100px; resize: none; margin-bottom: 10px;"></textarea><button onclick="submitJournalEntry()" class="portal-btn">Seal Memory</button></div>`;
     const notes = await loadData('family_notes');
     notes.forEach(note => {
         const dateStr = new Date(note.created_at).toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
@@ -786,6 +783,45 @@ async function deleteTrophy(roomId) {
     openPortal('inventory');
 }
 
+// === THE LIVING BEDS LOGIC ===
+let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
+
+async function buildGardenHTML() {
+    let html = `<h2 class="gold-text">The Living Beds</h2><div class="portal-scroll-container">`;
+    let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
+    if (!allBeds.includes(currentBedName)) currentBedName = allBeds[0];
+
+    let bedOptions = allBeds.map(b => `<option value="${b}" ${b === currentBedName ? 'selected' : ''}>${b}</option>`).join('');
+    
+    html += `<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+                <select id="bed-select" class="portal-input" style="width:60%; cursor:pointer;" onchange="switchBed(this.value)">${bedOptions}</select>
+                <button class="portal-btn" onclick="buildNewBed()" style="width:35%; color:#8fce00; border-color:#8fce00;">+ Build Bed</button>
+             </div>
+             <p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Tending to: ${currentBedName}</p>`;
+
+    html += `<div class="garden-bed-container" style="display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); height: 300px; background: #271915; border: 8px solid #3e2723; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.8);">`;
+    const plots = await loadData('garden_plots');
+    const activePlots = plots.filter(p => (p.bed_name || 'Main Bed') === currentBedName);
+    for (let i = 1; i <= 8; i++) {
+        const gridId = `cell-${i}`;
+        const plotData = activePlots.find(p => p.grid_id === gridId);
+        if (plotData) {
+            const daysOld = Math.floor((new Date() - new Date(plotData.created_at)) / (1000 * 60 * 60 * 24));
+            let icon = daysOld >= 3 ? (plotData.plant_icon || '🌻') : (daysOld >= 1 ? '🌿' : '🌱');
+            html += `<div class="garden-cell" style="border: 1px dashed rgba(143, 206, 0, 0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;" onclick="tendPlot('${plotData.id}', '${plotData.plant_name.replace(/'/g, "\\'")}')"><div class="plant-icon" style="font-size: 2.5em;">${icon}</div><div class="plant-name" style="font-size: 0.75em; color: #fcf6ba; font-weight: bold; margin-top:5px;">${plotData.plant_name}</div></div>`;
+        } else {
+            html += `<div class="garden-cell" style="border: 1px dashed rgba(143, 206, 0, 0.2); display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="font-size: 2.5em; opacity:0.2;">🌱</div></div>`;
+        }
+    }
+    html += `</div><div id="garden-action-panel" style="margin-top: 15px; min-height: 120px;"></div></div>`;
+    return html;
+}
+
+function switchBed(name) { currentBedName = name; localStorage.setItem('active_garden_bed', name); openPortal('garden'); }
+function buildNewBed() { const n = prompt("Bed Name:"); if(n && n.trim() !== '') { let b = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]'); if(!b.includes(n.trim())) { b.push(n.trim()); localStorage.setItem('garden_bed_names', JSON.stringify(b)); } switchBed(n.trim()); } }
+function plantSeed(gridId) { document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card" style="border-color: #8fce00;"><h3 class="alchemy-title" style="color:#8fce00;">Sow Seed</h3><input type="text" id="inp-plant_name" placeholder="Plant Name..." class="portal-input" style="margin-bottom:10px;"><input type="hidden" id="inp-grid_id" value="${gridId}"><input type="hidden" id="inp-bed_name" value="${currentBedName}"><div style="display:flex; gap:10px;"><button onclick="scribeToArchive('garden_plots', 'garden-action-panel', 'garden')" class="portal-btn" style="flex:1;">Plant</button><button onclick="document.getElementById('garden-action-panel').innerHTML='';" class="portal-btn" style="flex:1; color:#ff6b6b; border-color:#ff6b6b;">Cancel</button></div></div>`; }
+function tendPlot(plotId, plantName) { document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card"><h3 class="alchemy-title">Tending: ${plantName}</h3><div style="display:flex; gap:10px;"><button onclick="removeData('garden_plots', '${plotId}'); openPortal('garden');" class="portal-btn" style="color:#ff6b6b; border-color:#ff6b6b; flex:1;">Uproot</button><button onclick="document.getElementById('garden-action-panel').innerHTML='';" class="portal-btn" style="flex:1;">Cancel</button></div></div>`; }
+
 // === 6. THE FAMILIAR ===
 let familiarXP = 0; const maxXP = 5;
 function feedFamiliar() { if (familiarXP < maxXP) { familiarXP++; updateFamiliarUI(); } }
@@ -895,6 +931,8 @@ async function openPortal(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     overlay.classList.add('active');
+    
+    // EVERY SINGLE PORTAL NOW CONNECTED!
     if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
     else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
     else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
@@ -906,59 +944,17 @@ async function openPortal(portalName) {
     else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
     else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
     else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
-    else if (portalName === 'audio') content.innerHTML = await buildAudioHTML(); // NEW AUDIO PORTAL HOOK
+    else if (portalName === 'audio') content.innerHTML = await buildAudioHTML(); // FIXED!
+    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML(); // FIXED!
 }
 
 function closePortal() { document.getElementById('parchment-overlay').classList.remove('active'); }
-
-// === 9. SEASONAL DECOR ===
-function applySeasonalDecor() {
-    const month = new Date().getMonth();
-    const body = document.body;
-    if (month === 11 || month === 0 || month === 1) body.classList.add('season-winter');
-    else if (month >= 2 && month <= 4) body.classList.add('season-spring');
-}
-
-async function bulkScribeData() {
-    if (!db) return;
-    console.log("📜 Starting the Total Sanctuary Sync...");
-
-    try {
-        // 1. Sync Apothecary with all fields
-        const { error: apoErr } = await db.from('apothecary').upsert(
-            myApothecary.map(a => ({
-                title: a.title, 
-                description: a.description, 
-                ingredients: a.ingredients, 
-                instructions: a.instructions,
-                icon: a.icon 
-            }))
-        );
-        if (apoErr) throw apoErr;
-
-        // 2. Sync Recipes with all fields
-        const { error: recErr } = await db.from('recipes').upsert(
-            myRecipes.map(r => ({
-                title: r.title, 
-                description: r.description, 
-                ingredients: Array.isArray(r.ingredients) ? r.ingredients.join(', ') : r.ingredients, 
-                instructions: r.instructions 
-            }))
-        );
-        if (recErr) throw recErr;
-
-        console.log("✅ SUCCESS: The Sanctuary is now fully populated!");
-    } catch (err) {
-        console.error("🚫 Ritual Failed:", err.message);
-    }
-}
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     updateFamiliarUI();
     updateNatureLore();
     fetchLocalAtmosphere();
-    applySeasonalDecor();
     loadActiveTrophy();
     
     const forgeScale = document.getElementById('forge-scale');
@@ -972,164 +968,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     console.log("🏰 Sanctuary Fully Reforged.");
 });
-
-// === THE LIVING BEDS LOGIC ===
-let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
-
-async function buildGardenHTML() {
-    let html = `<h2 class="gold-text">The Living Beds</h2><div class="portal-scroll-container">`;
-    
-    // --- 1. BED SELECTOR & BUILDER ---
-    let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
-    if (!allBeds.includes(currentBedName)) currentBedName = allBeds[0];
-
-    let bedOptions = allBeds.map(b => `<option value="${b}" ${b === currentBedName ? 'selected' : ''}>${b}</option>`).join('');
-    
-    html += `
-        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-            <select id="bed-select" class="portal-input" style="width:60%; cursor:pointer;" onchange="switchBed(this.value)">
-                ${bedOptions}
-            </select>
-            <button class="portal-btn" onclick="buildNewBed()" style="width:35%; color:#8fce00; border-color:#8fce00;">+ Build Bed</button>
-        </div>
-        <p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Tending to: ${currentBedName}</p>
-    `;
-
-    // --- 2. BUILD THE GARDEN BOX ---
-    html += `<div class="garden-bed-container">`;
-    
-    // Load the planted data and filter ONLY for the current bed
-    const plots = await loadData('garden_plots');
-    const activePlots = plots.filter(p => (p.bed_name || 'Main Bed') === currentBedName);
-    
-    // Generate 8 squares (4x2 grid)
-    for (let i = 1; i <= 8; i++) {
-        const gridId = `cell-${i}`;
-        const plotData = activePlots.find(p => p.grid_id === gridId);
-        
-        if (plotData) {
-            // --- TIME-WEAVER GROWTH MATH ---
-            const plantedDate = new Date(plotData.created_at);
-            const now = new Date();
-            const daysOld = Math.floor((now - plantedDate) / (1000 * 60 * 60 * 24)); // Calculates full days passed
-            
-            let displayIcon = '🌱'; // Stage 1: Seedling (Day 0)
-            let stageText = 'Sprouting';
-            
-            if (daysOld >= 1) { 
-                displayIcon = '🌿'; // Stage 2: Vegetative (Day 1-2)
-                stageText = 'Growing'; 
-            }
-            if (daysOld >= 3) { 
-                displayIcon = plotData.plant_icon; // Stage 3: Blooming / Mature (Day 3+)
-                stageText = 'Mature'; 
-            }
-
-            const fertDate = plotData.last_fertilized ? new Date(plotData.last_fertilized).toLocaleDateString([], {month:'short', day:'numeric'}) : 'Needs Food';
-            
-            html += `
-                <div class="garden-cell" onclick="tendPlot('${plotData.id}', '${plotData.plant_name.replace(/'/g, "\\'")}')">
-                    <div class="plant-icon">${displayIcon}</div>
-                    <div class="plant-name">${plotData.plant_name} <span style="font-weight:normal; opacity:0.7;">(${stageText})</span></div>
-                    <div class="fert-status">💧 ${fertDate}</div>
-                </div>`;
-        } else {
-            // Empty dirt
-            html += `
-                <div class="garden-cell" onclick="plantSeed('${gridId}')">
-                    <div class="plant-icon" style="opacity:0.2;">🌱</div>
-                    <div class="plant-name" style="color:rgba(191,149,63,0.5);">Empty Soil</div>
-                </div>`;
-        }
-    }
-    html += `</div>`;
-    
-    // --- 3. ACTION PANEL ---
-    html += `<div id="garden-action-panel" style="margin-top: 15px; min-height: 120px;"></div>`;
-    html += `</div>`; 
-    return html;
-}
-
-// --- BED MANAGEMENT ---
-function switchBed(name) {
-    currentBedName = name;
-    localStorage.setItem('active_garden_bed', name);
-    openPortal('garden');
-}
-
-function buildNewBed() {
-    const newName = prompt("Name your new raised bed (e.g., North Box, Herb Garden):");
-    if (newName && newName.trim() !== '') {
-        let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
-        if (!allBeds.includes(newName.trim())) {
-            allBeds.push(newName.trim());
-            localStorage.setItem('garden_bed_names', JSON.stringify(allBeds));
-        }
-        switchBed(newName.trim());
-    }
-}
-
-// --- NEW BEAUTIFUL ACTIONS ---
-function plantSeed(gridId) {
-    const panel = document.getElementById('garden-action-panel');
-    panel.innerHTML = `
-        <div class="alchemy-card" style="border-color: #8fce00;">
-            <h3 class="alchemy-title" style="color: #8fce00;">🌱 Sow a New Seed</h3>
-            <input type="text" id="seed-name-input" placeholder="e.g., Midnight Poppy, Lavender..." class="portal-input" style="margin-bottom: 10px;">
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="confirmPlantSeed('${gridId}')" class="portal-btn" style="color: #8fce00; border-color: #8fce00; flex: 1;">Plant</button>
-                <button onclick="cancelGardenAction()" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">Cancel</button>
-            </div>
-        </div>
-    `;
-    document.getElementById('seed-name-input').focus();
-}
-
-async function confirmPlantSeed(gridId) {
-    const plantName = document.getElementById('seed-name-input').value.trim();
-    if (!plantName) return;
-    
-    // Smart Icon Logic
-    let icon = '🌱';
-    const nameLower = plantName.toLowerCase();
-    if(nameLower.includes('tomato')) icon = '🍅';
-    else if(nameLower.includes('carrot') || nameLower.includes('root')) icon = '🥕';
-    else if(nameLower.includes('flower') || nameLower.includes('lavender') || nameLower.includes('poppy') || nameLower.includes('chamomile')) icon = '🪻';
-    else if(nameLower.includes('herb') || nameLower.includes('rosemary') || nameLower.includes('thyme') || nameLower.includes('mint')) icon = '🌿';
-    else if(nameLower.includes('berry')) icon = '🫐';
-    else if(nameLower.includes('moon')) icon = '🌙';
-
-    // Note the addition of bed_name here so it saves to the right box!
-    await insertData('garden_plots', { bed_name: currentBedName, grid_id: gridId, plant_name: plantName, plant_icon: icon });
-    openPortal('garden'); 
-}
-
-function tendPlot(plotId, plantName) {
-    const panel = document.getElementById('garden-action-panel');
-    panel.innerHTML = `
-        <div class="alchemy-card" style="border-color: #bf953f;">
-            <h3 class="alchemy-title">Tending: ${plantName}</h3>
-            <p style="color: #d4c8a8; font-size: 0.9em; margin-top: 0; margin-bottom: 15px;">What does this plot need?</p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="confirmFeed('${plotId}')" class="portal-btn" style="color: #4facfe; border-color: #4facfe; flex: 1;">💧 Water / Feed</button>
-                <button onclick="confirmUproot('${plotId}')" class="portal-btn" style="color: #ff6b6b; border-color: #ff6b6b; flex: 1;">⛏️ Uproot</button>
-                <button onclick="cancelGardenAction()" class="portal-btn" style="flex: 1;">Cancel</button>
-            </div>
-        </div>
-    `;
-}
-
-async function confirmFeed(plotId) {
-    await updateData('garden_plots', plotId, { last_fertilized: new Date().toISOString() });
-    feedFamiliar(); 
-    openPortal('garden');
-}
-
-async function confirmUproot(plotId) {
-    await removeData('garden_plots', plotId);
-    openPortal('garden');
-}
-
-function cancelGardenAction() {
-    document.getElementById('garden-action-panel').innerHTML = '';
-}
