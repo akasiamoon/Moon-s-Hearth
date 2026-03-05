@@ -470,8 +470,12 @@ async function buildBountyBoardHTML() {
     });
     return html + `</div></div>`; 
 }
-
 // === ARCHITECT'S FORGE: CORE MECHANICS ===
+
+// Global Memory (Hardwired so the browser never loses them)
+window.draftBgUrl = '';
+window.isForging = false;
+window.editingItem = null;
 
 // === ARCHITECT'S FORGE: PORTAL INTERFACE ===
 async function buildInventoryHTML() {
@@ -554,87 +558,7 @@ window.addToGrandStash = async function() {
     }
 };
 
-// === ARCHITECT'S FORGE: ROOM NAVIGATION & DOORS ===
-
-window.loadActiveTrophy = async function() {
-    // 1. Check where we are
-    const activeBg = localStorage.getItem('active_trophy_bg') || 'sanctuary.jpg'; 
-    const activeId = localStorage.getItem('active_trophy_id');
-    const bgArt = document.getElementById('bg-art');
-    if(bgArt) bgArt.src = activeBg;
-    
-    const layer = document.getElementById('furnishing-layer');
-    if(!layer) return;
-    layer.innerHTML = ''; // Clear the current furniture
-    
-    // 2. Build the "Return to Sanctuary" Door
-    let exitBtn = document.getElementById('exit-trophy-btn');
-    if (!exitBtn) {
-        exitBtn = document.createElement('button');
-        exitBtn.id = 'exit-trophy-btn';
-        exitBtn.innerHTML = '🚪 Return to Main Sanctuary';
-        exitBtn.className = 'portal-btn';
-        exitBtn.style.position = 'fixed';
-        exitBtn.style.bottom = '20px';
-        exitBtn.style.right = '20px';
-        exitBtn.style.zIndex = '9000';
-        exitBtn.style.backgroundColor = 'rgba(20, 15, 12, 0.9)';
-        exitBtn.style.color = '#bf953f';
-        exitBtn.style.border = '1px solid #bf953f';
-        exitBtn.style.boxShadow = '0 0 15px rgba(0,0,0,0.8)';
-        exitBtn.onclick = leaveTrophyRoom;
-        document.body.appendChild(exitBtn);
-    }
-
-    // 3. Load the Room (or hide the door if we are in the main hall)
-    if(activeId) {
-        exitBtn.style.display = 'block'; // Show the door out
-        const roomFurniture = await loadData('trophy_furnishings');
-        const activeFurniture = roomFurniture.filter(f => f.room_id === activeId);
-        
-        activeFurniture.forEach(f => {
-            const img = document.createElement('img');
-            img.src = f.image_url; 
-            img.className = 'furnishing-item';
-            img.style.position = 'absolute';
-            img.style.left = f.pos_x; 
-            img.style.top = f.pos_y;
-            img.style.zIndex = f.z_index || 10; 
-            img.style.transform = `translate(-50%, -50%) scale(${f.scale || 1})`; 
-            img.dataset.scale = f.scale || 1;
-            layer.appendChild(img);
-        });
-    } else {
-        exitBtn.style.display = 'none'; // Hide the door, we are home
-    }
-};
-
-window.leaveTrophyRoom = function() {
-    // Clear the active room memory
-    localStorage.removeItem('active_trophy_id');
-    localStorage.removeItem('active_trophy_bg');
-    
-    // Trigger the reload to return to the base Sanctuary
-    loadActiveTrophy();
-};
-
-window.loadTrophy = function(roomId, bgUrl) { 
-    localStorage.setItem('active_trophy_id', roomId); 
-    localStorage.setItem('active_trophy_bg', bgUrl); 
-    loadActiveTrophy(); 
-    closePortal(); 
-};
-
-
-window.startForging = async function(input) {
-    if(!input.files[0]) return;
-    
-    // Change the label text so you know it's working
-    const label = input.nextElementSibling;
-    const originalText = label.innerText;
-    label.innerText = "✨ Weaving Background into the Cloud...";
-
-    // === THE MISSING IMAGE RESIZER ===
+// === THE IMAGE RESIZER ===
 window.resizeImage = function(file, maxWidth, callback) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -645,27 +569,26 @@ window.resizeImage = function(file, maxWidth, callback) {
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
-
-            // Only resize if it's wider than our max width
             if (width > maxWidth) {
                 height = Math.round((height *= maxWidth / width));
                 width = maxWidth;
             }
-
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            
-            // Compress and return the new smaller file
-            canvas.toBlob((blob) => {
-                callback(blob);
-            }, file.type || 'image/jpeg', 0.85);
+            canvas.toBlob((blob) => { callback(blob); }, file.type || 'image/jpeg', 0.85);
         };
     };
 };
+
+window.startForging = async function(input) {
+    if(!input.files[0]) return;
     
-    // Upload the background straight to Supabase
+    const label = input.nextElementSibling;
+    const originalText = label.innerText;
+    label.innerText = "✨ Weaving Background into the Cloud...";
+    
     const bgUrl = await uploadImageToSupabase(input.files[0], 'trophy_bg', label.id);
     
     if(!bgUrl) {
@@ -674,18 +597,17 @@ window.resizeImage = function(file, maxWidth, callback) {
         return;
     }
 
-    draftBgUrl = bgUrl;
+    window.draftBgUrl = bgUrl;
     const bgArt = document.getElementById('bg-art');
-    if(bgArt) bgArt.src = draftBgUrl; 
+    if(bgArt) bgArt.src = window.draftBgUrl; 
     
     document.body.classList.add('building-mode'); 
     const layer = document.getElementById('furnishing-layer');
-    if(layer) layer.innerHTML = ''; // Clear current room
+    if(layer) layer.innerHTML = ''; 
     
     closePortal(); 
-    isForging = true;
+    window.isForging = true;
     
-    // SPAWN THE MISSING TOOLBOX!
     await buildForgeToolbox();
 };
 
@@ -709,18 +631,14 @@ window.buildForgeToolbox = async function() {
     toolbox.innerHTML = `
         <div style="background: rgba(16, 12, 9, 0.95); border: 2px solid #bf953f; border-radius: 6px; padding: 15px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.9); pointer-events: auto;">
             <h3 style="color:#fcf6ba; font-family:'Cinzel', serif; margin:0 0 15px 0; text-align:center; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:10px;">Architect's Toolbox</h3>
-            
             <div style="margin-bottom: 15px;">
                 <div style="display:flex; justify-content:space-between; color:#bf953f; font-size:0.8em; margin-bottom:5px;"><span>Item Scale</span><span id="scale-readout">1.0x</span></div>
                 <input type="range" id="forge-scale" min="0.2" max="3" step="0.1" value="1" style="width:100%; cursor:pointer;">
             </div>
-            
             <div style="max-height: 250px; overflow-y: auto; display:flex; flex-wrap:wrap; justify-content:center; margin-bottom: 20px; background:rgba(0,0,0,0.3); border:1px inset rgba(191,149,63,0.2); padding:10px; border-radius:4px;">
                 ${stashHtml}
             </div>
-            
             <input type="text" id="forge-room-name" placeholder="Name this Room..." class="portal-input" style="margin-bottom:10px;">
-            
             <div style="display:flex; gap:10px;">
                 <button onclick="saveForgedRoom()" class="portal-btn" style="flex:2; background:#8fce00; color:#000; border-color:#8fce00;">Seal Room</button>
                 <button onclick="exitForge()" class="portal-btn" style="flex:1; background:#ff6b6b; color:#000; border-color:#ff6b6b;">Cancel</button>
@@ -728,19 +646,17 @@ window.buildForgeToolbox = async function() {
         </div>
     `;
 
-    // Make the toolbox float beautifully on the screen
     toolbox.style.position = 'fixed';
     toolbox.style.top = '20px';
     toolbox.style.right = '20px';
     toolbox.style.zIndex = '9999';
     toolbox.style.display = 'block';
 
-    // Hook up the scale slider dynamically
     document.getElementById('forge-scale').addEventListener('input', (e) => {
         document.getElementById('scale-readout').innerText = e.target.value + 'x';
-        if (editingItem) {
-            editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
-            editingItem.dataset.scale = e.target.value;
+        if (window.editingItem) {
+            window.editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
+            window.editingItem.dataset.scale = e.target.value;
         }
     });
 };
@@ -751,19 +667,17 @@ window.spawnToForge = function(imageUrl) {
     const img = document.createElement('img');
     img.src = imageUrl; 
     img.className = 'furnishing-item';
-    img.style.position = 'absolute'; // Critical for drag-and-drop!
+    img.style.position = 'absolute'; 
     img.style.left = '50%'; 
     img.style.top = '50%';
     img.style.cursor = 'grab';
     img.style.transform = 'translate(-50%, -50%) scale(1)';
     img.dataset.scale = 1;
     
-    // Add glowing border to indicate it is selected
     img.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
-    if(editingItem) editingItem.style.filter = 'none'; // Deselect old item
-    editingItem = img;
+    if(window.editingItem) window.editingItem.style.filter = 'none'; 
+    window.editingItem = img;
     
-    // Reset scale slider to 1 when spawning a new item
     document.getElementById('forge-scale').value = 1;
     document.getElementById('scale-readout').innerText = '1.0x';
 
@@ -772,16 +686,15 @@ window.spawnToForge = function(imageUrl) {
 };
 
 function selectItemForEdit(e) { 
-    if (!isForging) return; 
+    if (!window.isForging) return; 
     e.preventDefault(); 
     
-    if(editingItem) editingItem.style.filter = 'none'; // Deselect previous
-    editingItem = e.target; 
-    editingItem.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
-    editingItem.style.cursor = 'grabbing';
+    if(window.editingItem) window.editingItem.style.filter = 'none'; 
+    window.editingItem = e.target; 
+    window.editingItem.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
+    window.editingItem.style.cursor = 'grabbing';
     
-    // Update the slider to match the clicked item's scale
-    const currentScale = editingItem.dataset.scale || 1;
+    const currentScale = window.editingItem.dataset.scale || 1;
     document.getElementById('forge-scale').value = currentScale;
     document.getElementById('scale-readout').innerText = currentScale + 'x';
 
@@ -790,14 +703,14 @@ function selectItemForEdit(e) {
 }
 
 function dragItem(e) { 
-    if (editingItem) { 
-        editingItem.style.left = e.clientX + 'px'; 
-        editingItem.style.top = e.clientY + 'px'; 
+    if (window.editingItem) { 
+        window.editingItem.style.left = e.clientX + 'px'; 
+        window.editingItem.style.top = e.clientY + 'px'; 
     } 
 }
 
 function stopDrag() { 
-    if(editingItem) editingItem.style.cursor = 'grab';
+    if(window.editingItem) window.editingItem.style.cursor = 'grab';
     document.onmousemove = null; 
     document.onmouseup = null; 
 }
@@ -808,7 +721,7 @@ window.saveForgedRoom = async function() {
 
     let newRoom = {
         name: roomName,
-        bg_url: draftBgUrl
+        bg_url: window.draftBgUrl
     };
     
     await insertData('trophy_rooms', newRoom);
@@ -829,19 +742,22 @@ window.saveForgedRoom = async function() {
     }
 
     localStorage.setItem('active_trophy_id', actualRoomId);
-    localStorage.setItem('active_trophy_bg', draftBgUrl);
+    localStorage.setItem('active_trophy_bg', window.draftBgUrl);
+
+    alert("✨ Chamber permanently sealed into the archives!");
 
     exitForge();
+    openPortal('inventory'); // Pops open the portal to show your new room!
 };
 
 window.exitForge = function() {
-    isForging = false;
+    window.isForging = false;
     document.body.classList.remove('building-mode');
     const toolbox = document.getElementById('forge-toolbox');
     if(toolbox) toolbox.style.display = 'none';
     
-    if(editingItem) editingItem.style.filter = 'none';
-    editingItem = null;
+    if(window.editingItem) window.editingItem.style.filter = 'none';
+    window.editingItem = null;
     
     loadActiveTrophy();
 };
@@ -864,18 +780,24 @@ window.loadActiveTrophy = async function() {
         exitBtn = document.createElement('button');
         exitBtn.id = 'exit-trophy-btn';
         exitBtn.innerHTML = '🚪 Return to Main Sanctuary';
-        exitBtn.className = 'portal-btn';
-        exitBtn.style.position = 'fixed';
-        exitBtn.style.bottom = '30px';
-        exitBtn.style.right = '30px';
-        exitBtn.style.zIndex = '9999';
-        exitBtn.style.backgroundColor = 'rgba(20, 15, 12, 0.95)';
-        exitBtn.style.color = '#bf953f';
-        exitBtn.style.border = '2px solid #bf953f';
-        exitBtn.style.boxShadow = '0 0 20px rgba(0,0,0,0.9)';
-        exitBtn.style.padding = '15px 20px';
-        exitBtn.style.fontSize = '1.1em';
-        exitBtn.style.cursor = 'pointer';
+        
+        // Unblockable CSS tags!
+        exitBtn.style.cssText = `
+            position: fixed !important;
+            bottom: 30px !important;
+            right: 30px !important;
+            z-index: 2147483647 !important;
+            background-color: rgba(20, 15, 12, 0.95) !important;
+            color: #bf953f !important;
+            border: 2px solid #bf953f !important;
+            box-shadow: 0 0 20px rgba(0,0,0,0.9) !important;
+            padding: 15px 20px !important;
+            font-size: 1.1em !important;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            border-radius: 4px !important;
+            font-family: 'Cinzel', serif !important;
+        `;
         exitBtn.onclick = leaveTrophyRoom;
         document.body.appendChild(exitBtn);
     }
@@ -906,6 +828,13 @@ window.leaveTrophyRoom = function() {
     localStorage.removeItem('active_trophy_id');
     localStorage.removeItem('active_trophy_bg');
     loadActiveTrophy();
+};
+
+window.loadTrophy = function(roomId, bgUrl) { 
+    localStorage.setItem('active_trophy_id', roomId); 
+    localStorage.setItem('active_trophy_bg', bgUrl); 
+    loadActiveTrophy(); 
+    closePortal(); 
 };
 // --- THE STILLNESS (TEACUP) ---
 async function buildTeacupHTML() {
