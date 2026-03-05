@@ -1025,7 +1025,7 @@ window.openPortal = async function(portalName) {
         else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
         else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
         else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
-        else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
+        else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML();
         else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
         else if (portalName === 'audio') content.innerHTML = await buildAudioHTML(); 
         else if (portalName === 'garden') content.innerHTML = await buildGardenHTML(); 
