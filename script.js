@@ -12,12 +12,20 @@ try {
     }
 } catch (error) { console.error("The magical currents are scrambled:", error); }
 
-// === 0.5 DATA MANAGER ===
+// === 0.5 DATA MANAGER (WITH 404 SILENCER) ===
 async function loadData(tableName, orderBy = 'created_at', asc = false) {
     let results = null;
     if (db) {
-        const { data, error } = await db.from(tableName).select('*').order(orderBy, { ascending: asc });
-        if (!error && data) results = data;
+        try {
+            const { data, error } = await db.from(tableName).select('*').order(orderBy, { ascending: asc });
+            if (error) {
+                console.warn(`📜 Note: Cloud table '${tableName}' is missing or empty. Falling back to local storage.`);
+            } else if (data) {
+                results = data;
+            }
+        } catch (e) {
+            console.warn(`Network shift for '${tableName}'. Falling back to local.`);
+        }
     }
     if (!results) {
         results = JSON.parse(localStorage.getItem(tableName) || '[]');
@@ -59,6 +67,34 @@ async function removeData(tableName, id) {
     let localData = JSON.parse(localStorage.getItem(tableName) || '[]');
     localData = localData.filter(item => item.id != id);
     localStorage.setItem(tableName, JSON.stringify(localData));
+}
+
+// === THE MASTER SCRIBE ===
+async function scribeToArchive(tableName, formId, portalToReload) {
+    const container = document.getElementById(formId);
+    if (!container) return;
+    const inputs = container.querySelectorAll('input, textarea, select');
+    const entry = {};
+
+    inputs.forEach(input => {
+        const fieldName = input.id.replace('inp-', ''); 
+        entry[fieldName] = input.value;
+    });
+
+    if (!entry.title && !entry.item_name && !entry.plant_name && !entry.note && !entry.text) {
+        return alert("The scroll requires a name or content!");
+    }
+
+    if (db) {
+        await db.from(tableName).insert([entry]);
+    } else {
+        const localData = JSON.parse(localStorage.getItem(tableName) || '[]');
+        localData.push({ ...entry, id: Date.now().toString(), created_at: new Date().toISOString() });
+        localStorage.setItem(tableName, JSON.stringify(localData));
+    }
+
+    feedFamiliar();
+    openPortal(portalToReload); 
 }
 
 // === 1. LOCAL DATA ===
@@ -284,39 +320,83 @@ function prefillDate(dateStr) {
 }
 
 // === 4. HTML BUILDERS ===
-async function buildGrimoireHTML() {
-    let html = `<h2 class="gold-text">Kitchen Grimoire</h2><div class="portal-scroll-container">`;
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Sacred Recipes</div><div class="section-panel closed">`;
-    [...myRecipes, ...myTeas].forEach(item => {
-        let ingList = item.ingredients ? (Array.isArray(item.ingredients) ? item.ingredients.map(ing => `<li><span>${ing}</span></li>`).join('') : `<li><span>${item.ingredients}</span></li>`) : '';
-        html += `<div class="grimoire-item"><button class="grimoire-header" onclick="toggleAccordion(this)">${item.icon || ''} ${item.title}</button><div class="grimoire-panel"><p><em>${item.description}</em></p>${item.brew ? `<div style="color:#bf953f; font-style:italic; margin-bottom:10px;">${item.brew}</div>` : ''}${ingList ? `<ul>${ingList}</ul>` : ''}${item.instructions ? `<p>${item.instructions}</p>` : ''}</div></div>`;
-    });
-    
-    let dbRecipes = [];
-    try {
-        dbRecipes = await loadData('recipes');
-    } catch(e) {
-        console.warn("Could not fetch cloud recipes");
-    }
 
-    if(dbRecipes) {
-        dbRecipes.forEach(item => {
-            html += `<div class="grimoire-item"><button class="grimoire-header" onclick="toggleAccordion(this)">📜 ${item.title}</button><div class="grimoire-panel"><p style="white-space: pre-wrap;">${item.description}</p><div style="text-align: right; margin-top: 10px;"><button class="action-btn" style="color: #ff6b6b;" onclick="deleteDetailedItem('recipes', '${item.id}', 'grimoire')">Purge Entry</button></div></div></div>`;
-        });
-    }
+// --- KITCHEN GRIMOIRE ---
+let currentGrimoireData = [];
+async function buildGrimoireHTML() {
+    let html = `<h2 class="gold-text">Kitchen Grimoire</h2>`;
+    const dbRecipes = await loadData('recipes');
+    let localG = (typeof myRecipes !== 'undefined') ? myRecipes : [];
     
-    html += `</div>`; 
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe Quick Recipe</div><div class="section-panel closed"><div style="margin-top: 10px; margin-bottom: 15px;"><input type="text" id="recipe-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;"><textarea id="recipe-desc" placeholder="Ingredients & Notes..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addDetailedItem('recipes', 'recipe-title', 'recipe-desc', 'grimoire')" class="portal-btn" style="width: 100%;">Add to Grimoire</button></div></div>`;
-    html += `</div>`; 
+    currentGrimoireData = [...localG, ...myTeas, ...(dbRecipes || [])];
+    currentGrimoireData.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+
+    html += `
+    <div class="grimoire-tome-container">
+        <div class="grimoire-page-wrapper">
+            <div class="grimoire-page" id="grimoire-left-page">
+                <div class="alphabet-nav">
+                    ${"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L => 
+                        `<button class="letter-btn" onclick="filterByLetter('${L}')">${L}</button>`
+                    ).join('')}
+                    <button class="letter-btn" onclick="openPortal('grimoire')" style="width:auto; padding:0 5px;">All</button>
+                </div>
+                <input type="text" id="grimoire-search" class="grimoire-search-bar" placeholder="Search archives..." oninput="filterGrimoire()">
+                <div id="grimoire-index-list">${renderGrimoireIndex('')}</div>
+            </div>
+            <div class="grimoire-page" id="grimoire-right-page">
+                <p style="text-align:center; font-style:italic; margin-top:50px; opacity:0.6;">Select a recipe to read its lore.</p>
+            </div>
+        </div>
+    </div>
+    <div class="section-header closed" onclick="toggleSection(this)">Scribe New Recipe</div>
+    <div class="section-panel closed" id="form-recipe">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
+            <input type="text" id="inp-title" placeholder="Recipe Title..." class="portal-input" style="margin-bottom: 10px;">
+            <textarea id="inp-description" placeholder="Brief Description..." class="portal-input" style="height: 40px; resize: none; margin-bottom: 10px;"></textarea>
+            <textarea id="inp-ingredients" placeholder="Ingredients..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
+            <textarea id="inp-instructions" placeholder="Instructions..." class="portal-input" style="height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+            <button onclick="scribeToArchive('recipes', 'form-recipe', 'grimoire')" class="portal-btn" style="width: 100%;">Bind to Grimoire</button>
+        </div>
+    </div>`;
     return html;
 }
 
-// === THE NEW SOUNDSCAPES LOGIC (BULLETPROOF STRINGS) ===
-let activeSoundscapes = {};
+window.renderGrimoireIndex = function(query) {
+    let listHTML = ''; let currentLetter = ''; const q = (query || "").toLowerCase();
+    currentGrimoireData.forEach((recipe, i) => {
+        if (q === '' || (recipe.title && recipe.title.toLowerCase().includes(q))) {
+            if (q === '') {
+                const firstLetter = (recipe.title ? recipe.title.charAt(0).toUpperCase() : '?');
+                if (firstLetter !== currentLetter) { listHTML += `<div class="toc-header">- ${firstLetter} -</div>`; currentLetter = firstLetter; }
+            }
+            listHTML += `<div class="grimoire-index-item" onclick="readGrimoirePage(${i})">${recipe.title}</div>`;
+        }
+    });
+    return listHTML || `<div style="text-align:center; margin-top:20px; opacity:0.5;">Archives empty.</div>`;
+};
 
+window.filterByLetter = function(letter) {
+    const filtered = currentGrimoireData.filter(r => r.title.toUpperCase().startsWith(letter));
+    let listHTML = `<div class="toc-header">- ${letter} -</div>`;
+    filtered.forEach((recipe) => {
+        const originalIndex = currentGrimoireData.findIndex(r => r.title === recipe.title);
+        listHTML += `<div class="grimoire-index-item" onclick="readGrimoirePage(${originalIndex})">${recipe.title}</div>`;
+    });
+    document.getElementById('grimoire-index-list').innerHTML = filtered.length ? listHTML : `<div style="text-align:center; margin-top:20px; opacity:0.5;">No lore under ${letter}.</div>`;
+};
+window.filterGrimoire = function() { document.getElementById('grimoire-index-list').innerHTML = renderGrimoireIndex(document.getElementById('grimoire-search').value); };
+window.readGrimoirePage = function(index) {
+    const recipe = currentGrimoireData[index];
+    let ingList = Array.isArray(recipe.ingredients) ? recipe.ingredients.map(ing => `<li>${ing}</li>`).join('') : recipe.ingredients || 'Properties recorded.';
+    document.getElementById('grimoire-right-page').innerHTML = `<h3 class="page-title">${recipe.title}</h3><p class="page-text" style="font-style:italic;">${recipe.description || ''}</p><h4 class="page-header">Ingredients</h4><ul class="page-text">${ingList}</ul><h4 class="page-header">Instructions</h4><p class="page-text">${recipe.instructions || 'Lore recorded.'}</p>`;
+};
+
+// --- BARDIC SOUNDSCAPES (YOUR EXACT REPO TRACKS) ---
+let activeSoundscapes = {};
 async function buildAudioHTML() {
     let html = `<h2 class="gold-text">Bardic Soundscapes</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color: #d4c8a8; font-style:italic; margin-bottom: 15px;">Weave your atmosphere. Layer multiple tracks to craft your Sanctuary.</p>`;
+    html += `<p style="text-align:center; color: #d4c8a8; font-style:italic; margin-bottom: 15px;">Weave your atmosphere.</p>`;
     
     const tracks = [
         { id: "binary", name: "Binary Box", url: "binarymusicbox.mp3" },
@@ -342,22 +422,13 @@ async function buildAudioHTML() {
         { id: "xmas3", name: "Yule Box III", url: "xmasmusicbox3.mp3" }
     ];
 
-    html += `<div style="text-align:center; margin-bottom: 15px;">
-                <button class="portal-btn" style="border-color:#ff6b6b; color:#ff6b6b;" onclick="stopAllTracks()">Silence All</button>
-             </div>`;
-
-    html += `<div id="soundscape-container">`;
+    html += `<div style="text-align:center; margin-bottom: 15px;"><button class="portal-btn" style="border-color:#ff6b6b; color:#ff6b6b;" onclick="stopAllTracks()">Silence All</button></div><div id="soundscape-container">`;
     tracks.forEach(track => {
         const isActive = activeSoundscapes[track.id] ? 'active' : '';
         const currentVol = activeSoundscapes[track.id] ? activeSoundscapes[track.id].volume : 0.5;
-        
-        html += `<div class="sound-item ${isActive}">
-                    <button class="play-btn ${isActive}" onclick="toggleTrack('${track.id}', '${track.url}')">${track.name}</button>
-                    <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="${currentVol}" onchange="changeVolume('${track.id}', this.value)">
-                 </div>`;
+        html += `<div class="sound-card ${isActive}"><button class="sound-btn" onclick="toggleTrack('${track.id}', '${track.url}')">${track.name}</button><input type="range" class="volume-slider" min="0" max="1" step="0.05" value="${currentVol}" onchange="changeVolume('${track.id}', this.value)"></div>`;
     });
-    html += `</div></div>`;
-    return html;
+    return html + `</div></div>`;
 }
 
 window.toggleTrack = function(id, url) {
@@ -369,31 +440,14 @@ window.toggleTrack = function(id, url) {
         const audio = new Audio(url);
         audio.loop = true;
         audio.volume = 0.5;
-        
-        audio.play().then(() => {
-            activeSoundscapes[id] = audio;
-            openPortal('audio'); 
-        }).catch(e => {
-            console.error("Audio error:", e);
-            alert("The magic fizzled! Could not load: " + url);
-        });
+        audio.play().then(() => { activeSoundscapes[id] = audio; openPortal('audio'); }).catch(e => { console.error("Audio error:", e); alert("Could not load: " + url); });
     }
 };
 
-window.changeVolume = function(id, vol) {
-    if (activeSoundscapes[id]) {
-        activeSoundscapes[id].volume = vol;
-    }
-};
+window.changeVolume = function(id, vol) { if (activeSoundscapes[id]) activeSoundscapes[id].volume = vol; };
+window.stopAllTracks = function() { for (let id in activeSoundscapes) { activeSoundscapes[id].pause(); } activeSoundscapes = {}; openPortal('audio'); };
 
-window.stopAllTracks = function() {
-    for (let id in activeSoundscapes) {
-        activeSoundscapes[id].pause();
-    }
-    activeSoundscapes = {};
-    openPortal('audio');
-};
-
+// --- BOUNTY BOARD (CAT) ---
 async function buildBountyBoardHTML() {
     let html = `<h2 class="gold-text">The Bounty Board</h2><div class="portal-scroll-container">`;
     const events = await loadData('calendar_events', 'start_date', true);
@@ -414,39 +468,24 @@ async function buildBountyBoardHTML() {
         const isDone = item.is_completed ? 'completed' : ''; 
         html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('daily_quests', '${item.id}', ${item.is_completed}, 'cat')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('daily_quests', '${item.id}', 'cat')">✕</div></div>`; 
     });
-    html += `</div></div>`; 
-    return html;
+    return html + `</div></div>`; 
 }
 
 // --- ARCHITECT'S FORGE ---
 let isForging = false; let editingItem = null; let draftBgUrl = '';
-
 async function buildInventoryHTML() {
     let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
     html += `<div class="section-header closed" onclick="toggleSection(this)">Trophy Gallery</div><div class="section-panel closed">`;
     const rooms = await loadData('trophy_rooms');
-    rooms.forEach(room => {
-        html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;">
-                    <span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span>
-                    <button class="portal-btn" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button>
-                 </div>`;
-    });
-    html += `</div><div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed">
-                <input type="file" id="room-bg-upload" accept="image/*" onchange="startForging(this)">
-                <label for="room-bg-upload" class="custom-file-label" style="width:100%;">Select Background Image</label>
-             </div>`;
+    rooms.forEach(room => { html += `<div class="alchemy-card" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 15px;"><span style="color:#fcf6ba; font-family:'Cinzel';">${room.name}</span><button class="portal-btn" onclick="loadTrophy('${room.id}', '${room.bg_url}')">Apply</button></div>`; });
+    html += `</div><div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div><div class="section-panel closed"><input type="file" id="room-bg-upload" accept="image/*" onchange="startForging(this)"><label for="room-bg-upload" class="custom-file-label" style="width:100%;">Select Background Image</label></div>`;
     const stash = await loadData('inventory_stash');
     html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div><div class="section-panel closed"><div id="stash-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px;">`;
-    stash.forEach(item => {
-        html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px;">
-                    <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; cursor:pointer;" onclick="spawnToForge('${item.image_url}')">
-                    <div style="font-size:0.6em; color:#bf953f; margin-top:2px;">${item.name}</div>
-                 </div>`;
-    });
+    stash.forEach(item => { html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px;"><img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; cursor:pointer;" onclick="spawnToForge('${item.image_url}')"><div style="font-size:0.6em; color:#bf953f; margin-top:2px;">${item.name}</div></div>`; });
     return html + `</div></div></div>`;
 }
 
-async function startForging(input) {
+window.startForging = function(input) {
     if(!input.files[0]) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -460,7 +499,7 @@ async function startForging(input) {
         if(toolbox) toolbox.style.display = 'block'; isForging = true;
     };
     reader.readAsDataURL(input.files[0]);
-}
+};
 
 window.spawnToForge = function(imageUrl) {
     const layer = document.getElementById('furnishing-layer');
@@ -472,11 +511,7 @@ window.spawnToForge = function(imageUrl) {
     layer.appendChild(img);
 };
 
-function selectItemForEdit(e) {
-    if (!isForging) return; e.preventDefault(); editingItem = e.target;
-    document.onmousemove = dragItem; document.onmouseup = stopDrag;
-}
-
+function selectItemForEdit(e) { if (!isForging) return; e.preventDefault(); editingItem = e.target; document.onmousemove = dragItem; document.onmouseup = stopDrag; }
 function dragItem(e) { if (editingItem) { editingItem.style.left = e.clientX + 'px'; editingItem.style.top = e.clientY + 'px'; } }
 function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
 
@@ -493,22 +528,14 @@ window.loadActiveTrophy = function() {
         const roomFurniture = allFurniture.filter(f => f.room_id === activeId);
         roomFurniture.forEach(f => {
             const img = document.createElement('img');
-            img.src = f.image_url;
-            img.className = 'furnishing-item';
+            img.src = f.image_url; img.className = 'furnishing-item';
             img.style.left = f.pos_x; img.style.top = f.pos_y;
-            img.style.zIndex = f.z_index;
-            img.style.transform = `translate(-50%, -50%) scale(${f.scale || 1})`; 
+            img.style.zIndex = f.z_index; img.style.transform = `translate(-50%, -50%) scale(${f.scale || 1})`; 
             layer.appendChild(img);
         });
     }
 };
-
-window.loadTrophy = function(roomId, bgUrl) {
-    localStorage.setItem('active_trophy_id', roomId);
-    localStorage.setItem('active_trophy_bg', bgUrl);
-    loadActiveTrophy();
-    closePortal();
-};
+window.loadTrophy = function(roomId, bgUrl) { localStorage.setItem('active_trophy_id', roomId); localStorage.setItem('active_trophy_bg', bgUrl); loadActiveTrophy(); closePortal(); };
 
 // --- THE STILLNESS (TEACUP) ---
 async function buildTeacupHTML() {
@@ -541,24 +568,18 @@ async function buildApothecaryHTML() {
             const safeDesc = encodeURIComponent(recipe.description || '');
             const safeIng = encodeURIComponent(recipe.ingredients || '');
             const safeInst = encodeURIComponent(recipe.instructions || '');
-            html += `<div class="alchemy-pot healing" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${recipe.id || ''}', true)">
-                        <div class="css-phial"></div>
-                    </div>`;
+            html += `<div class="alchemy-pot healing" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${recipe.id || ''}', true)"><div class="css-phial"></div></div>`;
         } else {
             html += `<div class="alchemy-pot empty"><div class="css-phial" style="opacity: 0.3;"></div></div>`;
         }
         html += `</div>`; 
     }
-    html += `</div><div id="apothecary-reading-desk" style="margin-bottom: 20px;"></div></div>`;
-    return html;
+    return html + `</div><div id="apothecary-reading-desk" style="margin-bottom: 20px;"></div></div>`;
 }
 
 window.openReadingDesk = function(encTitle, encDesc, encIng, encInst, id, isDb) {
-    const title = decodeURIComponent(encTitle);
-    const desc = decodeURIComponent(encDesc);
-    const ing = decodeURIComponent(encIng);
-    const inst = decodeURIComponent(encInst);
-
+    const title = decodeURIComponent(encTitle); const desc = decodeURIComponent(encDesc);
+    const ing = decodeURIComponent(encIng); const inst = decodeURIComponent(encInst);
     const desk = document.getElementById('apothecary-reading-desk');
     desk.innerHTML = `<div class="alchemy-card"><h3 class="alchemy-title">${title}</h3><p style="color:#d4c8a8; font-style: italic;">${desc}</p><div style="background:rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);"><p style="color:#bf953f; margin:0 0 5px 0;">Ingredients</p><p style="color:#d4c8a8; margin:0 0 15px 0;">${ing}</p><p style="color:#bf953f; margin:0 0 5px 0;">Instructions</p><p style="color:#d4c8a8; margin:0;">${inst}</p></div></div>`;
     desk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -570,18 +591,7 @@ async function buildHerbsHTML() {
     const dbHerbs = await loadData('herbs');
     const allHerbs = [...myHerbs, ...(dbHerbs || [])];
     allHerbs.forEach((herb, i) => {
-        html += `<div class="herb-slot" id="herb-slot-${i}">
-                <div class="herb-bundle" id="bundle-${i}" onclick="toggleHerbDetail('${i}')">
-                    <div class="herb-icon">${herb.icon || '🌿'}</div>
-                    <div class="herb-tag">${herb.title}</div>
-                    
-                    <div class="herb-detail-tag">
-                        <h4 class="gold-text" style="font-size: 1em;">${herb.title}</h4>
-                        <p style="color:#fcf6ba; font-style:italic;">${herb.properties || ''}</p>
-                        <p style="color:#d4c8a8; margin: 0;">${herb.description}</p>
-                    </div>
-                </div>
-            </div>`;
+        html += `<div class="herb-slot" id="herb-slot-${i}"><div class="herb-bundle" id="bundle-${i}" onclick="toggleHerbDetail('${i}')"><div class="herb-icon">${herb.icon || '🌿'}</div><div class="herb-tag">${herb.title}</div><div class="herb-detail-tag"><h4 class="gold-text" style="font-size: 1em;">${herb.title}</h4><p style="color:#fcf6ba; font-style:italic;">${herb.properties || ''}</p><p style="color:#d4c8a8; margin: 0;">${herb.description}</p></div></div></div>`;
     });
     return html + `</div></div>`;
 }
@@ -595,12 +605,10 @@ window.toggleHerbDetail = function(id) {
 
 // --- THE LIVING BEDS ---
 let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
-
 async function buildGardenHTML() {
     let html = `<h2 class="gold-text">Living Beds</h2><div class="portal-scroll-container">`;
     let allBeds = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]');
-    html += `<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;"><select id="bed-select" class="portal-input" onchange="switchBed(this.value)">${allBeds.map(b => `<option value="${b}" ${b===currentBedName?'selected':''}>${b}</option>`).join('')}</select></div>`;
-    html += `<div class="garden-bed-container">`;
+    html += `<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;"><select id="bed-select" class="portal-input" onchange="switchBed(this.value)">${allBeds.map(b => `<option value="${b}" ${b===currentBedName?'selected':''}>${b}</option>`).join('')}</select></div><div class="garden-bed-container">`;
     const plots = await loadData('garden_plots');
     const active = plots.filter(p => (p.bed_name || 'Main Bed') === currentBedName);
     for (let i = 1; i <= 8; i++) {
@@ -608,7 +616,7 @@ async function buildGardenHTML() {
         if (plot) {
             const days = Math.floor((new Date() - new Date(plot.created_at)) / (1000 * 60 * 60 * 24));
             let icon = days >= 3 ? plot.plant_icon : (days >= 1 ? '🌿' : '🌱');
-            html += `<div class="garden-cell" onclick="tendPlot('${plot.id}', '${plot.plant_name}')"><div class="plant-icon">${icon}</div><div class="plant-name">${plot.plant_name}</div></div>`;
+            html += `<div class="garden-cell" onclick="tendPlot('${plot.id}', '${encodeURIComponent(plot.plant_name)}')"><div class="plant-icon">${icon}</div><div class="plant-name">${plot.plant_name}</div></div>`;
         } else {
             html += `<div class="garden-cell" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="opacity:0.2;">🌱</div></div>`;
         }
@@ -617,14 +625,13 @@ async function buildGardenHTML() {
 }
 
 window.plantSeed = function(gridId) {
-    document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card" id="form-garden">
-        <h3 class="alchemy-title">Sow Seed</h3><input type="text" id="inp-plant_name" placeholder="Name..." class="portal-input">
-        <input type="hidden" id="inp-grid_id" value="${gridId}"><input type="hidden" id="inp-bed_name" value="${currentBedName}">
-        <button onclick="scribeToArchive('garden_plots', 'form-garden', 'garden')" class="portal-btn">Plant</button></div>`;
+    document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card" id="form-garden"><h3 class="alchemy-title">Sow Seed</h3><input type="text" id="inp-plant_name" placeholder="Name..." class="portal-input"><input type="hidden" id="inp-grid_id" value="${gridId}"><input type="hidden" id="inp-bed_name" value="${currentBedName}"><button onclick="scribeToArchive('garden_plots', 'form-garden', 'garden')" class="portal-btn">Plant</button></div>`;
 };
-
+window.tendPlot = function(plotId, encPlantName) {
+    const plantName = decodeURIComponent(encPlantName);
+    document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card"><h3 class="alchemy-title">Tending: ${plantName}</h3><div style="display:flex; gap:10px;"><button onclick="removeData('garden_plots', '${plotId}'); openPortal('garden');" class="portal-btn" style="color:#ff6b6b; border-color:#ff6b6b; flex:1;">Uproot</button><button onclick="document.getElementById('garden-action-panel').innerHTML='';" class="portal-btn" style="flex:1;">Cancel</button></div></div>`;
+};
 window.switchBed = function(name) { currentBedName = name; localStorage.setItem('active_garden_bed', name); openPortal('garden'); };
-window.buildNewBed = function() { const n = prompt("Bed Name:"); if(n) { let b = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]'); if(!b.includes(n)) { b.push(n); localStorage.setItem('garden_bed_names', JSON.stringify(b)); } switchBed(n); } };
 
 // --- THE VAULT (LEDGER) ---
 async function buildLedgerHTML() {
@@ -657,183 +664,94 @@ function buildAlmanacHTML() {
     return `<h2 class="gold-text">Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div></div>`;
 }
 
-// === MEASUREMENT LOG (UPGRADED) ===
+// --- SEWING & WORKSHOP (UPGRADED) ---
 async function buildSewingHTML() {
     let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic;">Track your textiles, patterns, and tailored creations.</p>`;
-    
-    // --- NEW PROJECT FORM ---
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Project</div>
-             <div class="section-panel closed">
-                <div style="background: rgba(8, 8, 10, 0.6); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px;">
-                    <input type="text" id="sew-title" placeholder="Project Name (e.g. Hearth Apron)..." class="portal-input" style="margin-bottom: 10px;">
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <input type="text" id="sew-fabric" placeholder="Fabric/Material..." class="portal-input" style="flex:1;">
-                        <select id="sew-status" class="portal-input" style="flex:1; cursor:pointer;">
-                            <option value="Drafting">📐 Drafting</option>
-                            <option value="In Progress">🧵 In Progress</option>
-                            <option value="Completed">✨ Completed</option>
-                        </select>
-                    </div>
-                    <textarea id="sew-notes" placeholder="Measurements & Notes..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
-                    <button onclick="addSewingProject()" class="portal-btn" style="width: 100%;">Log Project</button>
-                </div>
-             </div>`;
-    
-    // --- LOAD PROJECTS ---
-    // Ensure the fallback static array exists if defined earlier
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Project</div><div class="section-panel closed"><div style="background: rgba(8, 8, 10, 0.6); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px;"><input type="text" id="sew-title" placeholder="Project Name..." class="portal-input" style="margin-bottom: 10px;"><div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" id="sew-fabric" placeholder="Fabric..." class="portal-input" style="flex:1;"><select id="sew-status" class="portal-input" style="flex:1; cursor:pointer;"><option value="Drafting">📐 Drafting</option><option value="In Progress">🧵 In Progress</option><option value="Completed">✨ Completed</option></select></div><textarea id="sew-notes" placeholder="Notes..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea><button onclick="addSewingProject()" class="portal-btn" style="width: 100%;">Log Project</button></div></div>`;
     const localSewing = (typeof mySewing !== 'undefined') ? mySewing : [];
-    let savedSewing = await loadData('sewing_projects'); 
+    const savedSewing = await loadData('sewing_projects'); 
     const allSewing = [...localSewing, ...(savedSewing || [])];
-
-    html += `<div style="margin-top: 20px;">`;
-    
-    if (allSewing.length === 0) {
-        html += `<p style="text-align:center; color:rgba(191,149,63,0.5); font-style:italic;">Your sewing log is currently empty.</p>`;
-    } else {
-        allSewing.forEach(item => {
-            let statusColor = item.status === 'Completed' ? '#8fce00' : (item.status === 'Drafting' ? '#4facfe' : '#bf953f');
-            let delBtn = item.id ? `<button class="action-btn" style="position:absolute; top:10px; right:10px; color:#ff6b6b; font-size:16px;" onclick="removeData('sewing_projects', '${item.id}'); openPortal('sewing');">✕</button>` : '';
-
-            html += `
-            <div style="position:relative; background: rgba(20, 15, 12, 0.8); border: 1px solid rgba(191, 149, 63, 0.4); border-top: 3px double ${statusColor}; padding: 15px; border-radius: 4px; margin-bottom: 15px; transition: all 0.3s ease;">
-                ${delBtn}
-                <h3 style="color:#fcf6ba; font-family:'Cinzel', serif; margin:0 0 10px 0; font-size:1.2em;">✂️ ${item.title}</h3>
-                <div style="display:inline-block; background:rgba(0,0,0,0.5); color:${statusColor}; padding:4px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; border:1px solid ${statusColor}; margin-bottom:12px; font-weight:bold;">${item.status || 'In Progress'}</div>
-                <div style="color:#d4c8a8; font-size:0.9em; margin-bottom:8px;"><strong>Material:</strong> <span style="color:#bf953f;">${item.fabric || 'Unknown'}</span></div>
-                <div style="background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); color:#e0e0e0; font-size:0.9em; white-space:pre-wrap; border-radius:0 4px 4px 0;">${item.notes || item.description || 'No notes.'}</div>
-            </div>`;
-        });
-    }
-    html += `</div></div>`;
-    return html;
+    if (allSewing.length === 0) html += `<p style="text-align:center; color:rgba(191,149,63,0.5); font-style:italic;">Your log is empty.</p>`;
+    allSewing.forEach(item => {
+        let statusColor = item.status === 'Completed' ? '#8fce00' : (item.status === 'Drafting' ? '#4facfe' : '#bf953f');
+        let delBtn = item.id ? `<button class="action-btn" style="position:absolute; top:10px; right:10px; color:#ff6b6b;" onclick="removeData('sewing_projects', '${item.id}'); openPortal('sewing');">✕</button>` : '';
+        html += `<div style="position:relative; background: rgba(20, 15, 12, 0.8); border: 1px solid rgba(191, 149, 63, 0.4); border-top: 3px double ${statusColor}; padding: 15px; border-radius: 4px; margin-bottom: 15px;">${delBtn}<h3 style="color:#fcf6ba; font-family:'Cinzel', serif; margin:0 0 10px 0;">✂️ ${item.title}</h3><div style="display:inline-block; background:rgba(0,0,0,0.5); color:${statusColor}; padding:4px 10px; border-radius:12px; font-size:0.75em; border:1px solid ${statusColor}; margin-bottom:12px; font-weight:bold;">${item.status || 'In Progress'}</div><div style="color:#d4c8a8; font-size:0.9em; margin-bottom:8px;"><strong>Material:</strong> <span style="color:#bf953f;">${item.fabric || 'Unknown'}</span></div><div style="background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); color:#e0e0e0; font-size:0.9em; white-space:pre-wrap;">${item.notes || item.description || 'No notes.'}</div></div>`;
+    });
+    return html + `</div>`;
 }
 
 window.addSewingProject = async function() {
     const title = document.getElementById('sew-title').value.trim();
-    const fabric = document.getElementById('sew-fabric').value.trim();
-    const status = document.getElementById('sew-status').value;
-    const notes = document.getElementById('sew-notes').value.trim();
-    if (!title) return alert("The scroll requires a project title!");
-    await insertData('sewing_projects', { title, fabric, status, notes });
-    feedFamiliar();
+    if (!title) return;
+    await insertData('sewing_projects', { title: title, fabric: document.getElementById('sew-fabric').value.trim(), status: document.getElementById('sew-status').value, notes: document.getElementById('sew-notes').value.trim() });
     openPortal('sewing');
 };
 
-// === ARTISAN'S WORKSHOP (UPGRADED) ===
 async function buildWorkshopHTML() {
     let html = `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container">`;
-    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic;">Your tools, materials, and active blueprints.</p>`;
-    
-    // --- 1. PROJECT BLUEPRINTS (To-Do List) ---
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Project Blueprints</div>
-             <div class="section-panel closed">
-                <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
-                    <input type="text" id="new-workshop-proj" placeholder="Draft a new blueprint..." class="portal-input">
-                    <button onclick="addDynamicItem('workshop_projects', 'new-workshop-proj', 'workshop')" class="portal-btn">Add</button>
-                </div>`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Project Blueprints</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-workshop-proj" placeholder="Draft a blueprint..." class="portal-input"><button onclick="addDynamicItem('workshop_projects', 'new-workshop-proj', 'workshop')" class="portal-btn">Add</button></div>`;
     const projects = await loadData('workshop_projects');
-    if (projects.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">No active blueprints.</p>`;
-    projects.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('workshop_projects', '${item.id}', ${item.is_completed}, 'workshop')">
-                    <div class="quest-checkbox"></div>
-                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
-                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('workshop_projects', '${item.id}', 'workshop')">✕</div>
-                 </div>`; 
-    });
+    projects.forEach(item => { const isDone = item.is_completed ? 'completed' : ''; html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('workshop_projects', '${item.id}', ${item.is_completed}, 'workshop')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('workshop_projects', '${item.id}', 'workshop')">✕</div></div>`; });
     html += `</div>`;
 
-    // --- 2. THE MATERIAL STASH ---
-    html += `<div class="section-header closed" onclick="toggleSection(this)">The Material Stash</div>
-             <div class="section-panel closed">
-                <div style="background:rgba(8, 8, 10, 0.6); padding:15px; border-radius:4px; border:1px solid rgba(191,149,63,0.3); margin-top:10px; margin-bottom:15px;">
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <select id="mat-icon" class="portal-input" style="flex:0.5; padding:8px; cursor:pointer;">
-                            <option value="🪵">🪵 Wood</option>
-                            <option value="🪨">🪨 Stone/Clay</option>
-                            <option value="⛓️">⛓️ Metal</option>
-                            <option value="🧶">🧶 Yarn/String</option>
-                            <option value="🎨">🎨 Pigment</option>
-                            <option value="📦">📦 Misc</option>
-                        </select>
-                        <input type="text" id="mat-name" placeholder="Material Name..." class="portal-input" style="flex:2; margin:0;">
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="mat-qty" placeholder="Quantity / Location..." class="portal-input" style="flex:2; margin:0;">
-                        <button onclick="addMaterialStash()" class="portal-btn" style="flex:1;">Stash It</button>
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px;">`;
-    
+    html += `<div class="section-header closed" onclick="toggleSection(this)">The Material Stash</div><div class="section-panel closed"><div style="background:rgba(8, 8, 10, 0.6); padding:15px; border-radius:4px; border:1px solid rgba(191,149,63,0.3); margin-top:10px; margin-bottom:15px;"><div style="display:flex; gap:10px; margin-bottom:10px;"><select id="mat-icon" class="portal-input" style="flex:0.5; padding:8px; cursor:pointer;"><option value="🪵">🪵 Wood</option><option value="🪨">🪨 Stone</option><option value="⛓️">⛓️ Metal</option><option value="🧶">🧶 Yarn</option><option value="🎨">🎨 Pigment</option><option value="📦">📦 Misc</option></select><input type="text" id="mat-name" placeholder="Name..." class="portal-input" style="flex:2; margin:0;"></div><div style="display:flex; gap:10px;"><input type="text" id="mat-qty" placeholder="Quantity..." class="portal-input" style="flex:2; margin:0;"><button onclick="addMaterialStash()" class="portal-btn" style="flex:1;">Stash It</button></div></div><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px;">`;
     const materials = await loadData('material_stash');
-    if (materials.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center; grid-column:1/-1;">Your stash is empty.</p>`;
-    materials.forEach(item => {
-        html += `<div style="background:rgba(0,0,0,0.5); border:1px dashed rgba(191,149,63,0.4); border-radius:4px; padding:15px 10px; position:relative; text-align:center; transition: border 0.3s;">
-                    <button class="action-btn" style="position:absolute; top:2px; right:2px; font-size:12px; color:#ff6b6b;" onclick="removeData('material_stash', '${item.id}'); openPortal('workshop');">✕</button>
-                    <div style="font-size:2.2em; margin-bottom:8px; filter:drop-shadow(2px 4px 4px #000);">${item.icon || '📦'}</div>
-                    <div style="color:#fcf6ba; font-family:'Cinzel', serif; font-size:0.9em; margin-bottom:5px; line-height:1.2;">${item.name}</div>
-                    <div style="color:#bf953f; font-size:0.75em; border-top:1px solid rgba(191,149,63,0.2); padding-top:5px;">${item.qty}</div>
-                 </div>`;
-    });
+    materials.forEach(item => { html += `<div style="background:rgba(0,0,0,0.5); border:1px dashed rgba(191,149,63,0.4); border-radius:4px; padding:15px 10px; position:relative; text-align:center;"><button class="action-btn" style="position:absolute; top:2px; right:2px; font-size:12px; color:#ff6b6b;" onclick="removeData('material_stash', '${item.id}'); openPortal('workshop');">✕</button><div style="font-size:2.2em; margin-bottom:8px; filter:drop-shadow(2px 4px 4px #000);">${item.icon || '📦'}</div><div style="color:#fcf6ba; font-family:'Cinzel', serif; font-size:0.9em; margin-bottom:5px; line-height:1.2;">${item.name}</div><div style="color:#bf953f; font-size:0.75em; border-top:1px solid rgba(191,149,63,0.2); padding-top:5px;">${item.qty}</div></div>`; });
     html += `</div></div>`;
 
-    // --- 3. TOOL MAINTENANCE ---
-    html += `<div class="section-header closed" onclick="toggleSection(this)">Tool Maintenance</div>
-             <div class="section-panel closed">
-                <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
-                    <input type="text" id="new-tool" placeholder="e.g. Oil the shears, sharpen blade..." class="portal-input">
-                    <button onclick="addDynamicItem('tool_maintenance', 'new-tool', 'workshop')" class="portal-btn">Add</button>
-                </div>`;
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Tool Maintenance</div><div class="section-panel closed"><div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;"><input type="text" id="new-tool" placeholder="e.g. Oil shears..." class="portal-input"><button onclick="addDynamicItem('tool_maintenance', 'new-tool', 'workshop')" class="portal-btn">Add</button></div>`;
     const tools = await loadData('tool_maintenance');
-    if (tools.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">All tools are honed and ready.</p>`;
-    tools.forEach(item => { 
-        const isDone = item.is_completed ? 'completed' : ''; 
-        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('tool_maintenance', '${item.id}', ${item.is_completed}, 'workshop')">
-                    <div class="quest-checkbox"></div>
-                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.9em; color:#d4c8a8;">🛠️ ${item.text}</h3></div>
-                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('tool_maintenance', '${item.id}', 'workshop')">✕</div>
-                 </div>`; 
-    });
-    html += `</div>`;
-
-    html += `</div>`; 
-    return html;
+    tools.forEach(item => { const isDone = item.is_completed ? 'completed' : ''; html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('tool_maintenance', '${item.id}', ${item.is_completed}, 'workshop')"><div class="quest-checkbox"></div><div class="quest-details"><h3 class="quest-title" style="font-size:0.9em; color:#d4c8a8;">🛠️ ${item.text}</h3></div><div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('tool_maintenance', '${item.id}', 'workshop')">✕</div></div>`; });
+    return html + `</div></div>`;
 }
 
 window.addMaterialStash = async function() {
     const icon = document.getElementById('mat-icon').value;
     const name = document.getElementById('mat-name').value.trim();
     const qty = document.getElementById('mat-qty').value.trim();
-    if(!name) return alert("You must name the material!");
+    if(!name) return;
     await insertData('material_stash', { icon, name, qty });
-    feedFamiliar();
     openPortal('workshop');
 };
+
 // === 5. MASTER CORE UI CONTROLLER ===
 window.openPortal = async function(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     overlay.classList.add('active');
     
-    if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
-    else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
-    else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
-    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
-    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
-    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
-    else if (portalName === 'sewing') content.innerHTML = buildSewingHTML();
-    else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
-    else if (portalName === 'workshop') content.innerHTML = buildWorkshopHTML();
-    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
-    else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
-    else if (portalName === 'audio') content.innerHTML = await buildAudioHTML(); 
-    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML(); 
+    try {
+        if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
+        else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
+        else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
+        else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
+        else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
+        else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
+        else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
+        else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
+        else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
+        else if (portalName === 'audio') content.innerHTML = await buildAudioHTML(); 
+        else if (portalName === 'garden') content.innerHTML = await buildGardenHTML(); 
+        else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
+        else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
+        else content.innerHTML = "<h2>Stabilizing Rift...</h2>";
+    } catch (error) {
+        console.error("Portal Rendering Error:", error);
+        content.innerHTML = `<h2 class="gold-text">Rift Unstable</h2><p style="color:#ff6b6b;">The magic failed to weave correctly.</p>`;
+    }
 };
 
 window.closePortal = function() { document.getElementById('parchment-overlay').classList.remove('active'); };
 window.toggleAccordion = function(btn) { btn.classList.toggle('active'); let p = btn.nextElementSibling; if(p.style.maxHeight) p.style.maxHeight = null; else p.style.maxHeight = p.scrollHeight + 30 + "px"; };
 window.toggleSection = function(headerBtn) { headerBtn.classList.toggle('closed'); headerBtn.nextElementSibling.classList.toggle('closed'); };
+
+// ACTION HELPERS
+window.addDynamicItem = async function(table, inputId, portal) { const text = document.getElementById(inputId).value.trim(); if (!text) return; await insertData(table, { text: text, is_completed: false }); if(portal) openPortal(portal); };
+window.toggleDynamicItem = async function(table, id, currentState, portal) { await updateData(table, id, { is_completed: !currentState }); if (!currentState) feedFamiliar(); if(portal) openPortal(portal); };
+window.deleteDynamicItem = async function(table, id, portal) { await removeData(table, id); if(portal) openPortal(portal); };
+window.addEvent = async function() { const title = document.getElementById('ev-title').value.trim(); const date = document.getElementById('ev-date').value; if (!title) return; await insertData('calendar_events', { title: title, start_date: date, text: 'pending' }); openPortal('cat'); };
+window.deleteEvent = async function(id) { await removeData('calendar_events', id); openPortal('cat'); };
+window.toggleEvent = async function(id, currentText) { const newState = currentText === 'completed' ? 'pending' : 'completed'; await updateData('calendar_events', id, { text: newState }); if (newState === 'completed') feedFamiliar(); openPortal('cat'); };
 
 // === THE FAMILIAR ===
 let familiarXP = 0; const maxXP = 5;
@@ -849,15 +767,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updateNatureLore();
     fetchLocalAtmosphere();
     if (typeof loadActiveTrophy === "function") loadActiveTrophy();
-    
-    const forgeScale = document.getElementById('forge-scale');
-    if(forgeScale) {
-        forgeScale.addEventListener('input', (e) => {
-            if (editingItem) {
-                editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
-                editingItem.dataset.scale = e.target.value;
-            }
-        });
-    }
-    console.log("🏰 Sanctuary Fully Reforged.");
 });
