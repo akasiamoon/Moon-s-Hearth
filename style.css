@@ -17,6 +17,37 @@
     to { background-position: 200% center; }
 }
 
+@keyframes swayBundle { 
+    0% { transform: rotate(2deg); } 
+    100% { transform: rotate(-2deg); } 
+}
+
+@keyframes zoomies {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-5px) scale(1.1); }
+}
+
+@keyframes petalDrift { 
+    0% { transform: translate(0, 0); opacity: 0; } 
+    20% { opacity: 0.8; } 
+    80% { opacity: 0.8; } 
+    100% { transform: translate(-100px, -150px); opacity: 0; } 
+}
+
+@keyframes leafFall { 
+    0% { transform: translate(0, -50px); opacity: 0; } 
+    20% { opacity: 0.8; } 
+    80% { opacity: 0.8; } 
+    100% { transform: translate(-80px, 150px); opacity: 0; } 
+}
+
+@keyframes snowFall { 
+    0% { transform: translate(0, -100px); opacity: 0; } 
+    10% { opacity: 0.8; } 
+    90% { opacity: 0.8; } 
+    100% { transform: translate(50px, 200px); opacity: 0; } 
+}
+
 /* --- 2. FOUNDATION --- */
 html, body {
     margin: 0; padding: 0; width: 100vw; height: 100vh;
@@ -116,7 +147,10 @@ h2, .gold-text {
 ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
 ::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
 
-.portal-scroll-container { margin-top: 15px; max-height: 75vh; overflow-y: auto; padding-right: 10px; text-align: left; scrollbar-width: thin; }
+.portal-scroll-container {
+    margin-top: 15px; max-height: 75vh; overflow-y: auto; 
+    padding-right: 10px; text-align: left; scrollbar-width: thin; 
+}
 
 /* --- 9. AUDIO GRIMOIRE --- */
 #soundscape-container {
@@ -144,19 +178,18 @@ h2, .gold-text {
 .section-panel { max-height: 10000px; overflow: hidden; transition: max-height 0.5s ease-in-out; }
 .section-panel.closed { max-height: 0; }
 
-/* --- 11. GRIMOIRE (CAGED) --- */
+/* --- 11. GRIMOIRE (CAGED ALIGNMENT) --- */
 .grimoire-tome-container {
     position: relative; width: 100%; aspect-ratio: 16 / 9;
-    background: url('open_grimoire.jpg') center/cover no-repeat;
-    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
+    background: url('open_grimoire.jpg') center/cover no-repeat; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
 }
 .grimoire-page-wrapper {
-    position: absolute; top: 15%; bottom: 16%; left: 14%; right: 14%;
-    display: flex; justify-content: space-between;
+    position: absolute; top: 15%; bottom: 16%; left: 14%; right: 14%; display: flex; justify-content: space-between;
 }
 .grimoire-page { width: 43%; height: 100%; overflow-y: auto; color: #2b1d14; padding: 10px; box-sizing: border-box; }
 #grimoire-left-page { position: relative; left: 35px; }
 #grimoire-right-page { position: relative; right: 35px; padding-right: 20px; }
+
 .grimoire-search-bar { width: 80%; margin-left: 30px; background: transparent; border: none; border-bottom: 2px solid rgba(43, 29, 20, 0.6); color: #2b1d14; font-family: 'Cinzel', serif; font-size: 0.9em; padding: 8px 5px; outline: none; margin-bottom: 15px; }
 .alphabet-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-bottom: 10px; }
 .letter-btn { background: transparent; border: none; font-family: 'Cinzel', serif; font-size: 0.75em; font-weight: bold; color: #5c4033; cursor: pointer; width: 18px; transition: transform 0.2s; }
@@ -189,6 +222,9 @@ h2, .gold-text {
 .cal-cell.today { background: rgba(191,149,63,0.3); border-color: #fcf6ba; color: #fcf6ba; font-weight: bold; }
 .cal-cell.empty { background: transparent; border: none; }
 .cal-marker { width: 6px; height: 6px; background: #bf953f; border-radius: 50%; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); }
+.cal-cell.holiday { border-color: rgba(255, 154, 158, 0.4); background: rgba(255, 154, 158, 0.05); box-shadow: inset 0 0 10px rgba(255, 154, 158, 0.1); }
+.cal-cell.holiday:hover { border-color: #ff9a9e; background: rgba(255, 154, 158, 0.15); }
+.holiday-text { font-size: 0.55em; color: #ff9a9e; line-height: 1.1; margin-top: 4px; font-family: 'Quicksand', sans-serif; text-transform: none; letter-spacing: 0; padding: 0 2px; }
 
 /* --- 14. ALMANAC & CARDS --- */
 .alchemy-card, .tea-card, .sewing-card { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3); padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left; }
@@ -197,38 +233,44 @@ h2, .gold-text {
 .sewing-card { border-top: 3px double #bf953f; position: relative; }
 .sewing-card::before { content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 1px dashed rgba(191, 149, 63, 0.2); pointer-events: none; }
 .alchemy-title, .tea-title, .sewing-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; }
+.alchemy-ingredients { color: #bf953f; font-size: 0.9em; margin-bottom: 8px; }
+.alchemy-ingredients span { color: #e0e0e0; }
+
 #almanac-container { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.4); padding: 20px 15px; text-align: center; }
 .almanac-temp { color: #fcf6ba; font-size: 1.5em; font-family: 'Cinzel', serif; margin: 10px 0; text-shadow: 0 0 5px rgba(191, 149, 63, 0.4); }
 .almanac-stat { color: #d4c8a8; font-size: 1.1em; margin: 8px 0; font-family: 'Cinzel', serif; }
 .almanac-stat span { color: #bf953f; font-weight: bold; }
+.almanac-focus { color: #fcf6ba; font-size: 1.3em; font-family: 'Cinzel', serif; margin: 15px 0; text-shadow: 0 0 8px rgba(191, 149, 63, 0.3); }
 
-/* --- 15. INPUTS & BUTTONS --- */
+/* --- 15. INPUTS, BUTTONS, & UPLOADS --- */
 .portal-input { background: rgba(15, 12, 10, 0.9); color: #d4c8a8; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px; font-family: 'Quicksand', sans-serif; font-size: 1.05em; width: 100%; box-sizing: border-box; outline: none; }
 .portal-input:focus { border-color: #fcf6ba; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
+.portal-input::placeholder { color: rgba(191, 149, 63, 0.5); font-style: italic; }
 .portal-btn { padding: 8px 16px; background: rgba(8, 8, 10, 0.8); color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; transition: all 0.2s; }
 .portal-btn:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 input[type="file"] { display: none; }
 .custom-file-label { display: inline-block; padding: 8px 15px; background: rgba(8, 8, 10, 0.8); color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; transition: all 0.2s ease; }
 .custom-file-label:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 .action-btn { background: none; border: none; color: #bf953f; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; padding: 0 5px; }
+.action-btn:hover { color: #fcf6ba; }
 
-/* === 16. THE APOTHECARY & DRYING RACK (BEAUTIFUL SHELVES) === */
-.apothecary-cabinet-container { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr); height: 450px; background: rgba(0,0,0,0.5); padding: 50px 15px 15px 15px; }
+/* === 16. THE APOTHECARY & DRYING RACK === */
+.apothecary-cabinet-container { display: grid; grid-template-columns: repeat(6, 1fr); height: 450px; background: url('apothecary_cabinet_v2.jpg') center/cover no-repeat; background-color: #0c0c0e; border: 5px solid #3e2723; border-radius: 4px; margin: 20px auto 40px auto; box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1); padding: 50px 15px 15px 15px; overflow: hidden; }
 .css-phial { width: 26px; height: 38px; border-radius: 10px 10px 15px 15px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); position: relative; margin: 0 auto; }
 .css-phial::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; border-radius: 0 0 13px 13px; background: #8fce00; box-shadow: 0 0 15px #8fce00; transition: box-shadow 0.3s ease; }
 
-.herbs-rack-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 40px 10px; padding: 10px 10px 40px 10px; }
+.herbs-rack-container { position: relative; width: 100%; max-width: 600px; min-height: 200px; background: url('drying_rack.jpg') top center/100% auto repeat-y; border: 4px solid #3e2723; border-top: 30px solid #2d1a11; border-radius: 4px; margin: 20px auto 60px auto; padding: 10px 10px 40px 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 40px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.9); }
 .herb-bundle { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; transform-origin: top center; }
 .herb-bundle:hover { animation: swayBundle 2s ease-in-out infinite alternate; }
-@keyframes swayBundle { 0% { transform: rotate(2deg); } 100% { transform: rotate(-2deg); } }
 .herb-detail-tag { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 220px; background: rgba(8, 8, 10, 0.98); border: 2px solid #bf953f; padding: 15px; opacity: 0; visibility: hidden; z-index: 1001; transition: 0.3s; }
 .herb-bundle.show-details .herb-detail-tag { opacity: 1; visibility: visible; }
 
 /* === 17. THE GARDEN BEDS === */
-.garden-bed-container { width: 100%; max-width: 600px; height: 300px; background: #271915; border: 8px solid #3e2723; border-radius: 8px; margin: 20px auto; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.9); }
+.garden-bed-container { position: relative; width: 100%; max-width: 600px; height: 300px; background: url('raisedbed1.jpg') center/cover no-repeat; background-color: #271915; border: 8px solid #3e2723; border-radius: 8px; margin: 20px auto; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.9); }
 .garden-cell { border: 1px dashed rgba(143, 206, 0, 0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: background 0.3s; }
 .garden-cell:hover { background: rgba(143, 206, 0, 0.15); }
 .plant-icon { font-size: 2.5em; filter: drop-shadow(2px 4px 4px #000); }
+.plant-name { font-size: 0.75em; color: #fcf6ba; text-align: center; text-shadow: 1px 1px 3px #000; margin-top: 5px; font-weight: bold; }
 
 /* === 18. THE ARCHITECT'S FORGE === */
 #furnishing-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
@@ -239,7 +281,7 @@ body.building-mode .furnishing-item { cursor: grab; filter: drop-shadow(0 0 5px 
 body.building-mode .furnishing-item:hover { filter: drop-shadow(0 0 15px #fcf6ba); outline: 1px dashed rgba(191, 149, 63, 0.8); }
 body.building-mode .furnishing-item:active { cursor: grabbing; }
 
-/* === 19. THE FAMILIAR (RESTORED MISSING CSS) === */
+/* === 19. THE FAMILIAR === */
 #familiar-container { position: fixed; bottom: 30px; right: 30px; width: 120px; height: 120px; cursor: pointer; z-index: 1000; transition: transform 0.3s ease; }
 #familiar-container:hover { transform: scale(1.05); }
 .familiar-glass { position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; background: rgba(8, 8, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(191, 149, 63, 0.1); }
@@ -249,3 +291,8 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 #familiar-avatar { width: 90%; height: 90%; object-fit: cover; border-radius: 50%; }
 #familiar-speech { position: absolute; bottom: 140px; right: 10px; background: rgba(8, 8, 10, 0.85); border: 1px solid #bf953f; color: #fcf6ba; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; white-space: nowrap; opacity: 1; transition: opacity 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 #familiar-speech.hidden { opacity: 0; pointer-events: none; }
+
+/* === 20. SEASONAL MAGIC === */
+body.season-spring .dust-container { background-image: radial-gradient(ellipse, rgba(255, 182, 193, 0.9) 3px, transparent 5px), radial-gradient(ellipse, rgba(255, 105, 180, 0.6) 2px, transparent 4px); animation: petalDrift 20s linear infinite; }
+body.season-autumn .dust-container { background-image: radial-gradient(ellipse, rgba(255, 140, 0, 0.9) 4px, transparent 5px), radial-gradient(ellipse, rgba(200, 50, 0, 0.7) 3px, transparent 4px); animation: leafFall 18s ease-in-out infinite; }
+body.season-winter .dust-container { background-image: radial-gradient(circle, rgba(255, 255, 255, 0.95) 2.5px, transparent 3.5px), radial-gradient(circle, rgba(255, 255, 255, 0.7) 1.5px, transparent 2.5px); animation: snowFall 22s linear infinite; }
