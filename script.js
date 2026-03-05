@@ -657,13 +657,159 @@ function buildAlmanacHTML() {
     return `<h2 class="gold-text">Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div></div>`;
 }
 
-function buildWorkshopHTML() {
-    return `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container"><p style="text-align:center; color:#d4c8a8;">Workshop active.</p></div>`;
-}
-function buildSewingHTML() {
-    return `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container"><p style="text-align:center; color:#d4c8a8;">Sewing active.</p></div>`;
+// === MEASUREMENT LOG (UPGRADED) ===
+async function buildSewingHTML() {
+    let html = `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container">`;
+    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic;">Track your textiles, patterns, and tailored creations.</p>`;
+    
+    // --- NEW PROJECT FORM ---
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Scribe New Project</div>
+             <div class="section-panel closed">
+                <div style="background: rgba(8, 8, 10, 0.6); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px;">
+                    <input type="text" id="sew-title" placeholder="Project Name (e.g. Hearth Apron)..." class="portal-input" style="margin-bottom: 10px;">
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="text" id="sew-fabric" placeholder="Fabric/Material..." class="portal-input" style="flex:1;">
+                        <select id="sew-status" class="portal-input" style="flex:1; cursor:pointer;">
+                            <option value="Drafting">📐 Drafting</option>
+                            <option value="In Progress">🧵 In Progress</option>
+                            <option value="Completed">✨ Completed</option>
+                        </select>
+                    </div>
+                    <textarea id="sew-notes" placeholder="Measurements & Notes..." class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
+                    <button onclick="addSewingProject()" class="portal-btn" style="width: 100%;">Log Project</button>
+                </div>
+             </div>`;
+    
+    // --- LOAD PROJECTS ---
+    // Ensure the fallback static array exists if defined earlier
+    const localSewing = (typeof mySewing !== 'undefined') ? mySewing : [];
+    let savedSewing = await loadData('sewing_projects'); 
+    const allSewing = [...localSewing, ...(savedSewing || [])];
+
+    html += `<div style="margin-top: 20px;">`;
+    
+    if (allSewing.length === 0) {
+        html += `<p style="text-align:center; color:rgba(191,149,63,0.5); font-style:italic;">Your sewing log is currently empty.</p>`;
+    } else {
+        allSewing.forEach(item => {
+            let statusColor = item.status === 'Completed' ? '#8fce00' : (item.status === 'Drafting' ? '#4facfe' : '#bf953f');
+            let delBtn = item.id ? `<button class="action-btn" style="position:absolute; top:10px; right:10px; color:#ff6b6b; font-size:16px;" onclick="removeData('sewing_projects', '${item.id}'); openPortal('sewing');">✕</button>` : '';
+
+            html += `
+            <div style="position:relative; background: rgba(20, 15, 12, 0.8); border: 1px solid rgba(191, 149, 63, 0.4); border-top: 3px double ${statusColor}; padding: 15px; border-radius: 4px; margin-bottom: 15px; transition: all 0.3s ease;">
+                ${delBtn}
+                <h3 style="color:#fcf6ba; font-family:'Cinzel', serif; margin:0 0 10px 0; font-size:1.2em;">✂️ ${item.title}</h3>
+                <div style="display:inline-block; background:rgba(0,0,0,0.5); color:${statusColor}; padding:4px 10px; border-radius:12px; font-size:0.75em; text-transform:uppercase; border:1px solid ${statusColor}; margin-bottom:12px; font-weight:bold;">${item.status || 'In Progress'}</div>
+                <div style="color:#d4c8a8; font-size:0.9em; margin-bottom:8px;"><strong>Material:</strong> <span style="color:#bf953f;">${item.fabric || 'Unknown'}</span></div>
+                <div style="background:rgba(0,0,0,0.4); padding:10px; border-left:2px solid rgba(191,149,63,0.5); color:#e0e0e0; font-size:0.9em; white-space:pre-wrap; border-radius:0 4px 4px 0;">${item.notes || item.description || 'No notes.'}</div>
+            </div>`;
+        });
+    }
+    html += `</div></div>`;
+    return html;
 }
 
+window.addSewingProject = async function() {
+    const title = document.getElementById('sew-title').value.trim();
+    const fabric = document.getElementById('sew-fabric').value.trim();
+    const status = document.getElementById('sew-status').value;
+    const notes = document.getElementById('sew-notes').value.trim();
+    if (!title) return alert("The scroll requires a project title!");
+    await insertData('sewing_projects', { title, fabric, status, notes });
+    feedFamiliar();
+    openPortal('sewing');
+};
+
+// === ARTISAN'S WORKSHOP (UPGRADED) ===
+async function buildWorkshopHTML() {
+    let html = `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container">`;
+    html += `<p style="text-align:center; color:#d4c8a8; font-style:italic;">Your tools, materials, and active blueprints.</p>`;
+    
+    // --- 1. PROJECT BLUEPRINTS (To-Do List) ---
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Project Blueprints</div>
+             <div class="section-panel closed">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
+                    <input type="text" id="new-workshop-proj" placeholder="Draft a new blueprint..." class="portal-input">
+                    <button onclick="addDynamicItem('workshop_projects', 'new-workshop-proj', 'workshop')" class="portal-btn">Add</button>
+                </div>`;
+    const projects = await loadData('workshop_projects');
+    if (projects.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">No active blueprints.</p>`;
+    projects.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('workshop_projects', '${item.id}', ${item.is_completed}, 'workshop')">
+                    <div class="quest-checkbox"></div>
+                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.95em;">${item.text}</h3></div>
+                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('workshop_projects', '${item.id}', 'workshop')">✕</div>
+                 </div>`; 
+    });
+    html += `</div>`;
+
+    // --- 2. THE MATERIAL STASH ---
+    html += `<div class="section-header closed" onclick="toggleSection(this)">The Material Stash</div>
+             <div class="section-panel closed">
+                <div style="background:rgba(8, 8, 10, 0.6); padding:15px; border-radius:4px; border:1px solid rgba(191,149,63,0.3); margin-top:10px; margin-bottom:15px;">
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <select id="mat-icon" class="portal-input" style="flex:0.5; padding:8px; cursor:pointer;">
+                            <option value="🪵">🪵 Wood</option>
+                            <option value="🪨">🪨 Stone/Clay</option>
+                            <option value="⛓️">⛓️ Metal</option>
+                            <option value="🧶">🧶 Yarn/String</option>
+                            <option value="🎨">🎨 Pigment</option>
+                            <option value="📦">📦 Misc</option>
+                        </select>
+                        <input type="text" id="mat-name" placeholder="Material Name..." class="portal-input" style="flex:2; margin:0;">
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="mat-qty" placeholder="Quantity / Location..." class="portal-input" style="flex:2; margin:0;">
+                        <button onclick="addMaterialStash()" class="portal-btn" style="flex:1;">Stash It</button>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px;">`;
+    
+    const materials = await loadData('material_stash');
+    if (materials.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center; grid-column:1/-1;">Your stash is empty.</p>`;
+    materials.forEach(item => {
+        html += `<div style="background:rgba(0,0,0,0.5); border:1px dashed rgba(191,149,63,0.4); border-radius:4px; padding:15px 10px; position:relative; text-align:center; transition: border 0.3s;">
+                    <button class="action-btn" style="position:absolute; top:2px; right:2px; font-size:12px; color:#ff6b6b;" onclick="removeData('material_stash', '${item.id}'); openPortal('workshop');">✕</button>
+                    <div style="font-size:2.2em; margin-bottom:8px; filter:drop-shadow(2px 4px 4px #000);">${item.icon || '📦'}</div>
+                    <div style="color:#fcf6ba; font-family:'Cinzel', serif; font-size:0.9em; margin-bottom:5px; line-height:1.2;">${item.name}</div>
+                    <div style="color:#bf953f; font-size:0.75em; border-top:1px solid rgba(191,149,63,0.2); padding-top:5px;">${item.qty}</div>
+                 </div>`;
+    });
+    html += `</div></div>`;
+
+    // --- 3. TOOL MAINTENANCE ---
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Tool Maintenance</div>
+             <div class="section-panel closed">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; margin-top: 10px;">
+                    <input type="text" id="new-tool" placeholder="e.g. Oil the shears, sharpen blade..." class="portal-input">
+                    <button onclick="addDynamicItem('tool_maintenance', 'new-tool', 'workshop')" class="portal-btn">Add</button>
+                </div>`;
+    const tools = await loadData('tool_maintenance');
+    if (tools.length === 0) html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center;">All tools are honed and ready.</p>`;
+    tools.forEach(item => { 
+        const isDone = item.is_completed ? 'completed' : ''; 
+        html += `<div class="quest-item ${isDone}" onclick="toggleDynamicItem('tool_maintenance', '${item.id}', ${item.is_completed}, 'workshop')">
+                    <div class="quest-checkbox"></div>
+                    <div class="quest-details"><h3 class="quest-title" style="font-size:0.9em; color:#d4c8a8;">🛠️ ${item.text}</h3></div>
+                    <div class="delete-icon" onclick="event.stopPropagation(); deleteDynamicItem('tool_maintenance', '${item.id}', 'workshop')">✕</div>
+                 </div>`; 
+    });
+    html += `</div>`;
+
+    html += `</div>`; 
+    return html;
+}
+
+window.addMaterialStash = async function() {
+    const icon = document.getElementById('mat-icon').value;
+    const name = document.getElementById('mat-name').value.trim();
+    const qty = document.getElementById('mat-qty').value.trim();
+    if(!name) return alert("You must name the material!");
+    await insertData('material_stash', { icon, name, qty });
+    feedFamiliar();
+    openPortal('workshop');
+};
 // === 5. MASTER CORE UI CONTROLLER ===
 window.openPortal = async function(portalName) {
     const overlay = document.getElementById('parchment-overlay');
