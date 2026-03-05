@@ -255,10 +255,19 @@ input[type="file"] { display: none; }
 .action-btn:hover { color: #fcf6ba; }
 
 /* === 16. THE APOTHECARY & DRYING RACK === */
-.apothecary-cabinet-container { display: grid; grid-template-columns: repeat(6, 1fr); height: 450px; background: url('apothecary_cabinet_v2.jpg') center/cover no-repeat; background-color: #0c0c0e; border: 5px solid #3e2723; border-radius: 4px; margin: 20px auto 40px auto; box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1); padding: 50px 15px 15px 15px; overflow: hidden; }
-.css-phial { width: 26px; height: 38px; border-radius: 10px 10px 15px 15px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); position: relative; margin: 0 auto; }
-.css-phial::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; border-radius: 0 0 13px 13px; background: #8fce00; box-shadow: 0 0 15px #8fce00; transition: box-shadow 0.3s ease; }
-
+.apothecary-cabinet-container { 
+    display: grid; 
+    grid-template-columns: repeat(6, 1fr); 
+    grid-auto-rows: 100px; /* Forces consistent shelf heights */
+    min-height: 450px; 
+    background: url('apothecary_cabinet_v2.jpg') top center/100% auto repeat-y; 
+    background-color: #0c0c0e; 
+    border: 5px solid #3e2723; 
+    border-radius: 4px; 
+    margin: 20px auto 40px auto; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,1); 
+    padding: 50px 15px 15px 15px; 
+}
 .herbs-rack-container { position: relative; width: 100%; max-width: 600px; min-height: 200px; background: url('drying_rack.jpg') top center/100% auto repeat-y; border: 4px solid #3e2723; border-top: 30px solid #2d1a11; border-radius: 4px; margin: 20px auto 60px auto; padding: 10px 10px 40px 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 40px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.9); }
 .herb-bundle { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; transform-origin: top center; }
 .herb-bundle:hover { animation: swayBundle 2s ease-in-out infinite alternate; }
