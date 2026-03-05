@@ -477,7 +477,7 @@ window.draftBgUrl = '';
 window.isForging = false;
 window.editingItem = null;
 
-// 2. The Portal Interface
+// 2. The Portal Interface (Trophy Gallery & Stash)
 async function buildInventoryHTML() {
     let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
 
@@ -500,13 +500,12 @@ async function buildInventoryHTML() {
     }
     html += `</div>`;
 
-    // Forge New Room
+    // Forge New Room Button
     html += `<div class="section-header closed" onclick="toggleSection(this)">Forge New Sanctuary</div>
              <div class="section-panel closed" style="padding: 15px;">
                 <div style="background:rgba(0,0,0,0.4); padding:15px; border:1px dashed rgba(191,149,63,0.4); border-radius:4px; text-align:center;">
                     <input type="file" id="room-bg-upload" accept="image/*" onchange="startForging(this)" style="display:none;">
                     <label for="room-bg-upload" class="portal-btn" style="display:block; width:100%; cursor:pointer; box-sizing:border-box;">Upload Room Background</label>
-                    <p style="color:#bf953f; font-size:0.85em; margin-top:10px; font-style:italic; margin-bottom:0;">Select a background to enter Building Mode.</p>
                 </div>
              </div>`;
 
@@ -515,42 +514,21 @@ async function buildInventoryHTML() {
              <div class="section-panel closed" style="padding: 15px;">
                 <div style="background:rgba(8, 8, 10, 0.6); padding:15px; border-radius:4px; border:1px solid rgba(191,149,63,0.3);">
                     <input type="text" id="stash-item-name" placeholder="Item Name..." class="portal-input" style="margin-bottom:10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(0,0,0,0.4); padding:10px; border:1px dashed rgba(191,149,63,0.3); border-radius:4px;">
-                        <label for="stash-item-upload" class="custom-file-label" style="margin:0;">Attach Transparent Image</label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <input type="file" id="stash-item-upload" accept="image/*" onchange="document.getElementById('stash-file-status').innerText = this.files[0].name">
-                        <span id="stash-file-status" style="font-size:0.8em; color:#bf953f; font-style:italic; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">No file</span>
+                        <span id="stash-file-status" style="font-size:0.8em; color:#bf953f;">No file</span>
                     </div>
                     <button onclick="addToGrandStash()" class="portal-btn" style="width:100%;">Stash Item</button>
                 </div>
              </div>`;
 
-    // The Grand Stash Grid
-    const stash = await loadData('inventory_stash');
-    html += `<div class="section-header closed" onclick="toggleSection(this)">The Grand Stash</div>
-             <div class="section-panel closed">
-                <div id="stash-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding:10px 0;">`;
-    if (stash.length === 0) {
-        html += `<p style="color: rgba(191,149,63,0.5); font-style: italic; text-align:center; grid-column:1/-1;">Your stash is empty.</p>`;
-    } else {
-        stash.forEach(item => { 
-            html += `<div style="text-align:center; background: rgba(0,0,0,0.4); padding: 5px; border: 1px dashed rgba(191,149,63,0.3); border-radius:4px; position:relative;">
-                        <button class="action-btn" style="position:absolute; top:2px; right:2px; color:#ff6b6b; font-size:12px; z-index:2;" onclick="removeData('inventory_stash', '${item.id}'); openPortal('inventory');">✕</button>
-                        <img src="${item.image_url}" style="width:100%; height:60px; object-fit:contain; border-radius:2px;">
-                        <div style="font-size:0.6em; color:#bf953f; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
-                     </div>`; 
-        });
-    }
-    html += `</div></div></div>`;
-    return html;
+    return html + `</div>`;
 }
 
 window.addToGrandStash = async function() {
     const name = document.getElementById('stash-item-name').value.trim();
     const fileInput = document.getElementById('stash-item-upload');
-    
-    if (!name) return alert("The Architect must name this item!");
-    if (fileInput.files.length === 0) return alert("Please attach an image!");
-    
+    if (!name || !fileInput.files[0]) return alert("Name and Image required!");
     const imageUrl = await uploadImageToSupabase(fileInput.files[0], 'stash', 'stash-file-status');
     if (imageUrl) {
         await insertData('inventory_stash', { name, image_url: imageUrl });
@@ -558,348 +536,144 @@ window.addToGrandStash = async function() {
     }
 };
 
-// 3. The Resizer
-window.resizeImage = function(file, maxWidth, callback) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function(event) {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            if (width > maxWidth) {
-                height = Math.round((height *= maxWidth / width));
-                width = maxWidth;
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            canvas.toBlob((blob) => { callback(blob); }, file.type || 'image/jpeg', 0.85);
-        };
-    };
-};
-
+// 3. Building Mode Logic
 window.startForging = async function(input) {
     if(!input.files[0]) return;
-    
-    const label = input.nextElementSibling;
-    const originalText = label.innerText;
-    label.innerText = "✨ Weaving Background...";
-    
-    const bgUrl = await uploadImageToSupabase(input.files[0], 'trophy_bg', label.id);
-    
-    if(!bgUrl) {
-        label.innerText = "🚫 Upload Failed.";
-        setTimeout(() => label.innerText = originalText, 2000);
-        return;
-    }
+    const bgUrl = await uploadImageToSupabase(input.files[0], 'trophy_bg', 'room-bg-upload');
+    if(!bgUrl) return;
 
     window.draftBgUrl = bgUrl;
-    const bgArt = document.getElementById('bg-art');
-    if(bgArt) {
-        bgArt.src = window.draftBgUrl; 
-        bgArt.style.position = "absolute";
-        bgArt.style.top = "0";
-        bgArt.style.left = "0";
-        bgArt.style.zIndex = "1"; // Push background to the absolute bottom
-    }
+    document.getElementById('bg-art').src = bgUrl;
     
-    document.body.classList.add('building-mode'); 
+    // HIDE ALL PORTALS so you don't click them while building
+    document.querySelectorAll('.portal').forEach(p => p.style.display = 'none');
+    
+    // CLEAR AND PREP THE FURNITURE LAYER
     const layer = document.getElementById('furnishing-layer');
-    if(layer) {
-        layer.innerHTML = ''; 
-        // Force the furniture layer to stretch over the entire background
-        layer.style.position = "absolute";
-        layer.style.top = "0";
-        layer.style.left = "0";
-        layer.style.width = "100vw";
-        layer.style.height = "100vh";
-        layer.style.zIndex = "50"; 
-        layer.style.pointerEvents = "none";
-    }
+    layer.innerHTML = ''; 
+    layer.style.zIndex = "100"; // FORCE IT TO THE TOP
+    layer.style.pointerEvents = "auto";
     
     closePortal(); 
     window.isForging = true;
     
-    await buildForgeToolbox();
+    // SHOW THE TOOLBOX FROM YOUR HTML
+    document.getElementById('architect-toolbox').style.display = 'block';
+    loadToolboxStash();
 };
 
-window.buildForgeToolbox = async function() {
-    let toolbox = document.getElementById('forge-toolbox');
-    if (!toolbox) {
-        toolbox = document.createElement('div');
-        toolbox.id = 'forge-toolbox';
-        document.body.appendChild(toolbox);
-    }
-
+async function loadToolboxStash() {
     const stash = await loadData('inventory_stash');
-    let stashHtml = stash.map(item => 
-        `<div style="text-align:center; margin:5px;">
-            <img src="${item.image_url}" onclick="spawnToForge('${item.image_url}')" style="width:60px; height:60px; object-fit:contain; cursor:pointer; background:rgba(0,0,0,0.5); border:1px solid rgba(191,149,63,0.5); border-radius:4px; transition: transform 0.2s;">
-        </div>`
-    ).join('');
+    const container = document.getElementById('toolbox-stash');
+    container.innerHTML = stash.map(item => `
+        <img src="${item.image_url}" onclick="spawnToForge('${item.image_url}')" 
+             style="width:100%; height:70px; object-fit:contain; cursor:pointer; background:rgba(0,0,0,0.3); border:1px solid #bf953f; border-radius:4px;">
+    `).join('');
+}
 
-    if(stash.length === 0) stashHtml = `<p style="color:rgba(191,149,63,0.6); font-style:italic; font-size:0.85em; text-align:center; width:100%;">Your stash is empty.</p>`;
-
-    toolbox.innerHTML = `
-        <div style="background: rgba(16, 12, 9, 0.95); border: 2px solid #bf953f; border-radius: 6px; padding: 15px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.9); pointer-events: auto;">
-            <h3 style="color:#fcf6ba; font-family:'Cinzel', serif; margin:0 0 15px 0; text-align:center; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:10px;">Architect's Toolbox</h3>
-            <div style="margin-bottom: 15px;">
-                <div style="display:flex; justify-content:space-between; color:#bf953f; font-size:0.8em; margin-bottom:5px;"><span>Item Scale</span><span id="scale-readout">1.0x</span></div>
-                <input type="range" id="forge-scale" min="0.2" max="3" step="0.1" value="1" style="width:100%; cursor:pointer;">
-            </div>
-            <div style="max-height: 250px; overflow-y: auto; display:flex; flex-wrap:wrap; justify-content:center; margin-bottom: 20px; background:rgba(0,0,0,0.3); border:1px inset rgba(191,149,63,0.2); padding:10px; border-radius:4px;">
-                ${stashHtml}
-            </div>
-            <input type="text" id="forge-room-name" placeholder="Name this Room..." class="portal-input" style="margin-bottom:10px;">
-            <div style="display:flex; gap:10px;">
-                <button onclick="saveForgedRoom()" class="portal-btn" style="flex:2; background:#8fce00; color:#000; border-color:#8fce00;">Seal Room</button>
-                <button onclick="exitForge()" class="portal-btn" style="flex:1; background:#ff6b6b; color:#000; border-color:#ff6b6b;">Cancel</button>
-            </div>
-        </div>
-    `;
-
-    toolbox.style.position = 'fixed';
-    toolbox.style.top = '20px';
-    toolbox.style.right = '20px';
-    toolbox.style.zIndex = '9999';
-    toolbox.style.display = 'block';
-
-    document.getElementById('forge-scale').addEventListener('input', (e) => {
-        document.getElementById('scale-readout').innerText = e.target.value + 'x';
-        if (window.editingItem) {
-            window.editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
-            window.editingItem.dataset.scale = e.target.value;
-        }
-    });
-};
-
-// 4. The Drag & Drop Mechanics
 window.spawnToForge = function(imageUrl) {
     const layer = document.getElementById('furnishing-layer');
-    if(!layer) return;
     const img = document.createElement('img');
     img.src = imageUrl; 
     img.className = 'furnishing-item';
-    img.style.position = 'absolute'; 
-    img.style.left = '50%'; 
-    img.style.top = '50%';
-    img.style.cursor = 'grab';
-    img.style.transform = 'translate(-50%, -50%) scale(1)';
+    img.style.cssText = `position:absolute; left:50%; top:50%; cursor:grab; transform:translate(-50%, -50%) scale(1); z-index:200; pointer-events:auto;`;
     img.dataset.scale = 1;
-    img.style.zIndex = "100"; // Force the item ABOVE EVERYTHING
-    img.style.pointerEvents = "auto"; // Re-enable clicking on this specific item!
-    
-    img.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
-    if(window.editingItem) window.editingItem.style.filter = 'none'; 
-    window.editingItem = img;
-    
-    document.getElementById('forge-scale').value = 1;
-    document.getElementById('scale-readout').innerText = '1.0x';
-
-    img.onmousedown = window.selectItemForEdit; // Hard-linked to the window
+    img.onmousedown = window.selectItemForEdit;
     layer.appendChild(img);
+    
+    window.editingItem = img;
+    document.getElementById('item-controls').style.display = 'block';
 };
 
+// 4. Drag & Drop Helpers
 window.selectItemForEdit = function(e) { 
     if (!window.isForging) return; 
     e.preventDefault(); 
-    
-    if(window.editingItem) window.editingItem.style.filter = 'none'; 
     window.editingItem = e.target; 
-    window.editingItem.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
-    window.editingItem.style.cursor = 'grabbing';
-    
-    const currentScale = window.editingItem.dataset.scale || 1;
-    document.getElementById('forge-scale').value = currentScale;
-    document.getElementById('scale-readout').innerText = currentScale + 'x';
-
-    document.onmousemove = window.dragItem; 
-    document.onmouseup = window.stopDrag; 
-};
-
-window.dragItem = function(e) { 
-    if (window.editingItem) { 
-        window.editingItem.style.left = e.clientX + 'px'; 
-        window.editingItem.style.top = e.clientY + 'px'; 
-    } 
-};
-
-window.stopDrag = function() { 
-    if(window.editingItem) window.editingItem.style.cursor = 'grab';
-    document.onmousemove = null; 
-    document.onmouseup = null; 
-};
-
-// 5. The Fail-Proof Save System
-window.saveForgedRoom = async function() {
-    try {
-        const roomName = document.getElementById('forge-room-name').value.trim();
-        if(!roomName) return alert("The Architect must name this chamber!");
-
-        // Mint a unique Room ID that Supabase can't reject
-        const actualRoomId = 'room_' + Date.now(); 
-
-        let newRoom = {
-            id: actualRoomId, 
-            name: roomName,
-            bg_url: window.draftBgUrl
-        };
-        
-        await insertData('trophy_rooms', newRoom);
-
-        const layer = document.getElementById('furnishing-layer');
-        const items = layer.querySelectorAll('.furnishing-item');
-
-        // Mint a unique ID for EVERY SINGLE PNG
-        for (let i = 0; i < items.length; i++) {
-            let item = items[i];
-            await insertData('trophy_furnishings', {
-                id: 'furn_' + Date.now() + '_' + i, // Completely unique!
-                room_id: actualRoomId,
-                image_url: item.src,
-                pos_x: item.style.left,
-                pos_y: item.style.top,
-                scale: parseFloat(item.dataset.scale || 1),
-                z_index: parseInt(item.style.zIndex || 100)
-            });
+    document.onmousemove = (e) => {
+        if(window.editingItem) {
+            window.editingItem.style.left = e.clientX + 'px';
+            window.editingItem.style.top = e.clientY + 'px';
         }
-
-        localStorage.setItem('active_trophy_id', actualRoomId);
-        localStorage.setItem('active_trophy_bg', window.draftBgUrl);
-
-        alert("✨ Chamber permanently sealed into the archives!");
-
-        exitForge();
-        window.isForging = false;
-        
-        openPortal('inventory'); // Ensure it opens right to your new gallery entry
-        
-    } catch (error) {
-        console.error("Save Failed:", error);
-        alert("The cloud rejected the save! Please check your database rules.");
-    }
+    };
+    document.onmouseup = () => { document.onmousemove = null; };
 };
 
-window.exitForge = function() {
+// 5. THE MASTER SAVE (sealTrophy)
+window.sealTrophy = async function() {
+    const name = document.getElementById('trophy-name').value.trim();
+    if(!name) return alert("The Architect must name this chamber!");
+
+    const roomId = 'room_' + Date.now();
+    await insertData('trophy_rooms', { id: roomId, name: name, bg_url: window.draftBgUrl });
+
+    const items = document.querySelectorAll('.furnishing-item');
+    for (let i = 0; i < items.length; i++) {
+        await insertData('trophy_furnishings', {
+            id: 'furn_' + Date.now() + '_' + i,
+            room_id: roomId,
+            image_url: items[i].src,
+            pos_x: items[i].style.left,
+            pos_y: items[i].style.top,
+            scale: parseFloat(items[i].dataset.scale || 1)
+        });
+    }
+
+    localStorage.setItem('active_trophy_id', roomId);
+    localStorage.setItem('active_trophy_bg', window.draftBgUrl);
+    alert("✨ Chamber permanently sealed!");
+    window.cancelForging();
+};
+
+window.cancelForging = function() {
     window.isForging = false;
-    document.body.classList.remove('building-mode');
-    const toolbox = document.getElementById('forge-toolbox');
-    if(toolbox) toolbox.style.display = 'none';
-    
-    if(window.editingItem) window.editingItem.style.filter = 'none';
-    window.editingItem = null;
-    
+    document.getElementById('architect-toolbox').style.display = 'none';
+    document.querySelectorAll('.portal').forEach(p => p.style.display = 'block');
+    document.getElementById('furnishing-layer').style.pointerEvents = "none";
     loadActiveTrophy();
 };
 
-// 6. Unblockable Exit Doors
+// 6. Navigation
 window.loadActiveTrophy = async function() {
-    const activeBg = localStorage.getItem('active_trophy_bg'); 
+    const activeBg = localStorage.getItem('active_trophy_bg') || 'sanctuary.jpg';
     const activeId = localStorage.getItem('active_trophy_id');
-    const bgArt = document.getElementById('bg-art');
-    
-    if(bgArt) {
-        bgArt.src = activeBg ? activeBg : 'sanctuary.jpg';
-        bgArt.style.position = activeBg ? "absolute" : ""; 
-        bgArt.style.top = activeBg ? "0" : "";
-        bgArt.style.left = activeBg ? "0" : "";
-        bgArt.style.zIndex = activeBg ? "1" : ""; 
-    }
+    document.getElementById('bg-art').src = activeBg;
     
     const layer = document.getElementById('furnishing-layer');
-    if(!layer) return;
-    layer.innerHTML = ''; 
-    
-    // Apply canvas constraints when in a room
-    if(activeId) {
-        layer.style.position = "absolute";
-        layer.style.top = "0";
-        layer.style.left = "0";
-        layer.style.width = "100vw";
-        layer.style.height = "100vh";
-        layer.style.zIndex = "50";
-        layer.style.pointerEvents = "none";
-    }
+    layer.innerHTML = '';
     
     let exitBtn = document.getElementById('exit-trophy-btn');
     if (!exitBtn) {
         exitBtn = document.createElement('button');
         exitBtn.id = 'exit-trophy-btn';
         exitBtn.innerHTML = '🚪 Return to Main Sanctuary';
-        
-        // Force styling to bypass all CSS layers
-        exitBtn.style.cssText = `
-            position: fixed !important;
-            bottom: 30px !important;
-            right: 30px !important;
-            z-index: 2147483647 !important;
-            background-color: rgba(20, 15, 12, 0.95) !important;
-            color: #bf953f !important;
-            border: 2px solid #bf953f !important;
-            box-shadow: 0 0 20px rgba(0,0,0,0.9) !important;
-            padding: 15px 20px !important;
-            font-size: 1.1em !important;
-            cursor: pointer !important;
-            pointer-events: auto !important;
-            border-radius: 4px !important;
-            font-family: 'Cinzel', serif !important;
-        `;
-        exitBtn.onclick = leaveTrophyRoom;
+        exitBtn.className = 'portal-btn';
+        exitBtn.style.cssText = `position:fixed; bottom:20px; right:20px; z-index:9999; background:rgba(0,0,0,0.8); color:#bf953f; border:1px solid #bf953f; padding:10px 20px; cursor:pointer;`;
+        exitBtn.onclick = () => {
+            localStorage.removeItem('active_trophy_id');
+            localStorage.removeItem('active_trophy_bg');
+            loadActiveTrophy();
+        };
         document.body.appendChild(exitBtn);
     }
+    exitBtn.style.display = activeId ? 'block' : 'none';
 
     if(activeId) {
-        exitBtn.style.display = 'block'; 
-        const roomFurniture = await loadData('trophy_furnishings');
-        const activeFurniture = roomFurniture.filter(f => f.room_id === activeId);
-        
-        activeFurniture.forEach(f => {
+        const items = await loadData('trophy_furnishings');
+        items.filter(f => f.room_id === activeId).forEach(f => {
             const img = document.createElement('img');
-            img.src = f.image_url; 
-            img.className = 'furnishing-item';
-            img.style.position = 'absolute';
-            img.style.left = f.pos_x; 
-            img.style.top = f.pos_y;
-            img.style.zIndex = f.z_index || 100; 
-            img.style.transform = `translate(-50%, -50%) scale(${f.scale || 1})`; 
-            img.dataset.scale = f.scale || 1;
-            img.style.pointerEvents = "auto"; 
-            
-            // Re-attach dragging so you can edit later!
-            img.onmousedown = window.selectItemForEdit;
-            
+            img.src = f.image_url;
+            img.style.cssText = `position:absolute; left:${f.pos_x}; top:${f.pos_y}; transform:translate(-50%,-50%) scale(${f.scale}); z-index:100;`;
             layer.appendChild(img);
         });
-    } else {
-        exitBtn.style.display = 'none'; 
     }
 };
 
-window.leaveTrophyRoom = function() {
-    localStorage.removeItem('active_trophy_id');
-    localStorage.removeItem('active_trophy_bg');
-    
-    // Clear the absolute positioning from the background image
-    const bgArt = document.getElementById('bg-art');
-    if (bgArt) {
-        bgArt.style.position = "";
-        bgArt.style.top = "";
-        bgArt.style.left = "";
-        bgArt.style.zIndex = "";
-    }
-    
+window.loadTrophy = function(id, bg) {
+    localStorage.setItem('active_trophy_id', id);
+    localStorage.setItem('active_trophy_bg', bg);
     loadActiveTrophy();
-};
-
-window.loadTrophy = function(roomId, bgUrl) { 
-    localStorage.setItem('active_trophy_id', roomId); 
-    localStorage.setItem('active_trophy_bg', bgUrl); 
-    loadActiveTrophy(); 
-    closePortal(); 
+    closePortal();
 };
 // --- THE STILLNESS (TEACUP) ---
 async function buildTeacupHTML() {
