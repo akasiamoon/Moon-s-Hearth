@@ -9,26 +9,31 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
+   <body>
     <div class="sanctuary-container">
-        <img src="sanctuary.jpg" class="master-image" id="bg-art" alt="Sanctuary">
-        
-        <div id="furnishing-layer"></div>
-        
-        <div class="dust-container"></div>
+        <div id="sanctuary-stage" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;">
+            <img src="sanctuary.jpg" class="master-image" id="bg-art" alt="Sanctuary" style="z-index: 1;">
+            
+            <div id="furnishing-layer" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 10; pointer-events: none;"></div>
+            
+            <div class="dust-container" style="z-index: 15;"></div>
+        </div>
 
-        <div id="portal-window" class="portal" onclick="openPortal('window')"></div>
-        <div id="portal-herbs" class="portal" onclick="openPortal('herbs')"></div>
-        <div id="portal-audio" class="portal" onclick="openPortal('audio')"></div>
-        <div id="portal-grimoire" class="portal" onclick="openPortal('grimoire')"></div>
-        <div id="portal-alchemy" class="portal" onclick="openPortal('alchemy')"></div>
-        <div id="portal-teacup" class="portal" onclick="openPortal('teacup')"></div>
-        <div id="portal-cat" class="portal" onclick="openPortal('cat')"></div>
-        <div id="portal-sewing" class="portal" onclick="openPortal('sewing')"></div>
-        <div id="portal-ledger" class="portal" onclick="openPortal('ledger')"></div>
-        <div id="portal-workshop" class="portal" onclick="openPortal('workshop')"></div>
-        <div id="portal-apprentice" class="portal" onclick="openPortal('apprentice')"></div>
-        <div id="portal-inventory" class="portal" onclick="openPortal('inventory')"></div>
-       <div id="portal-garden" class="portal" onclick="openPortal('garden')"></div>
+        <div id="interaction-layer" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 20;">
+            <div id="portal-window" class="portal" onclick="openPortal('window')"></div>
+            <div id="portal-herbs" class="portal" onclick="openPortal('herbs')"></div>
+            <div id="portal-audio" class="portal" onclick="openPortal('audio')"></div>
+            <div id="portal-grimoire" class="portal" onclick="openPortal('grimoire')"></div>
+            <div id="portal-alchemy" class="portal" onclick="openPortal('alchemy')"></div>
+            <div id="portal-teacup" class="portal" onclick="openPortal('teacup')"></div>
+            <div id="portal-cat" class="portal" onclick="openPortal('cat')"></div>
+            <div id="portal-sewing" class="portal" onclick="openPortal('sewing')"></div>
+            <div id="portal-ledger" class="portal" onclick="openPortal('ledger')"></div>
+            <div id="portal-workshop" class="portal" onclick="openPortal('workshop')"></div>
+            <div id="portal-apprentice" class="portal" onclick="openPortal('apprentice')"></div>
+            <div id="portal-inventory" class="portal" onclick="openPortal('inventory')"></div>
+            <div id="portal-garden" class="portal" onclick="openPortal('garden')"></div>
+        </div>
     </div>
 
     <div id="parchment-overlay">
