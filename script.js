@@ -599,66 +599,22 @@ window.startForging = async function(input) {
 
     window.draftBgUrl = bgUrl;
     const bgArt = document.getElementById('bg-art');
-    if(bgArt) bgArt.src = window.draftBgUrl; 
+    if(bgArt) {
+        bgArt.src = window.draftBgUrl; 
+        bgArt.style.zIndex = "1"; // Force the background to the very bottom layer!
+    }
     
     document.body.classList.add('building-mode'); 
     const layer = document.getElementById('furnishing-layer');
-    if(layer) layer.innerHTML = ''; 
+    if(layer) {
+        layer.innerHTML = ''; 
+        layer.style.zIndex = "50"; // Force the furniture layer ABOVE the background!
+    }
     
     closePortal(); 
     window.isForging = true;
     
     await buildForgeToolbox();
-};
-
-window.buildForgeToolbox = async function() {
-    let toolbox = document.getElementById('forge-toolbox');
-    if (!toolbox) {
-        toolbox = document.createElement('div');
-        toolbox.id = 'forge-toolbox';
-        document.body.appendChild(toolbox);
-    }
-
-    const stash = await loadData('inventory_stash');
-    let stashHtml = stash.map(item => 
-        `<div style="text-align:center; margin:5px;">
-            <img src="${item.image_url}" onclick="spawnToForge('${item.image_url}')" style="width:60px; height:60px; object-fit:contain; cursor:pointer; background:rgba(0,0,0,0.5); border:1px solid rgba(191,149,63,0.5); border-radius:4px; transition: transform 0.2s;">
-        </div>`
-    ).join('');
-
-    if(stash.length === 0) stashHtml = `<p style="color:rgba(191,149,63,0.6); font-style:italic; font-size:0.85em; text-align:center; width:100%;">Your stash is empty. Add items from the main portal first!</p>`;
-
-    toolbox.innerHTML = `
-        <div style="background: rgba(16, 12, 9, 0.95); border: 2px solid #bf953f; border-radius: 6px; padding: 15px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.9); pointer-events: auto;">
-            <h3 style="color:#fcf6ba; font-family:'Cinzel', serif; margin:0 0 15px 0; text-align:center; border-bottom:1px solid rgba(191,149,63,0.3); padding-bottom:10px;">Architect's Toolbox</h3>
-            <div style="margin-bottom: 15px;">
-                <div style="display:flex; justify-content:space-between; color:#bf953f; font-size:0.8em; margin-bottom:5px;"><span>Item Scale</span><span id="scale-readout">1.0x</span></div>
-                <input type="range" id="forge-scale" min="0.2" max="3" step="0.1" value="1" style="width:100%; cursor:pointer;">
-            </div>
-            <div style="max-height: 250px; overflow-y: auto; display:flex; flex-wrap:wrap; justify-content:center; margin-bottom: 20px; background:rgba(0,0,0,0.3); border:1px inset rgba(191,149,63,0.2); padding:10px; border-radius:4px;">
-                ${stashHtml}
-            </div>
-            <input type="text" id="forge-room-name" placeholder="Name this Room..." class="portal-input" style="margin-bottom:10px;">
-            <div style="display:flex; gap:10px;">
-                <button onclick="saveForgedRoom()" class="portal-btn" style="flex:2; background:#8fce00; color:#000; border-color:#8fce00;">Seal Room</button>
-                <button onclick="exitForge()" class="portal-btn" style="flex:1; background:#ff6b6b; color:#000; border-color:#ff6b6b;">Cancel</button>
-            </div>
-        </div>
-    `;
-
-    toolbox.style.position = 'fixed';
-    toolbox.style.top = '20px';
-    toolbox.style.right = '20px';
-    toolbox.style.zIndex = '9999';
-    toolbox.style.display = 'block';
-
-    document.getElementById('forge-scale').addEventListener('input', (e) => {
-        document.getElementById('scale-readout').innerText = e.target.value + 'x';
-        if (window.editingItem) {
-            window.editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
-            window.editingItem.dataset.scale = e.target.value;
-        }
-    });
 };
 
 window.spawnToForge = function(imageUrl) {
@@ -673,6 +629,7 @@ window.spawnToForge = function(imageUrl) {
     img.style.cursor = 'grab';
     img.style.transform = 'translate(-50%, -50%) scale(1)';
     img.dataset.scale = 1;
+    img.style.zIndex = "100"; // Force the individual item to the very top!
     
     img.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
     if(window.editingItem) window.editingItem.style.filter = 'none'; 
@@ -685,48 +642,24 @@ window.spawnToForge = function(imageUrl) {
     layer.appendChild(img);
 };
 
-function selectItemForEdit(e) { 
-    if (!window.isForging) return; 
-    e.preventDefault(); 
-    
-    if(window.editingItem) window.editingItem.style.filter = 'none'; 
-    window.editingItem = e.target; 
-    window.editingItem.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
-    window.editingItem.style.cursor = 'grabbing';
-    
-    const currentScale = window.editingItem.dataset.scale || 1;
-    document.getElementById('forge-scale').value = currentScale;
-    document.getElementById('scale-readout').innerText = currentScale + 'x';
-
-    document.onmousemove = dragItem; 
-    document.onmouseup = stopDrag; 
-}
-
-function dragItem(e) { 
-    if (window.editingItem) { 
-        window.editingItem.style.left = e.clientX + 'px'; 
-        window.editingItem.style.top = e.clientY + 'px'; 
-    } 
-}
-
-function stopDrag() { 
-    if(window.editingItem) window.editingItem.style.cursor = 'grab';
-    document.onmousemove = null; 
-    document.onmouseup = null; 
-}
-
 window.saveForgedRoom = async function() {
     const roomName = document.getElementById('forge-room-name').value.trim();
     if(!roomName) return alert("The Architect must name this chamber!");
 
+    // THE FIX: We generate our own unique ID right now based on the timestamp!
+    // This completely prevents Supabase from losing the ID.
+    const actualRoomId = 'room_' + Date.now(); 
+
     let newRoom = {
+        id: actualRoomId, // Force Supabase to use our ID
         name: roomName,
         bg_url: window.draftBgUrl
     };
     
+    // Save the room
     await insertData('trophy_rooms', newRoom);
-    const actualRoomId = newRoom.id; 
 
+    // Save the furniture attached to our custom ID
     const layer = document.getElementById('furnishing-layer');
     const items = layer.querySelectorAll('.furnishing-item');
 
@@ -737,18 +670,19 @@ window.saveForgedRoom = async function() {
             pos_x: item.style.left,
             pos_y: item.style.top,
             scale: parseFloat(item.dataset.scale || 1),
-            z_index: parseInt(item.style.zIndex || 10)
+            z_index: parseInt(item.style.zIndex || 100)
         });
     }
 
+    // Lock us into the new room
     localStorage.setItem('active_trophy_id', actualRoomId);
     localStorage.setItem('active_trophy_bg', window.draftBgUrl);
 
     alert("✨ Chamber permanently sealed into the archives!");
 
     exitForge();
-    openPortal('inventory'); // Pops open the portal to show your new room!
-};
+    openPortal('inventory'); 
+};;
 
 window.exitForge = function() {
     window.isForging = false;
