@@ -477,7 +477,7 @@ window.draftBgUrl = '';
 window.isForging = false;
 window.editingItem = null;
 
-// 2. The Portal Interface (The missing door!)
+// 2. The Portal Interface
 async function buildInventoryHTML() {
     let html = `<h2 class="gold-text">Architect's Studio</h2><div class="portal-scroll-container">`;
 
@@ -558,7 +558,7 @@ window.addToGrandStash = async function() {
     }
 };
 
-// 3. The Missing Resizer
+// 3. The Resizer
 window.resizeImage = function(file, maxWidth, callback) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -601,6 +601,9 @@ window.startForging = async function(input) {
     const bgArt = document.getElementById('bg-art');
     if(bgArt) {
         bgArt.src = window.draftBgUrl; 
+        bgArt.style.position = "absolute";
+        bgArt.style.top = "0";
+        bgArt.style.left = "0";
         bgArt.style.zIndex = "1"; // Push background to the absolute bottom
     }
     
@@ -608,7 +611,14 @@ window.startForging = async function(input) {
     const layer = document.getElementById('furnishing-layer');
     if(layer) {
         layer.innerHTML = ''; 
-        layer.style.zIndex = "50"; // Elevate the furniture layer
+        // Force the furniture layer to stretch over the entire background
+        layer.style.position = "absolute";
+        layer.style.top = "0";
+        layer.style.left = "0";
+        layer.style.width = "100vw";
+        layer.style.height = "100vh";
+        layer.style.zIndex = "50"; 
+        layer.style.pointerEvents = "none";
     }
     
     closePortal(); 
@@ -667,7 +677,7 @@ window.buildForgeToolbox = async function() {
     });
 };
 
-// 4. The Unbreakable Drag & Drop Mechanics
+// 4. The Drag & Drop Mechanics
 window.spawnToForge = function(imageUrl) {
     const layer = document.getElementById('furnishing-layer');
     if(!layer) return;
@@ -681,6 +691,7 @@ window.spawnToForge = function(imageUrl) {
     img.style.transform = 'translate(-50%, -50%) scale(1)';
     img.dataset.scale = 1;
     img.style.zIndex = "100"; // Force the item ABOVE EVERYTHING
+    img.style.pointerEvents = "auto"; // Re-enable clicking on this specific item!
     
     img.style.filter = 'drop-shadow(0 0 10px rgba(191,149,63,0.8))';
     if(window.editingItem) window.editingItem.style.filter = 'none'; 
@@ -689,7 +700,7 @@ window.spawnToForge = function(imageUrl) {
     document.getElementById('forge-scale').value = 1;
     document.getElementById('scale-readout').innerText = '1.0x';
 
-    img.onmousedown = window.selectItemForEdit; // Hard-linked to the window!
+    img.onmousedown = window.selectItemForEdit; // Hard-linked to the window
     layer.appendChild(img);
 };
 
@@ -729,8 +740,8 @@ window.saveForgedRoom = async function() {
         const roomName = document.getElementById('forge-room-name').value.trim();
         if(!roomName) return alert("The Architect must name this chamber!");
 
-        // Generate a pure numeric string ID that Supabase will definitely accept
-        const actualRoomId = Date.now().toString(); 
+        // Mint a unique Room ID that Supabase can't reject
+        const actualRoomId = 'room_' + Date.now(); 
 
         let newRoom = {
             id: actualRoomId, 
@@ -743,8 +754,11 @@ window.saveForgedRoom = async function() {
         const layer = document.getElementById('furnishing-layer');
         const items = layer.querySelectorAll('.furnishing-item');
 
-        for (let item of items) {
+        // Mint a unique ID for EVERY SINGLE PNG
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
             await insertData('trophy_furnishings', {
+                id: 'furn_' + Date.now() + '_' + i, // Completely unique!
                 room_id: actualRoomId,
                 image_url: item.src,
                 pos_x: item.style.left,
@@ -760,9 +774,9 @@ window.saveForgedRoom = async function() {
         alert("✨ Chamber permanently sealed into the archives!");
 
         exitForge();
-        
-        // Ensure portal overlay blocks are cleared so it can pop open!
         window.isForging = false;
+        
+        openPortal('inventory'); // Ensure it opens right to your new gallery entry
         
     } catch (error) {
         console.error("Save Failed:", error);
@@ -790,13 +804,26 @@ window.loadActiveTrophy = async function() {
     
     if(bgArt) {
         bgArt.src = activeBg ? activeBg : 'sanctuary.jpg';
-        bgArt.style.zIndex = "1"; // Keep background safely in the back
+        bgArt.style.position = activeBg ? "absolute" : ""; 
+        bgArt.style.top = activeBg ? "0" : "";
+        bgArt.style.left = activeBg ? "0" : "";
+        bgArt.style.zIndex = activeBg ? "1" : ""; 
     }
     
     const layer = document.getElementById('furnishing-layer');
     if(!layer) return;
     layer.innerHTML = ''; 
-    layer.style.zIndex = "50";
+    
+    // Apply canvas constraints when in a room
+    if(activeId) {
+        layer.style.position = "absolute";
+        layer.style.top = "0";
+        layer.style.left = "0";
+        layer.style.width = "100vw";
+        layer.style.height = "100vh";
+        layer.style.zIndex = "50";
+        layer.style.pointerEvents = "none";
+    }
     
     let exitBtn = document.getElementById('exit-trophy-btn');
     if (!exitBtn) {
@@ -840,8 +867,9 @@ window.loadActiveTrophy = async function() {
             img.style.zIndex = f.z_index || 100; 
             img.style.transform = `translate(-50%, -50%) scale(${f.scale || 1})`; 
             img.dataset.scale = f.scale || 1;
+            img.style.pointerEvents = "auto"; 
             
-            // Re-attach dragging so you can theoretically edit later!
+            // Re-attach dragging so you can edit later!
             img.onmousedown = window.selectItemForEdit;
             
             layer.appendChild(img);
@@ -854,6 +882,16 @@ window.loadActiveTrophy = async function() {
 window.leaveTrophyRoom = function() {
     localStorage.removeItem('active_trophy_id');
     localStorage.removeItem('active_trophy_bg');
+    
+    // Clear the absolute positioning from the background image
+    const bgArt = document.getElementById('bg-art');
+    if (bgArt) {
+        bgArt.style.position = "";
+        bgArt.style.top = "";
+        bgArt.style.left = "";
+        bgArt.style.zIndex = "";
+    }
+    
     loadActiveTrophy();
 };
 
