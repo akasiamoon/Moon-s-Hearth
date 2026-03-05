@@ -89,7 +89,7 @@ async function scribeToArchive(tableName, formId, portalToReload) {
     openPortal(portalToReload); 
 }
 
-// === 1. LOCAL DATA (ALL RECIPES RESTORED UNABRIDGED) ===
+// === 1. LOCAL DATA ===
 const myRecipes = [
     { title: "🌿 Highland Potato Stew", description: "A hearty, warming broth perfect for cold evenings.", ingredients: ["4 large potatoes, peeled and diced", "Wild garlic, leeks, and a heavy pour of cream", "A pinch of salt and cracked black pepper"], instructions: "Simmer over a low hearth fire until the potatoes yield." },
     { title: "🍌 Mistral Banana Bread", description: "Sweet, dense, and perfect for traveling or a morning study session.", ingredients: ["3 overripe bananas, mashed", "Brown sugar, melted butter, and a dash of vanilla", "Flour and a pinch of cinnamon"], instructions: "Bake until the crust is a deep golden brown. Serve warm with butter." },
@@ -407,34 +407,35 @@ window.readGrimoirePage = function(index) {
     `;
 };
 
-// --- BARDIC SOUNDSCAPES (RESTORED ALL 20 TRACKS) ---
+// --- BARDIC SOUNDSCAPES (RESTORED ALL 20 TRACKS SAFELY) ---
 let activeSoundscapes = {};
 
 async function buildAudioHTML() {
     let html = `<h2 class="gold-text">Bardic Soundscapes</h2><div class="portal-scroll-container">`;
     html += `<p style="text-align:center; color: rgba(191,149,63,0.8); font-style:italic;">Select your ambient mix.</p>`;
     
+    // Changing inner quotes to double quotes to stop 'Unexpected identifier' errors forever
     const tracks = [
-        { id: 'rain', name: 'Gentle Rainfall', url: 'rain.mp3' },
-        { id: 'fire', name: 'Hearth Fire', url: 'fire.mp3' },
-        { id: 'tavern', name: 'Busy Tavern', url: 'tavern.mp3' },
-        { id: 'forest', name: 'Deep Forest', url: 'forest.mp3' },
-        { id: 'library', name: 'Arcane Library', url: 'library.mp3' },
-        { id: 'storm', name: 'Thunderstorm', url: 'storm.mp3' },
-        { id: 'meadow', name: 'Summer Meadow', url: 'meadow.mp3' },
-        { id: 'ocean', name: 'Distant Shores', url: 'ocean.mp3' },
-        { id: 'crypt', name: 'Echoing Crypt', url: 'crypt.mp3' },
-        { id: 'market', name: 'Bazaar Hubbub', url: 'market.mp3' },
-        { id: 'snow', name: 'Blizzard Wind', url: 'snow.mp3' },
-        { id: 'monks', name: 'Chanting Monks', url: 'monks.mp3' },
-        { id: 'alchemy', name: 'Bubbling Vials', url: 'alchemy.mp3' },
-        { id: 'blacksmith', name: 'Iron Forge', url: 'forge.mp3' },
-        { id: 'cat', name: 'Purring Familiar', url: 'cat.mp3' },
-        { id: 'study', name: 'Scribe\\'s Study', url: 'study.mp3' },
-        { id: 'celestial', name: 'Stellar Wind', url: 'celestial.mp3' },
-        { id: 'garden', name: 'Night Garden', url: 'garden_amb.mp3' },
-        { id: 'underwater', name: 'Abyssal Depths', url: 'underwater.mp3' },
-        { id: 'birds', name: 'Morning Chorus', url: 'birds.mp3' }
+        { id: "rain", name: "Gentle Rainfall", url: "rain.mp3" },
+        { id: "fire", name: "Hearth Fire", url: "fire.mp3" },
+        { id: "tavern", name: "Busy Tavern", url: "tavern.mp3" },
+        { id: "forest", name: "Deep Forest", url: "forest.mp3" },
+        { id: "library", name: "Arcane Library", url: "library.mp3" },
+        { id: "storm", name: "Thunderstorm", url: "storm.mp3" },
+        { id: "meadow", name: "Summer Meadow", url: "meadow.mp3" },
+        { id: "ocean", name: "Distant Shores", url: "ocean.mp3" },
+        { id: "crypt", name: "Echoing Crypt", url: "crypt.mp3" },
+        { id: "market", name: "Bazaar Hubbub", url: "market.mp3" },
+        { id: "snow", name: "Blizzard Wind", url: "snow.mp3" },
+        { id: "monks", name: "Chanting Monks", url: "monks.mp3" },
+        { id: "alchemy", name: "Bubbling Vials", url: "alchemy.mp3" },
+        { id: "blacksmith", name: "Iron Forge", url: "forge.mp3" },
+        { id: "cat", name: "Purring Familiar", url: "cat.mp3" },
+        { id: "study", name: "Scribe's Study", url: "study.mp3" }, 
+        { id: "celestial", name: "Stellar Wind", url: "celestial.mp3" },
+        { id: "garden", name: "Night Garden", url: "garden_amb.mp3" },
+        { id: "underwater", name: "Abyssal Depths", url: "underwater.mp3" },
+        { id: "birds", name: "Morning Chorus", url: "birds.mp3" }
     ];
 
     html += `<div id="soundscape-container">`;
@@ -450,7 +451,7 @@ async function buildAudioHTML() {
     return html;
 }
 
-function toggleTrack(id, url) {
+window.toggleTrack = function(id, url) {
     if (activeSoundscapes[id]) {
         activeSoundscapes[id].pause();
         delete activeSoundscapes[id];
@@ -463,13 +464,13 @@ function toggleTrack(id, url) {
         activeSoundscapes[id] = audio;
         openPortal('audio'); 
     }
-}
+};
 
-function changeVolume(id, vol) {
+window.changeVolume = function(id, vol) {
     if (activeSoundscapes[id]) {
         activeSoundscapes[id].volume = vol;
     }
-}
+};
 
 // --- BOUNTY BOARD (CAT) ---
 async function buildBountyBoardHTML() {
@@ -524,7 +525,7 @@ async function buildInventoryHTML() {
     return html + `</div></div></div>`;
 }
 
-async function startForging(input) {
+window.startForging = function(input) {
     if(!input.files[0]) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -538,9 +539,9 @@ async function startForging(input) {
         if(toolbox) toolbox.style.display = 'block'; isForging = true;
     };
     reader.readAsDataURL(input.files[0]);
-}
+};
 
-function spawnToForge(imageUrl) {
+window.spawnToForge = function(imageUrl) {
     const layer = document.getElementById('furnishing-layer');
     if(!layer) return;
     const img = document.createElement('img');
@@ -548,7 +549,7 @@ function spawnToForge(imageUrl) {
     img.style.left = '50%'; img.style.top = '50%';
     img.onmousedown = selectItemForEdit;
     layer.appendChild(img);
-}
+};
 
 function selectItemForEdit(e) {
     if (!isForging) return; e.preventDefault(); editingItem = e.target;
@@ -558,7 +559,7 @@ function selectItemForEdit(e) {
 function dragItem(e) { if (editingItem) { editingItem.style.left = e.clientX + 'px'; editingItem.style.top = e.clientY + 'px'; } }
 function stopDrag() { document.onmousemove = null; document.onmouseup = null; }
 
-function loadActiveTrophy() {
+window.loadActiveTrophy = function() {
     const activeBg = localStorage.getItem('active_trophy_bg') || 'sanctuary.jpg';
     const activeId = localStorage.getItem('active_trophy_id');
     const bgArt = document.getElementById('bg-art');
@@ -579,7 +580,14 @@ function loadActiveTrophy() {
             layer.appendChild(img);
         });
     }
-}
+};
+
+window.loadTrophy = function(roomId, bgUrl) {
+    localStorage.setItem('active_trophy_id', roomId);
+    localStorage.setItem('active_trophy_bg', bgUrl);
+    loadActiveTrophy();
+    closePortal();
+};
 
 // --- THE STILLNESS (TEACUP) ---
 async function buildTeacupHTML() {
@@ -596,7 +604,7 @@ async function buildTeacupHTML() {
     return html + `</div>`;
 }
 
-// --- APOTHECARY ---
+// --- APOTHECARY (RESTORED SHELVES & SAFE QUOTES) ---
 async function buildApothecaryHTML() {
     let html = `<h2 class="gold-text">Apothecary</h2><div class="portal-scroll-container">`;
     html += `<p style="text-align:center; color:#d4c8a8; font-style:italic; margin-top:0;">Select a phial to read its contents.</p>`;
@@ -608,11 +616,12 @@ async function buildApothecaryHTML() {
         html += `<div class="alchemy-slot">`;
         if (allRecipes[i]) {
             const recipe = allRecipes[i];
-            const safeTitle = recipe.title.replace(/'/g, "\\'");
-            const safeDesc = (recipe.description || '').replace(/'/g, "\\'");
-            const safeIng = (recipe.ingredients || '').replace(/'/g, "\\'");
-            const safeInst = (recipe.instructions || '').replace(/'/g, "\\'");
-            html += `<div class="alchemy-pot healing" onclick="openReadingDesk('${safeTitle}', '${safeDesc}', '${safeIng}', '${safeInst}', '${recipe.id || ''}', true)">
+            const encTitle = encodeURIComponent(recipe.title || '');
+            const encDesc = encodeURIComponent(recipe.description || '');
+            const encIng = encodeURIComponent(recipe.ingredients || '');
+            const encInst = encodeURIComponent(recipe.instructions || '');
+            
+            html += `<div class="alchemy-pot healing" onclick="openReadingDesk('${encTitle}', '${encDesc}', '${encIng}', '${encInst}', '${recipe.id || ''}', true)">
                         <div class="css-phial"></div>
                     </div>`;
         } else {
@@ -624,13 +633,18 @@ async function buildApothecaryHTML() {
     return html;
 }
 
-window.openReadingDesk = function(title, desc, ing, inst, id, isDb) {
+window.openReadingDesk = function(encTitle, encDesc, encIng, encInst, id, isDb) {
+    const title = decodeURIComponent(encTitle);
+    const desc = decodeURIComponent(encDesc);
+    const ing = decodeURIComponent(encIng);
+    const inst = decodeURIComponent(encInst);
+    
     const desk = document.getElementById('apothecary-reading-desk');
     desk.innerHTML = `<div class="alchemy-card"><h3 class="alchemy-title">${title}</h3><p style="color:#d4c8a8; font-style: italic;">${desc}</p><div style="background:rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; border: 1px solid rgba(191,149,63,0.3);"><p style="color:#bf953f; margin:0 0 5px 0;">Ingredients</p><p style="color:#d4c8a8; margin:0 0 15px 0;">${ing}</p><p style="color:#bf953f; margin:0 0 5px 0;">Instructions</p><p style="color:#d4c8a8; margin:0;">${inst}</p></div></div>`;
     desk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
-// --- THE DRYING RACK ---
+// --- THE DRYING RACK (RESTORED SWAYING BUNDLES) ---
 async function buildHerbsHTML() {
     let html = `<h2 class="gold-text">The Drying Rack</h2><div class="portal-scroll-container"><div class="herbs-rack-container">`;
     const dbHerbs = await loadData('herbs');
@@ -652,14 +666,14 @@ async function buildHerbsHTML() {
     return html + `</div></div>`;
 }
 
-function toggleHerbDetail(id) {
+window.toggleHerbDetail = function(id) {
     const bundle = document.getElementById(`bundle-${id}`);
     const isOpen = bundle.classList.contains('show-details');
     document.querySelectorAll('.herb-bundle').forEach(b => b.classList.remove('show-details'));
     if (!isOpen) bundle.classList.add('show-details');
-}
+};
 
-// --- THE LIVING BEDS ---
+// --- THE LIVING BEDS (GARDEN GRID RESTORED & BULLETPROOFED) ---
 let currentBedName = localStorage.getItem('active_garden_bed') || 'Main Bed';
 
 async function buildGardenHTML() {
@@ -674,7 +688,8 @@ async function buildGardenHTML() {
         if (plot) {
             const days = Math.floor((new Date() - new Date(plot.created_at)) / (1000 * 60 * 60 * 24));
             let icon = days >= 3 ? plot.plant_icon : (days >= 1 ? '🌿' : '🌱');
-            html += `<div class="garden-cell" onclick="tendPlot('${plot.id}', '${plot.plant_name}')"><div class="plant-icon">${icon}</div><div class="plant-name">${plot.plant_name}</div></div>`;
+            const encPlant = encodeURIComponent(plot.plant_name);
+            html += `<div class="garden-cell" onclick="tendPlot('${plot.id}', '${encPlant}')"><div class="plant-icon">${icon}</div><div class="plant-name">${plot.plant_name}</div></div>`;
         } else {
             html += `<div class="garden-cell" onclick="plantSeed('${gridId}')"><div class="plant-icon" style="opacity:0.2;">🌱</div></div>`;
         }
@@ -682,15 +697,19 @@ async function buildGardenHTML() {
     return html + `</div><div id="garden-action-panel"></div></div>`;
 }
 
-function plantSeed(gridId) {
+window.plantSeed = function(gridId) {
     document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card" id="form-garden">
         <h3 class="alchemy-title">Sow Seed</h3><input type="text" id="inp-plant_name" placeholder="Name..." class="portal-input">
         <input type="hidden" id="inp-grid_id" value="${gridId}"><input type="hidden" id="inp-bed_name" value="${currentBedName}">
         <button onclick="scribeToArchive('garden_plots', 'form-garden', 'garden')" class="portal-btn">Plant</button></div>`;
-}
+};
 
-function switchBed(name) { currentBedName = name; localStorage.setItem('active_garden_bed', name); openPortal('garden'); }
-function buildNewBed() { const n = prompt("Bed Name:"); if(n) { let b = JSON.parse(localStorage.getItem('garden_bed_names') || '["Main Bed"]'); if(!b.includes(n)) { b.push(n); localStorage.setItem('garden_bed_names', JSON.stringify(b)); } switchBed(n); } }
+window.tendPlot = function(plotId, encPlantName) {
+    const plantName = decodeURIComponent(encPlantName);
+    document.getElementById('garden-action-panel').innerHTML = `<div class="alchemy-card"><h3 class="alchemy-title">Tending: ${plantName}</h3><div style="display:flex; gap:10px;"><button onclick="removeData('garden_plots', '${plotId}'); openPortal('garden');" class="portal-btn" style="color:#ff6b6b; border-color:#ff6b6b; flex:1;">Uproot</button><button onclick="document.getElementById('garden-action-panel').innerHTML='';" class="portal-btn" style="flex:1;">Cancel</button></div></div>`;
+};
+
+window.switchBed = function(name) { currentBedName = name; localStorage.setItem('active_garden_bed', name); openPortal('garden'); };
 
 // --- THE VAULT (LEDGER) ---
 async function buildLedgerHTML() {
@@ -723,15 +742,8 @@ function buildAlmanacHTML() {
     return `<h2 class="gold-text">Fen Almanac</h2><div id="almanac-container"><div class="almanac-temp">${dynamicAlmanac.temp}</div><div class="almanac-stat"><span>Time:</span> ${currentTime}</div><div class="almanac-stat"><span>Season:</span> ${dynamicAlmanac.season}</div><div class="almanac-stat"><span>Moon Phase:</span> ${dynamicAlmanac.moonPhase}</div><div class="almanac-stat"><span>Atmosphere:</span> ${dynamicAlmanac.weather}</div></div>`;
 }
 
-function buildWorkshopHTML() {
-    return `<h2 class="gold-text">Artisan's Workshop</h2><div class="portal-scroll-container"><p style="text-align:center; color:#d4c8a8;">Workshop active.</p></div>`;
-}
-function buildSewingHTML() {
-    return `<h2 class="gold-text">Measurement Log</h2><div class="portal-scroll-container"><p style="text-align:center; color:#d4c8a8;">Sewing active.</p></div>`;
-}
-
 // === 5. MASTER CORE UI CONTROLLER ===
-async function openPortal(portalName) {
+window.openPortal = async function(portalName) {
     const overlay = document.getElementById('parchment-overlay');
     const content = document.getElementById('portal-content');
     overlay.classList.add('active');
@@ -739,21 +751,50 @@ async function openPortal(portalName) {
     if (portalName === 'grimoire') content.innerHTML = await buildGrimoireHTML();
     else if (portalName === 'cat') content.innerHTML = await buildBountyBoardHTML();
     else if (portalName === 'teacup') content.innerHTML = await buildTeacupHTML();
-    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
-    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML(); 
-    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML(); 
-    else if (portalName === 'sewing') content.innerHTML = await buildSewingHTML();
     else if (portalName === 'ledger') content.innerHTML = await buildLedgerHTML();
-    else if (portalName === 'workshop') content.innerHTML = await buildWorkshopHTML();
-    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML(); 
+    else if (portalName === 'alchemy') content.innerHTML = await buildApothecaryHTML();
+    else if (portalName === 'herbs') content.innerHTML = await buildHerbsHTML();
+    else if (portalName === 'apprentice') content.innerHTML = await buildApprenticeHTML();
     else if (portalName === 'inventory') content.innerHTML = await buildInventoryHTML();
-    else if (portalName === 'audio') content.innerHTML = await buildAudioHTML(); 
-    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML(); 
-}
+    else if (portalName === 'garden') content.innerHTML = await buildGardenHTML();
+    else if (portalName === 'audio') content.innerHTML = await buildAudioHTML();
+    else if (portalName === 'window') content.innerHTML = buildAlmanacHTML();
+    else content.innerHTML = "<h2>Stabilizing Rift...</h2>";
+};
 
-function closePortal() { document.getElementById('parchment-overlay').classList.remove('active'); }
-function toggleAccordion(btn) { btn.classList.toggle('active'); let p = btn.nextElementSibling; if(p.style.maxHeight) p.style.maxHeight = null; else p.style.maxHeight = p.scrollHeight + 30 + "px"; }
-function toggleSection(headerBtn) { headerBtn.classList.toggle('closed'); headerBtn.nextElementSibling.classList.toggle('closed'); }
+window.closePortal = function() { document.getElementById('parchment-overlay').classList.remove('active'); };
+window.toggleSection = function(headerBtn) { headerBtn.classList.toggle('closed'); headerBtn.nextElementSibling.classList.toggle('closed'); };
+
+// ACTION HELPERS
+window.addDynamicItem = async function(table, inputId, portal) {
+    const text = document.getElementById(inputId).value.trim();
+    if (!text) return;
+    await insertData(table, { text: text, is_completed: false });
+    if(portal) openPortal(portal); 
+};
+window.toggleDynamicItem = async function(table, id, currentState, portal) {
+    await updateData(table, id, { is_completed: !currentState });
+    if (!currentState) feedFamiliar();
+    if(portal) openPortal(portal); 
+};
+window.deleteDynamicItem = async function(table, id, portal) {
+    await removeData(table, id);
+    if(portal) openPortal(portal);
+};
+window.addEvent = async function() {
+    const title = document.getElementById('ev-title').value.trim();
+    const date = document.getElementById('ev-date').value;
+    if (!title) return;
+    await insertData('calendar_events', { title: title, start_date: date, text: 'pending' });
+    openPortal('cat');
+};
+window.deleteEvent = async function(id) { await removeData('calendar_events', id); openPortal('cat'); };
+window.toggleEvent = async function(id, currentText) {
+    const newState = currentText === 'completed' ? 'pending' : 'completed';
+    await updateData('calendar_events', id, { text: newState });
+    if (newState === 'completed') feedFamiliar();
+    openPortal('cat');
+};
 
 // === THE FAMILIAR ===
 let familiarXP = 0; const maxXP = 5;
@@ -763,30 +804,10 @@ function updateFamiliarUI() {
     if (fill) fill.style.strokeDashoffset = 289 - (289 * (familiarXP / maxXP));
 }
 
-function applySeasonalDecor() {
-    const month = new Date().getMonth();
-    const body = document.body;
-    if (month === 11 || month === 0 || month === 1) body.classList.add('season-winter');
-    else if (month >= 2 && month <= 4) body.classList.add('season-spring');
-    else if (month >= 8 && month <= 10) body.classList.add('season-autumn');
-}
-
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     updateFamiliarUI();
     updateNatureLore();
     fetchLocalAtmosphere();
-    applySeasonalDecor();
-    loadActiveTrophy();
-    
-    const forgeScale = document.getElementById('forge-scale');
-    if(forgeScale) {
-        forgeScale.addEventListener('input', (e) => {
-            if (editingItem) {
-                editingItem.style.transform = `translate(-50%, -50%) scale(${e.target.value})`;
-                editingItem.dataset.scale = e.target.value;
-            }
-        });
-    }
-    console.log("🏰 Sanctuary Fully Reforged.");
+    if (typeof loadActiveTrophy === "function") loadActiveTrophy();
 });
