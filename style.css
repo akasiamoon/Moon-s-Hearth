@@ -13,7 +13,6 @@
     100% { transform: translate(80px, -120px); opacity: 0; }
 }
 
-/* THE BRIGHT REFLECTIVE GOLD ANIMATION */
 @keyframes goldShimmer {
     to { background-position: 200% center; }
 }
@@ -59,8 +58,7 @@ body::before {
 /* --- 6. THE GILDED DOSSIER --- */
 #parchment-overlay {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.1);
-    width: 85%; max-width: 750px; /* Widened to fit the Grimoire properly */
-    background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
+    width: 85%; max-width: 750px; background: rgba(8, 8, 10, 0.98); backdrop-filter: blur(30px);
     border: 5px solid; border-image-source: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
     border-image-slice: 1; padding: 60px 40px; opacity: 0; visibility: hidden; z-index: 10000;
     transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -118,16 +116,21 @@ h2, .gold-text {
 ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
 ::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 3px; }
 
-.portal-scroll-container {
-    margin-top: 15px; 
-    max-height: 75vh;
-    overflow-y: auto; 
-    padding-right: 10px; 
-    text-align: left;
-    scrollbar-width: thin;
-}
+.portal-scroll-container { margin-top: 15px; max-height: 75vh; overflow-y: auto; padding-right: 10px; text-align: left; scrollbar-width: thin; }
 
-/* --- 9. COLLAPSIBLE HEADERS --- */
+/* --- 9. AUDIO GRIMOIRE --- */
+#soundscape-container {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;
+    margin-top: 15px; max-height: 50vh; overflow-y: auto; padding-right: 10px;
+}
+.sound-item { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.2); padding: 10px; border-radius: 2px; text-align: center; transition: all 0.3s ease; }
+.sound-item:hover { border-color: #bf953f; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
+.play-btn { width: 100%; background: transparent; color: #d4c8a8; border: 1px solid rgba(191, 149, 63, 0.4); padding: 8px 4px; font-family: 'Quicksand', sans-serif; font-size: 0.85em; cursor: pointer; margin-bottom: 8px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
+.play-btn:hover { background: rgba(191, 149, 63, 0.15); color: #fcf6ba; }
+.play-btn.active { background: rgba(191, 149, 63, 0.3); border-color: #fcf6ba; color: #fff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+.volume-slider { width: 90%; cursor: pointer; accent-color: #bf953f; }
+
+/* --- 10. COLLAPSIBLE HEADERS --- */
 .section-header {
     width: 100%; background: rgba(20, 15, 12, 0.8); color: #fcf6ba;
     border: 1px solid rgba(191, 149, 63, 0.4); border-left: 3px solid #bf953f;
@@ -138,44 +141,36 @@ h2, .gold-text {
 .section-header:hover { background: rgba(191, 149, 63, 0.2); }
 .section-header::after { content: '▼'; font-size: 0.8em; transition: transform 0.3s ease; color: #bf953f; }
 .section-header.closed::after { transform: rotate(-90deg); }
-.section-panel { 
-    max-height: 10000px;
-    overflow: hidden; 
-    transition: max-height 0.5s ease-in-out; 
-}
+.section-panel { max-height: 10000px; overflow: hidden; transition: max-height 0.5s ease-in-out; }
 .section-panel.closed { max-height: 0; }
 
-/* --- 10. GRIMOIRE ACCORDIONS --- */
-.grimoire-header {
-    width: 100%; background: rgba(8, 8, 10, 0.8); color: #bf953f;
-    border: 1px solid rgba(191, 149, 63, 0.4); padding: 12px 18px;
-    font-family: 'Cinzel', serif; font-size: 1.05em; text-align: left;
-    cursor: pointer; transition: all 0.3s ease; margin-bottom: 5px;
-    display: flex; justify-content: space-between; align-items: center;
+/* --- 11. GRIMOIRE (CAGED) --- */
+.grimoire-tome-container {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    background: url('open_grimoire.jpg') center/cover no-repeat;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
 }
-.grimoire-header:hover { background: rgba(191, 149, 63, 0.15); color: #fcf6ba; }
-.grimoire-header.active { border-color: #fcf6ba; background: rgba(191, 149, 63, 0.2); }
-.grimoire-header::after { content: '\2727'; font-size: 1.2em; color: #bf953f; transition: transform 0.4s ease, opacity 0.4s; }
-.grimoire-header.active::after { transform: rotate(180deg); opacity: 0.5; }
-.grimoire-panel {
-    padding: 0 15px; background: rgba(0, 0, 0, 0.4); border-left: 2px solid #bf953f;
-    margin-bottom: 10px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-    color: #d4c8a8; font-size: 0.95em; line-height: 1.6;
+.grimoire-page-wrapper {
+    position: absolute; top: 15%; bottom: 16%; left: 14%; right: 14%;
+    display: flex; justify-content: space-between;
 }
-.grimoire-panel ul { list-style-type: square; color: #bf953f; padding-left: 20px; }
-.grimoire-panel ul li span { color: #d4c8a8; }
+.grimoire-page { width: 43%; height: 100%; overflow-y: auto; color: #2b1d14; padding: 10px; box-sizing: border-box; }
+#grimoire-left-page { position: relative; left: 35px; }
+#grimoire-right-page { position: relative; right: 35px; padding-right: 20px; }
+.grimoire-search-bar { width: 80%; margin-left: 30px; background: transparent; border: none; border-bottom: 2px solid rgba(43, 29, 20, 0.6); color: #2b1d14; font-family: 'Cinzel', serif; font-size: 0.9em; padding: 8px 5px; outline: none; margin-bottom: 15px; }
+.alphabet-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-bottom: 10px; }
+.letter-btn { background: transparent; border: none; font-family: 'Cinzel', serif; font-size: 0.75em; font-weight: bold; color: #5c4033; cursor: pointer; width: 18px; transition: transform 0.2s; }
+.letter-btn:hover { color: #8fce00; transform: scale(1.3); }
+.toc-header { color: #5c4033; text-align: center; font-weight: bold; font-family: 'Cinzel', serif; border-bottom: 1px solid rgba(43,29,20,0.2); margin: 15px 0 5px 0; }
+.grimoire-index-item { color: #2b1d14; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; padding: 4px 0; border-bottom: 1px dashed rgba(43,29,20,0.1); }
+.page-title { border-bottom: 2px solid rgba(43,29,20,0.5); padding-bottom: 5px; color: #2b1d14; }
+.page-header { font-family: 'Cinzel'; font-size: 1.1em; margin-top: 15px; color: #5c4033; }
+.page-text { font-size: 0.9em; line-height: 1.4; color: #2b1d14; }
 
-/* --- 11. QUESTS & APPOINTMENTS --- */
-.quest-item {
-    background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
-    padding: 12px 15px; border-radius: 4px; margin-bottom: 10px;
-    display: flex; align-items: flex-start; gap: 15px; transition: all 0.3s ease; cursor: pointer;
-}
+/* --- 12. QUESTS & APPOINTMENTS --- */
+.quest-item { background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4); padding: 12px 15px; border-radius: 4px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 15px; transition: all 0.3s ease; cursor: pointer; }
 .quest-item:hover { background: rgba(191, 149, 63, 0.15); border-color: #fcf6ba; }
-.quest-checkbox {
-    width: 22px; height: 22px; border: 2px solid #bf953f; border-radius: 3px;
-    display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 2px;
-}
+.quest-checkbox { width: 22px; height: 22px; border: 2px solid #bf953f; border-radius: 3px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 2px; }
 .quest-item.completed .quest-checkbox { background: #bf953f; border-color: #fcf6ba; }
 .quest-item.completed .quest-checkbox::after { content: '✓'; color: #000; font-weight: bold; font-size: 16px; }
 .quest-details { flex-grow: 1; transition: all 0.3s ease; }
@@ -185,87 +180,72 @@ h2, .gold-text {
 .delete-icon { color: rgba(191, 149, 63, 0.5); font-size: 1.2em; cursor: pointer; transition: all 0.2s; padding: 0 5px; display: flex; align-items: center; }
 .delete-icon:hover { color: #ff5555; transform: scale(1.1); }
 
-/* --- 12. LITERAL CALENDAR --- */
-.calendar-wrapper {
-    background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4);
-    padding: 15px; border-radius: 4px; margin-bottom: 20px;
-}
+/* --- 13. LITERAL CALENDAR --- */
+.calendar-wrapper { background: rgba(8, 8, 10, 0.8); border: 1px solid rgba(191, 149, 63, 0.4); padding: 15px; border-radius: 4px; margin-bottom: 20px; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
 .cal-day-name { color: #bf953f; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; border-bottom: 1px dashed rgba(191,149,63,0.3); padding-bottom: 5px; margin-bottom: 5px;}
-.cal-cell {
-    background: rgba(0,0,0,0.4); border: 1px solid rgba(191,149,63,0.1); border-radius: 3px;
-    padding: 8px 0; color: #d4c8a8; position: relative; font-family: 'Cinzel', serif; transition: all 0.2s;
-}
+.cal-cell { background: rgba(0,0,0,0.4); border: 1px solid rgba(191,149,63,0.1); border-radius: 3px; padding: 8px 0; color: #d4c8a8; position: relative; font-family: 'Cinzel', serif; transition: all 0.2s; }
 .cal-cell:hover { border-color: #fcf6ba; background: rgba(191,149,63,0.2); cursor: pointer; }
 .cal-cell.today { background: rgba(191,149,63,0.3); border-color: #fcf6ba; color: #fcf6ba; font-weight: bold; }
 .cal-cell.empty { background: transparent; border: none; }
 .cal-marker { width: 6px; height: 6px; background: #bf953f; border-radius: 50%; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); }
 
-/* --- 13. ALMANAC & CARDS --- */
-.alchemy-card, .tea-card, .sewing-card {
-    background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3);
-    padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left;
-}
+/* --- 14. ALMANAC & CARDS --- */
+.alchemy-card, .tea-card, .sewing-card { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.3); padding: 15px; border-radius: 4px; margin-bottom: 12px; text-align: left; }
 .alchemy-card { border-left: 3px solid #bf953f; }
 .tea-card { border-radius: 8px; }
 .sewing-card { border-top: 3px double #bf953f; position: relative; }
 .sewing-card::before { content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 1px dashed rgba(191, 149, 63, 0.2); pointer-events: none; }
 .alchemy-title, .tea-title, .sewing-title { color: #fcf6ba; font-family: 'Cinzel', serif; font-size: 1.15em; margin: 0 0 8px 0; }
-.alchemy-ingredients { color: #bf953f; font-size: 0.9em; margin-bottom: 8px; }
-.alchemy-ingredients span { color: #e0e0e0; }
-#herbs-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-.herb-card { background: rgba(8, 8, 10, 0.5); border: 1px dashed rgba(191, 149, 63, 0.5); padding: 15px; text-align: center; }
-
 #almanac-container { background: rgba(8, 8, 10, 0.6); border: 1px solid rgba(191, 149, 63, 0.4); padding: 20px 15px; text-align: center; }
 .almanac-temp { color: #fcf6ba; font-size: 1.5em; font-family: 'Cinzel', serif; margin: 10px 0; text-shadow: 0 0 5px rgba(191, 149, 63, 0.4); }
 .almanac-stat { color: #d4c8a8; font-size: 1.1em; margin: 8px 0; font-family: 'Cinzel', serif; }
 .almanac-stat span { color: #bf953f; font-weight: bold; }
-.almanac-focus { color: #fcf6ba; font-size: 1.3em; font-family: 'Cinzel', serif; margin: 15px 0; text-shadow: 0 0 8px rgba(191, 149, 63, 0.3); }
 
-/* --- 14. INPUTS, BUTTONS, & UPLOADS --- */
-.portal-input {
-    background: rgba(15, 12, 10, 0.9); color: #d4c8a8;
-    border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px;
-    font-family: 'Quicksand', sans-serif; font-size: 1.05em; width: 100%; box-sizing: border-box; outline: none;
-}
+/* --- 15. INPUTS & BUTTONS --- */
+.portal-input { background: rgba(15, 12, 10, 0.9); color: #d4c8a8; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; padding: 10px; font-family: 'Quicksand', sans-serif; font-size: 1.05em; width: 100%; box-sizing: border-box; outline: none; }
 .portal-input:focus { border-color: #fcf6ba; box-shadow: 0 0 10px rgba(191, 149, 63, 0.15); }
-.portal-input::placeholder { color: rgba(191, 149, 63, 0.5); font-style: italic; }
-
-.portal-btn {
-    padding: 8px 16px; background: rgba(8, 8, 10, 0.8); color: #bf953f;
-    border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer;
-    font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; transition: all 0.2s;
-}
+.portal-btn { padding: 8px 16px; background: rgba(8, 8, 10, 0.8); color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; transition: all 0.2s; }
 .portal-btn:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
-
 input[type="file"] { display: none; }
-.custom-file-label {
-    display: inline-block; padding: 8px 15px; background: rgba(8, 8, 10, 0.8);
-    color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px;
-    cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; transition: all 0.2s ease;
-}
+.custom-file-label { display: inline-block; padding: 8px 15px; background: rgba(8, 8, 10, 0.8); color: #bf953f; border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 4px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; transition: all 0.2s ease; }
 .custom-file-label:hover { background: rgba(191, 149, 63, 0.2); color: #fcf6ba; border-color: #fcf6ba; }
 .action-btn { background: none; border: none; color: #bf953f; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.8em; text-transform: uppercase; padding: 0 5px; }
-.action-btn:hover { color: #fcf6ba; }
 
-/* === 15. THE ARCHITECT'S FORGE === */
-#furnishing-layer {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 5; pointer-events: none; 
-}
+/* === 16. THE APOTHECARY & DRYING RACK (BEAUTIFUL SHELVES) === */
+.apothecary-cabinet-container { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr); height: 450px; background: rgba(0,0,0,0.5); padding: 50px 15px 15px 15px; }
+.css-phial { width: 26px; height: 38px; border-radius: 10px 10px 15px 15px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); position: relative; margin: 0 auto; }
+.css-phial::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; border-radius: 0 0 13px 13px; background: #8fce00; box-shadow: 0 0 15px #8fce00; transition: box-shadow 0.3s ease; }
 
-body.building-mode .portal {
-    pointer-events: none; 
-    opacity: 0; 
-}
-body.building-mode #furnishing-layer {
-    pointer-events: auto; 
-}
+.herbs-rack-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 40px 10px; padding: 10px 10px 40px 10px; }
+.herb-bundle { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; transform-origin: top center; }
+.herb-bundle:hover { animation: swayBundle 2s ease-in-out infinite alternate; }
+@keyframes swayBundle { 0% { transform: rotate(2deg); } 100% { transform: rotate(-2deg); } }
+.herb-detail-tag { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 220px; background: rgba(8, 8, 10, 0.98); border: 2px solid #bf953f; padding: 15px; opacity: 0; visibility: hidden; z-index: 1001; transition: 0.3s; }
+.herb-bundle.show-details .herb-detail-tag { opacity: 1; visibility: visible; }
 
-.furnishing-item {
-    position: absolute; transform-origin: center; user-select: none;
-    transition: filter 0.2s; pointer-events: auto;
-}
+/* === 17. THE GARDEN BEDS === */
+.garden-bed-container { width: 100%; max-width: 600px; height: 300px; background: #271915; border: 8px solid #3e2723; border-radius: 8px; margin: 20px auto; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.9); }
+.garden-cell { border: 1px dashed rgba(143, 206, 0, 0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: background 0.3s; }
+.garden-cell:hover { background: rgba(143, 206, 0, 0.15); }
+.plant-icon { font-size: 2.5em; filter: drop-shadow(2px 4px 4px #000); }
+
+/* === 18. THE ARCHITECT'S FORGE === */
+#furnishing-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+body.building-mode .portal { pointer-events: none; opacity: 0; }
+body.building-mode #furnishing-layer { pointer-events: auto; background: rgba(0, 0, 0, 0.4); }
+.furnishing-item { position: absolute; transform-origin: center; user-select: none; transition: filter 0.2s; pointer-events: auto; }
 body.building-mode .furnishing-item { cursor: grab; filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.5)); }
 body.building-mode .furnishing-item:hover { filter: drop-shadow(0 0 15px #fcf6ba); outline: 1px dashed rgba(191, 149, 63, 0.8); }
 body.building-mode .furnishing-item:active { cursor: grabbing; }
+
+/* === 19. THE FAMILIAR (RESTORED MISSING CSS) === */
+#familiar-container { position: fixed; bottom: 30px; right: 30px; width: 120px; height: 120px; cursor: pointer; z-index: 1000; transition: transform 0.3s ease; }
+#familiar-container:hover { transform: scale(1.05); }
+.familiar-glass { position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; background: rgba(8, 8, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(191, 149, 63, 0.4); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(191, 149, 63, 0.1); }
+.xp-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.xp-ring-bg { fill: none; stroke: rgba(191, 149, 63, 0.15); stroke-width: 4; }
+.xp-ring-fill { fill: none; stroke: #bf953f; stroke-width: 4; stroke-dasharray: 289; stroke-dashoffset: 289; transition: stroke-dashoffset 0.5s ease-out; filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.8)); }
+#familiar-avatar { width: 90%; height: 90%; object-fit: cover; border-radius: 50%; }
+#familiar-speech { position: absolute; bottom: 140px; right: 10px; background: rgba(8, 8, 10, 0.85); border: 1px solid #bf953f; color: #fcf6ba; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; white-space: nowrap; opacity: 1; transition: opacity 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+#familiar-speech.hidden { opacity: 0; pointer-events: none; }
