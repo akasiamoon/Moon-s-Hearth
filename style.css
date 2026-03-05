@@ -296,3 +296,94 @@ body.building-mode .furnishing-item:active { cursor: grabbing; }
 body.season-spring .dust-container { background-image: radial-gradient(ellipse, rgba(255, 182, 193, 0.9) 3px, transparent 5px), radial-gradient(ellipse, rgba(255, 105, 180, 0.6) 2px, transparent 4px); animation: petalDrift 20s linear infinite; }
 body.season-autumn .dust-container { background-image: radial-gradient(ellipse, rgba(255, 140, 0, 0.9) 4px, transparent 5px), radial-gradient(ellipse, rgba(200, 50, 0, 0.7) 3px, transparent 4px); animation: leafFall 18s ease-in-out infinite; }
 body.season-winter .dust-container { background-image: radial-gradient(circle, rgba(255, 255, 255, 0.95) 2.5px, transparent 3.5px), radial-gradient(circle, rgba(255, 255, 255, 0.7) 1.5px, transparent 2.5px); animation: snowFall 22s linear infinite; }
+
+/* === THE INTERACTIVE APPRENTICE MAP === */
+#map-portal-container {
+    position: relative;
+    width: 100%;
+    /* Maximize height but keep it manageable */
+    height: calc(80vh - 50px); 
+    background: #100c09;
+    border: 2px solid #bf953f;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    overflow: hidden;
+    cursor: crosshair; /* Shows they can click to add */
+}
+
+#active-quest-map {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Shows the full map without cropping */
+    opacity: 0.9;
+    transition: opacity 0.3s;
+}
+
+/* The glowing quest markers */
+.quest-marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #bf953f; /* Default Common color */
+    border: 2px solid #fff;
+    box-shadow: 0 0 10px #fcf6ba, 0 0 20px #bf953f;
+    transform: translate(-50%, -50%); /* Center the marker on the click */
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 10;
+}
+
+.quest-marker:hover {
+    transform: translate(-50%, -50%) scale(1.3);
+    box-shadow: 0 0 15px #fff, 0 0 30px #fcf6ba;
+}
+
+/* Completed quests turn into faded skulls */
+.quest-marker.completed {
+    background: rgba(100,100,100,0.5) !important;
+    border-color: rgba(200,200,200,0.3) !important;
+    box-shadow: none !important;
+    opacity: 0.6;
+}
+.quest-marker.completed::after {
+    content: '💀';
+    font-size: 14px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Marker Colors based on Difficulty */
+.quest-marker.elite { background: #4facfe; box-shadow: 0 0 10px #00f2fe, 0 0 20px #4facfe; }
+.quest-marker.boss  { background: #ff6b6b; box-shadow: 0 0 10px #ff9f43, 0 0 20px #ff6b6b; }
+.quest-marker.boss::after { content: '👾'; font-size: 12px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+
+
+/* The pop-up scroll that appears when you click a marker */
+#map-quest-scroll {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150%); /* Hidden by default */
+    width: 80%;
+    max-width: 400px;
+    background: #e3dcc5; /* Parchment color */
+    color: #332211;
+    border: 2px solid #664422;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 100;
+    font-family: 'Athelas', 'Georgia', serif;
+}
+
+#map-quest-scroll.active { transform: translateX(-50%) translateY(0); }
+
+#map-quest-scroll::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 10px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 4px 4px 0 0;
+}
