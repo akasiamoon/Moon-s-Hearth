@@ -743,28 +743,37 @@ async function buildLedgerHTML() {
     return html + `</div>`;
 }
 
-// --- INTERACTIVE APPRENTICE QUEST MAP (UPGRADE) ---
-let currentApprentice = localStorage.getItem('active_apprentice') || 'Student 1';
+// --- THE MASTER APPRENTICE HUB (ROSTER, MAP, & LOGS) ---
+let currentApprentice = localStorage.getItem('active_apprentice') || '';
 let selectedMapQuest = null; 
 
 async function buildApprenticeHTML() {
-    let html = `<h2 class="gold-text">Curriculum Map</h2><div class="portal-scroll-container" style="padding:0; overflow:hidden;">`;
+    let html = `<h2 class="gold-text">Apprentice Hub</h2><div class="portal-scroll-container" style="padding-right:15px;">`;
     
-    // --- MAP CONTROLS & APPRENTICE ROSTER ---
-    // In a future update, we can load a real roster from a 'roster' table.
-    const rosterFallback = ['Student 1', 'Student 2']; 
-    
-    html += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-bottom:1px solid rgba(191,149,63,0.3);">
-                <select class="portal-input" style="width: auto; margin:0;" onchange="switchApprenticeMap(this.value)">
-                    ${rosterFallback.map(name => `<option value="${name}" ${name === currentApprentice ? 'selected' : ''}>${name}</option>`).join('')}
+    // --- 1. THE ROSTER ---
+    const roster = await loadData('apprentice_roster');
+    if (roster.length > 0 && !roster.find(r => r.name === currentApprentice)) {
+        currentApprentice = roster[0].name;
+        localStorage.setItem('active_apprentice', currentApprentice);
+    }
+
+    let rosterOpts = roster.length ? roster.map(r => `<option value="${r.name}" ${r.name === currentApprentice ? 'selected' : ''}>${r.name}</option>`).join('') : `<option value="">No apprentices yet...</option>`;
+
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border:1px solid rgba(191,149,63,0.3); border-radius:4px; margin-bottom:20px;">
+                <select class="portal-input" style="width: 65%; margin:0; font-weight:bold; color:#fcf6ba;" onchange="switchApprenticeMap(this.value)">
+                    ${rosterOpts}
                 </select>
-                <button onclick="addApprenticeToRoster()" class="action-btn" style="color:#bf953f;">+ Add Apprentice</button>
+                <button onclick="addNewApprentice()" class="portal-btn" style="padding: 8px; font-size:0.8em; color:#8fce00; border-color:#8fce00;">+ Add Kid</button>
              </div>`;
 
-    // --- 🗺️ THE CLICKABLE MAP CANVAS ---
-    html += `<div id="map-portal-container" onclick="mapClickAction(event)">
-               <img src="quest_map.jpg" id="active-quest-map" alt="Curriculum Map">
-                
+    if (!currentApprentice) {
+        return html + `<p style="text-align:center; color:rgba(191,149,63,0.5); font-style:italic;">Please add an apprentice to your roster to begin.</p></div>`;
+    }
+
+    // --- 2. THE MAP (Always visible so coordinate math doesn't break!) ---
+    html += `<h3 style="color:#bf953f; font-family:'Cinzel'; margin: 0 0 10px 0; border-bottom:1px dashed rgba(191,149,63,0.3); padding-bottom:5px;">🗺️ Active Quests</h3>
+             <div id="map-portal-container" onclick="mapClickAction(event)" style="margin-bottom: 25px;">
+                <img src="quest_map.jpg" id="active-quest-map" alt="Curriculum Map">
                 <div id="marker-layer"></div>
                 
                 <div id="map-quest-scroll">
@@ -772,68 +781,136 @@ async function buildApprenticeHTML() {
                     <div id="scroll-subject-badge" class="subject-badge" style="background:#8fce00; color:#000; font-weight:bold; font-size:0.8em; margin-bottom:10px;"></div>
                     <h3 id="scroll-quest-title" style="font-family:'Cinzel', serif; color:#332211; margin:0 0 10px 0;"></h3>
                     <div id="scroll-xp-reward" style="font-weight:bold; color:#664422; margin-bottom:15px; border-bottom:1px solid #c9b089; padding-bottom:10px;"></div>
-                    
                     <div style="display:flex; gap:10px;">
                         <button id="complete-quest-btn" class="portal-btn" style="background:#8fce00; color:#000; border-color:#668800; flex:2;">Complete Quest</button>
                         <button id="delete-quest-btn" class="portal-btn" style="background:#ff6b6b; color:#000; border-color:#aa3333; flex:1;">Abandon</button>
                     </div>
                 </div>
              </div>`;
-             
-    // --- LOAD MAP MARKERS (Runs AFTER the HTML is on the screen) ---
+
+    // --- 3. ATTENDANCE & WORK LOGS ---
+    html += `<div class="section-header closed" onclick="toggleSection(this)">Attendance & Work Logs</div>
+             <div class="section-panel closed">
+                
+                <div style="background: rgba(8, 8, 10, 0.6); padding: 15px; border-radius: 4px; border: 1px solid rgba(191, 149, 63, 0.3); margin-top: 10px; margin-bottom: 20px;">
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <select id="log-type" class="portal-input" style="flex:1; cursor:pointer;">
+                            <option value="✅ Attendance">✅ Attendance</option>
+                            <option value="📝 Note">📝 Note / Observation</option>
+                            <option value="📸 Work Upload">📸 Work Upload</option>
+                        </select>
+                    </div>
+                    <textarea id="log-text" placeholder="Details (e.g., Present, Mastered fractions...)" class="portal-input" style="height: 60px; resize: none; margin-bottom: 10px;"></textarea>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(0,0,0,0.4); padding:10px; border:1px dashed rgba(191,149,63,0.3); border-radius:4px;">
+                        <label for="log-image" class="custom-file-label" style="margin:0;">Attach Photo of Work</label>
+                        <input type="file" id="log-image" accept="image/*" onchange="document.getElementById('log-file-status').innerText = this.files[0].name">
+                        <span id="log-file-status" style="font-size:0.8em; color:#bf953f; font-style:italic; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">No file chosen</span>
+                    </div>
+                    <button onclick="addApprenticeLog()" class="portal-btn" style="width: 100%;">Save Log for ${currentApprentice}</button>
+                </div>`;
+                
+    // Render the past logs!
+    const logs = await loadData('apprentice_logs');
+    const activeLogs = logs.filter(l => l.apprentice_name === currentApprentice);
+    
+    if (activeLogs.length === 0) html += `<p style="color:rgba(191,149,63,0.5); font-style:italic; text-align:center;">No logs recorded yet.</p>`;
+    
+    activeLogs.forEach(log => {
+        const dateStr = new Date(log.created_at).toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
+        const imgHtml = log.image_url ? `<img src="${log.image_url}" style="width:100%; max-height:300px; object-fit:contain; margin-top:10px; border-radius:4px; border:1px solid rgba(191,149,63,0.3); background:rgba(0,0,0,0.5);">` : '';
+        html += `<div class="alchemy-card" style="position:relative; margin-bottom:12px;">
+                    <button class="action-btn" style="position:absolute; top:10px; right:10px; color:#ff6b6b; font-size:16px;" onclick="removeData('apprentice_logs', '${log.id}'); openPortal('apprentice');">✕</button>
+                    <div style="font-size:0.85em; color:#bf953f; font-weight:bold; margin-bottom:5px; border-bottom:1px dashed rgba(191,149,63,0.3); padding-bottom:5px;">${log.log_type} • <span style="color:#d4c8a8; font-weight:normal;">${dateStr}</span></div>
+                    <div style="color:#e0e0e0; white-space:pre-wrap; font-size:0.95em;">${log.text_content}</div>
+                    ${imgHtml}
+                 </div>`;
+    });
+
+    html += `</div>`;
+
     setTimeout(loadMapMarkers, 50); 
-             
     return html + `</div>`;
 }
 
-// === INTERACTIVE MAP HELPER FUNCTIONS ===
+// === ROSTER HELPER ===
+window.addNewApprentice = async function() {
+    const name = prompt("Enter the Apprentice's name:");
+    if (name && name.trim() !== '') {
+        await insertData('apprentice_roster', { name: name.trim() });
+        currentApprentice = name.trim();
+        localStorage.setItem('active_apprentice', currentApprentice);
+        openPortal('apprentice');
+    }
+};
 
 window.switchApprenticeMap = function(name) {
     currentApprentice = name; localStorage.setItem('active_apprentice', name);
-    openPortal('apprentice'); // Reload the portal
+    openPortal('apprentice'); 
 };
 
-// 1. Calculate clicked coordinates and show the 'Assign Quest' prompt
+// === LOG HELPER ===
+window.addApprenticeLog = async function() {
+    const type = document.getElementById('log-type').value;
+    const text = document.getElementById('log-text').value.trim();
+    const fileInput = document.getElementById('log-image');
+    
+    if (!text && fileInput.files.length === 0) return alert("Please add a note or attach an image.");
+    
+    let imageUrl = null;
+    if (fileInput.files.length > 0) {
+        imageUrl = await uploadImageToSupabase(fileInput.files[0], 'work', 'log-file-status');
+    }
+
+    await insertData('apprentice_logs', { 
+        apprentice_name: currentApprentice,
+        log_type: type,
+        text_content: text,
+        image_url: imageUrl
+    });
+    
+    feedFamiliar();
+    openPortal('apprentice');
+};
+
+// === MAP HELPERS ===
 window.mapClickAction = function(e) {
-    // If they clicked a marker or the scroll, don't trigger a new assignment
     if (e.target.classList.contains('quest-marker') || e.target.id === 'map-quest-scroll' || e.target.closest('#map-quest-scroll')) return;
 
     const container = document.getElementById('map-portal-container');
     const rect = container.getBoundingClientRect();
-    // Get click location as percentage (0-100) for responsiveness
+    
+    // Prevent math crash if rect is 0 (shouldn't happen now that map isn't in an accordion)
+    if(rect.width === 0) return;
+
     const posX = ((e.clientX - rect.left) / rect.width) * 100;
     const posY = ((e.clientY - rect.top) / rect.height) * 100;
     
-    closeMapScroll(); // Close any open scroll first
+    closeMapScroll(); 
 
-    // Inject the assignment prompt *right into* the map's scroll popup!
     const scroll = document.getElementById('map-quest-scroll');
     scroll.innerHTML = `
         <button class="action-btn" style="position:absolute; top:5px; right:10px; color:#ff6b6b; font-size:1.4em;" onclick="closeMapScroll()">✕</button>
-        <h3 style="font-family:'Cinzel', serif; color:#332211; margin:0 0 15px 0;">Assign Quest to ${currentApprentice}</h3>
-        
-        <input type="text" id="map-inp-title" placeholder="Quest Name (e.g. Solve Fractions)..." class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; margin-bottom:10px;">
-        
+        <h3 style="font-family:'Cinzel', serif; color:#332211; margin:0 0 15px 0;">Assign to ${currentApprentice}</h3>
+        <input type="text" id="map-inp-title" placeholder="Quest Name (e.g. Fractions)..." class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; margin-bottom:10px;">
         <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <select id="map-inp-subject" class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; flex:2; cursor:pointer;">
+            <select id="map-inp-subject" class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; flex:2;">
                 <option value="🧮 Math">🧮 Math</option>
                 <option value="📚 Reading">📚 Reading</option>
                 <option value="🧪 Science">🧪 Science</option>
                 <option value="🎨 Art">🎨 Art</option>
                 <option value="🧹 Chores">🧹 Chores</option>
             </select>
-            <select id="map-inp-diff" class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; flex:1; cursor:pointer;">
+            <select id="map-inp-diff" class="portal-input" style="background:#fcfaf0; border-color:#c9b089; color:#332211; flex:1;">
                 <option value="Common">Common</option>
                 <option value="Elite">Elite</option>
                 <option value="Boss">Boss</option>
             </select>
         </div>
-        
-        <input type="hidden" id="map-inp-x" value="${posX}">
-        <input type="hidden" id="map-inp-y" value="${posY}">
+        <input type="hidden" id="map-inp-x" value="${posX}"><input type="hidden" id="map-inp-y" value="${posY}">
         <button onclick="saveQuestMarker()" class="portal-btn" style="width:100%; background:#bf953f; color:#fff; border-color:#664422;">Seal Quest</button>
     `;
-    scroll.classList.add('active'); // Show the scroll
+    scroll.classList.add('active'); 
 };
 
 window.closeMapScroll = function() {
@@ -842,7 +919,6 @@ window.closeMapScroll = function() {
     selectedMapQuest = null; 
 };
 
-// 2. Save the new marker coordinates to the cloud
 window.saveQuestMarker = async function() {
     const title = document.getElementById('map-inp-title').value.trim();
     if (!title) return alert("The quest needs a title!");
@@ -851,91 +927,59 @@ window.saveQuestMarker = async function() {
         apprentice_name: currentApprentice,
         subject: document.getElementById('map-inp-subject').value,
         difficulty: document.getElementById('map-inp-diff').value,
-        text: title, // Re-using the generic text field from insertData logic
+        text: title, 
         is_completed: false,
         pos_x: parseFloat(document.getElementById('map-inp-x').value),
         pos_y: parseFloat(document.getElementById('map-inp-y').value)
     });
     
     closeMapScroll();
-    openPortal('apprentice'); // Refresh to show the new marker
+    openPortal('apprentice'); 
 };
 
-// 3. Load markers from cloud and drop them onto the canvas
 window.loadMapMarkers = async function() {
     const layer = document.getElementById('marker-layer');
     if (!layer) return;
-    layer.innerHTML = ''; // Clear existing markers
+    layer.innerHTML = ''; 
 
     const allQuests = await loadData('apprentice_map_quests');
-    // Only show quests for the active apprentice
     const activeQuests = allQuests.filter(q => q.apprentice_name === currentApprentice);
 
     activeQuests.forEach(quest => {
+        if(!quest.pos_x || !quest.pos_y) return; // Skip broken markers
         const marker = document.createElement('div');
         marker.className = `quest-marker ${quest.difficulty.toLowerCase()}`;
         if (quest.is_completed) marker.classList.add('completed');
         
-        // Apply the percentage coordinates
         marker.style.left = `${quest.pos_x}%`;
         marker.style.top = `${quest.pos_y}%`;
-        
-        // When clicked, open the detail scroll for this quest
         marker.onclick = (e) => { e.stopPropagation(); openQuestDetail(quest); };
         
         layer.appendChild(marker);
     });
 };
 
-// 4. Show the parchment scroll details for an existing quest
 window.openQuestDetail = function(quest) {
-    selectedMapQuest = quest; // Lock this quest as selected
-    
+    selectedMapQuest = quest; 
     const scroll = document.getElementById('map-quest-scroll');
-    const title = document.getElementById('scroll-quest-title');
-    const badge = document.getElementById('scroll-subject-badge');
-    const xp = document.getElementById('scroll-xp-reward');
-    const completeBtn = document.getElementById('complete-quest-btn');
-    const deleteBtn = document.getElementById('delete-quest-btn');
-    
-    // Reset buttons and text
-    scroll.innerHTML = ''; // Clear assignment form
-    scroll.innerHTML = `<button class="action-btn" style="position:absolute; top:5px; right:10px; color:#ff6b6b; font-size:1.4em;" onclick="closeMapScroll()">✕</button><div id="scroll-subject-badge" class="subject-badge" style="background:#8fce00; color:#000; font-weight:bold; font-size:0.8em; margin-bottom:10px;"></div><h3 id="scroll-quest-title" style="font-family:'Cinzel', serif; color:#332211; margin:0 0 10px 0;"></h3><div id="scroll-xp-reward" style="font-weight:bold; color:#664422; margin-bottom:15px; border-bottom:1px solid #c9b089; padding-bottom:10px;"></div><div style="display:flex; gap:10px;"><button id="complete-quest-btn" class="portal-btn" style="background:#8fce00; color:#000; border-color:#668800; flex:2;">Complete Quest</button><button id="delete-quest-btn" class="portal-btn" style="background:#ff6b6b; color:#000; border-color:#aa3333; flex:1;">Abandon</button></div>`;
+    scroll.innerHTML = `<button class="action-btn" style="position:absolute; top:5px; right:10px; color:#ff6b6b; font-size:1.4em;" onclick="closeMapScroll()">✕</button><div id="scroll-subject-badge" class="subject-badge" style="background:#8fce00; color:#000; font-weight:bold; font-size:0.8em; margin-bottom:10px;">${quest.subject}</div><h3 id="scroll-quest-title" style="font-family:'Cinzel', serif; color:#332211; margin:0 0 10px 0;">${quest.text}</h3><div id="scroll-xp-reward" style="font-weight:bold; color:#664422; margin-bottom:15px; border-bottom:1px solid #c9b089; padding-bottom:10px;">Reward: +${quest.difficulty === 'Boss' ? 50 : (quest.difficulty === 'Elite' ? 25 : 10)} XP</div><div style="display:flex; gap:10px;"><button id="complete-quest-btn" class="portal-btn" style="background:#8fce00; color:#000; border-color:#668800; flex:2;">Complete Quest</button><button id="delete-quest-btn" class="portal-btn" style="background:#ff6b6b; color:#000; border-color:#aa3333; flex:1;">Abandon</button></div>`;
 
-    // Re-select elements (needed because we just rewrote innerHTML)
-    const newTitle = document.getElementById('scroll-quest-title');
-    const newBadge = document.getElementById('scroll-subject-badge');
-    const newXp = document.getElementById('scroll-xp-reward');
-    const newCompleteBtn = document.getElementById('complete-quest-btn');
-    const newDeleteBtn = document.getElementById('delete-quest-btn');
-
-    newTitle.innerText = quest.text;
-    newBadge.innerText = quest.subject;
-    
-    // Calculate XP reward
-    const xpVal = quest.difficulty === 'Boss' ? 50 : (quest.difficulty === 'Elite' ? 25 : 10);
-    newXp.innerText = `Reward: +${xpVal} XP`;
-    
-    // Set up button actions
-    newCompleteBtn.onclick = async () => {
+    document.getElementById('complete-quest-btn').onclick = async () => {
         if (selectedMapQuest) {
             await updateData('apprentice_map_quests', selectedMapQuest.id, { is_completed: true });
-            feedFamiliar();
-            closeMapScroll();
-            openPortal('apprentice'); 
+            feedFamiliar(); closeMapScroll(); openPortal('apprentice'); 
         }
     };
     
-    newDeleteBtn.onclick = async () => {
+    document.getElementById('delete-quest-btn').onclick = async () => {
         if (selectedMapQuest && confirm("Abandon this quest forever?")) {
             await removeData('apprentice_map_quests', selectedMapQuest.id);
-            closeMapScroll();
-            openPortal('apprentice');
+            closeMapScroll(); openPortal('apprentice');
         }
     };
 
-    scroll.classList.add('active'); // Show the scroll
-};
+    scroll.classList.add('active'); 
+};;
 
 // --- SEWING & WORKSHOP (UPGRADED WITH IMAGES) ---
 
