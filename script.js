@@ -599,6 +599,37 @@ window.startForging = async function(input) {
     const originalText = label.innerText;
     label.innerText = "✨ Weaving Background into the Cloud...";
 
+    // === THE MISSING IMAGE RESIZER ===
+window.resizeImage = function(file, maxWidth, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Only resize if it's wider than our max width
+            if (width > maxWidth) {
+                height = Math.round((height *= maxWidth / width));
+                width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Compress and return the new smaller file
+            canvas.toBlob((blob) => {
+                callback(blob);
+            }, file.type || 'image/jpeg', 0.85);
+        };
+    };
+};
+    
     // Upload the background straight to Supabase
     const bgUrl = await uploadImageToSupabase(input.files[0], 'trophy_bg', label.id);
     
