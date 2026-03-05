@@ -806,21 +806,23 @@ window.saveForgedRoom = async function() {
     const roomName = document.getElementById('forge-room-name').value.trim();
     if(!roomName) return alert("The Architect must name this chamber!");
 
-    // 1. Save the Room Background
-    const roomId = Date.now().toString();
-    await insertData('trophy_rooms', {
-        id: roomId,
+    // 1. Create the room object WITHOUT a fake ID
+    let newRoom = {
         name: roomName,
         bg_url: draftBgUrl
-    });
+    };
+    
+    // 2. Wait for the cloud to save it and give us the REAL ID back
+    await insertData('trophy_rooms', newRoom);
+    const actualRoomId = newRoom.id; // Capture the real, permanent ID!
 
-    // 2. Save all the Furniture Placements
+    // 3. Save all the Furniture Placements using the REAL ID
     const layer = document.getElementById('furnishing-layer');
     const items = layer.querySelectorAll('.furnishing-item');
 
     for (let item of items) {
         await insertData('trophy_furnishings', {
-            room_id: roomId,
+            room_id: actualRoomId,
             image_url: item.src,
             pos_x: item.style.left,
             pos_y: item.style.top,
@@ -829,6 +831,12 @@ window.saveForgedRoom = async function() {
         });
     }
 
+    // 4. Officially tell the browser you are INSIDE the room
+    localStorage.setItem('active_trophy_id', actualRoomId);
+    localStorage.setItem('active_trophy_bg', draftBgUrl);
+
+    exitForge();
+};
     // THE FIX: Officially tell the browser you are INSIDE the room you just built!
     localStorage.setItem('active_trophy_id', roomId);
     localStorage.setItem('active_trophy_bg', draftBgUrl);
