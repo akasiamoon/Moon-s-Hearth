@@ -571,34 +571,108 @@ async function loadToolboxStash() {
     `).join('');
 }
 
+// === ARCHITECT'S FORGE: PHYSICS & SCALE ===
+
 window.spawnToForge = function(imageUrl) {
     const layer = document.getElementById('furnishing-layer');
+    if(!layer) return;
+
     const img = document.createElement('img');
     img.src = imageUrl; 
     img.className = 'furnishing-item';
-    img.style.cssText = `position:absolute; left:50%; top:50%; cursor:grab; transform:translate(-50%, -50%) scale(1); z-index:200; pointer-events:auto;`;
+    
+    // Force the PNG to be interactive and on top
+    img.style.cssText = `
+        position: absolute; 
+        left: 50%; 
+        top: 50%; 
+        cursor: grab; 
+        transform: translate(-50%, -50%) scale(1); 
+        z-index: 100; 
+        pointer-events: auto;
+        transition: filter 0.2s;
+    `;
+    
     img.dataset.scale = 1;
     img.onmousedown = window.selectItemForEdit;
+    
     layer.appendChild(img);
     
+    // Auto-focus the new item
     window.editingItem = img;
-    document.getElementById('item-controls').style.display = 'block';
+    applySelectionGlow(img);
 };
 
-// 4. Drag & Drop Helpers
 window.selectItemForEdit = function(e) { 
     if (!window.isForging) return; 
     e.preventDefault(); 
+    
+    // 1. Set the active item
     window.editingItem = e.target; 
-    document.onmousemove = (e) => {
+    applySelectionGlow(window.editingItem);
+    
+    // 2. Update the slider to match this item's current scale
+    const currentScale = window.editingItem.dataset.scale || 1;
+    const slider = document.getElementById('forge-scale');
+    if (slider) {
+        slider.value = currentScale;
+        document.getElementById('scale-readout').innerText = currentScale + 'x';
+    }
+
+    // 3. Start the Drag Physics
+    window.editingItem.style.cursor = 'grabbing';
+    
+    const moveX = (e) => {
         if(window.editingItem) {
             window.editingItem.style.left = e.clientX + 'px';
             window.editingItem.style.top = e.clientY + 'px';
         }
     };
-    document.onmouseup = () => { document.onmousemove = null; };
+    
+    const stopX = () => {
+        if(window.editingItem) window.editingItem.style.cursor = 'grab';
+        document.removeEventListener('mousemove', moveX);
+        document.removeEventListener('mouseup', stopX);
+    };
+
+    document.addEventListener('mousemove', moveX);
+    document.addEventListener('mouseup', stopX);
 };
 
+// Selection Glow helper
+function applySelectionGlow(selectedImg) {
+    document.querySelectorAll('.furnishing-item').forEach(img => {
+        img.style.filter = 'none';
+    });
+    selectedImg.style.filter = 'drop-shadow(0 0 10px #bf953f)';
+    document.getElementById('item-controls').style.display = 'block';
+}
+
+// === THE RESIZE LISTENER ===
+// Run this once when the script loads to bind the slider
+document.addEventListener('DOMContentLoaded', () => {
+    const scaleSlider = document.getElementById('forge-scale');
+    if (scaleSlider) {
+        scaleSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const readout = document.getElementById('scale-readout');
+            if (readout) readout.innerText = val + 'x';
+            
+            if (window.editingItem) {
+                window.editingItem.style.transform = `translate(-50%, -50%) scale(${val})`;
+                window.editingItem.dataset.scale = val;
+            }
+        });
+    }
+});
+
+window.deleteSelected = function() {
+    if (window.editingItem) {
+        window.editingItem.remove();
+        window.editingItem = null;
+        document.getElementById('item-controls').style.display = 'none';
+    }
+};
 // 5. THE MASTER SAVE (sealTrophy)
 window.sealTrophy = async function() {
     const name = document.getElementById('trophy-name').value.trim();
